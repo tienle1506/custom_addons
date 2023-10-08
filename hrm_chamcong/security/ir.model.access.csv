@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_datn_hr_chamcong_create_edit,datn_hr_chamcong_create_edit,model_datn_hr_chamcong,hrm_user_demo,1,1,1,1
+access_datn_hr_chamcong_line_create_edit,datn_hr_chamcong_line_create_edit,model_datn_hr_chamcong_line,hrm_user_demo,1,1,1,1
