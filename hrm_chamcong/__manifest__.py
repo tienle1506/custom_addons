@@ -26,6 +26,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'views/datn_chamcong.xml',
         'views/menu_item.xml',
     ],
     # only loaded in demonstration mode
