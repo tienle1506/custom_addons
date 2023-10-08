@@ -1,0 +1,14 @@
+<odoo>
+
+     <menuitem id="menu_chamcong" name="Quản lý chấm công"
+               parent="hrm.menu_field" sequence="4"
+               groups="hrm_user_demo">
+     </menuitem>
+    <menuitem id="menu_item_chamcong"
+              name='Chấm công tháng'
+              parent="menu_chamcong"
+              sequence="1"
+              groups="hrm_user_demo">
+    </menuitem>
+
+</odoo>
