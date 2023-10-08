@@ -1,0 +1,12 @@
+<odoo>
+    <record id="module_hrm_chamcong" model="ir.module.category">
+        <field name="name">HRM Chấm công</field>
+        <field name="sequence">-110</field>
+    </record>
+
+    <record id="hrm_user_demo" model="res.groups">
+        <field name="name">Full quyền</field>
+        <field name="category_id" ref="module_hrm_chamcong"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+</odoo>

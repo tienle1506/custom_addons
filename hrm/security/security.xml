@@ -1,6 +1,6 @@
 <odoo>
     <record id="module_hrm" model="ir.module.category">
-        <field name="name">HRMS</field>
+        <field name="name">HRM</field>
         <field name="sequence">-100</field>
     </record>
 
