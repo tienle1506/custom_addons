@@ -20,14 +20,16 @@
     'application': True,
     'sequence': -100,
     # any module necessary for this one to work correctly
-    'depends': ['base', 'utm', 'mail', 'hrm'],
+    'depends': ['hrm'],
 
     # always loaded
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
         'views/datn_chamcong.xml',
+        'views/datn_checkin_checkout.xml',
         'views/menu_item.xml',
+
     ],
     # only loaded in demonstration mode
     'demo': [
