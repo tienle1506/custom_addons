@@ -13,6 +13,9 @@ class EmployeeProfile(models.Model):
 
     def loaf_face_ai_user_new(self):
         cam = cv2.VideoCapture(0)
+        # Tạo một cửa sổ pop-up mới và di chuyển nó lên đầu tiên
+        cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty('frame', cv2.WND_PROP_TOPMOST, 1)
         detector = cv2.CascadeClassifier('custom_addons/hrm_face_ai/views/haarcascade_frontalface_alt.xml')
         sampleNum = 0
         id = self.id
