@@ -2,17 +2,15 @@
 <odoo>
     <data>
 
-
         <record id="datn_hr_chamcong_tree" model="ir.ui.view">
             <field name="name">Bảng chấm công tháng</field>
             <field name="model">datn.hr.chamcong</field>
             <field name="arch" type="xml">
-                <tree class="widget-department-tree"
+                <tree class="widget-block-tree"
                       decoration-info="state=='draft'"
-                      default_order="month_year_chuky desc, department_id">
-                    <field name="department_id"/>
+                      default_order="block_id">
+                    <field name="block_id"/>
                     <field name="name" string="Tên bảng chấm công"/>
-                    <field name="month_year_chuky" widget="month_year"/>
                     <field name="date_from" invisible="1"/>
                     <field name="date_to" invisible="1"/>
                     <field name="state"/>
@@ -20,15 +18,236 @@
             </field>
         </record>
 
+        <record id="datn_hr_chamcong_form" model="ir.ui.view">
+            <field name="name">Bảng chấm công tháng</field>
+            <field name="model">datn.hr.chamcong</field>
+            <field name="arch" type="xml">
+                <form class="bangchamcong fixed-scrollbar">
+                     <style>
+                        .o_view_controller {
+                            overflow: scroll !important;
+                        }
+                        .o_content {
+                            overflow: unset !important;
+                        }
+                        .color_tree_row .o_list_view.table td:nth-of-type(1),
+                        .color_tree_row .o_list_view.table th:nth-of-type(1) {
+                            z-index: 10;
+                        }
+                        .fl-scrolls[data-orientation="horizontal"], .fl-scrolls:not([data-orientation]) {
+                            bottom: 0;
+                            min-height: 17px;
+                            z-index: 100000;
+                        }
+                        .o_form_view .o_field_widget .o_list_view > tfoot > tr > td {
+                            background: #f7f8f9;
+                        }
+                        body {font-family: Arial, Helvetica, sans-serif;}
 
-        <record id="chamcong" model="ir.actions.act_window">
-            <field name="name">Chấm công</field>
+                        /* The Modal (background) */
+                        .modal1 {
+                            display: none;
+                            position: fixed;
+                            z-index: 1000000;
+                            padding: 100px 0 30px 0;
+                            left: 0;
+                            right: 0;
+                            top: 0;
+                            bottom: 0;
+                            width: 100%;
+                            height: 100%;
+                            overflow: auto;
+                            background-color: rgb(0,0,0);
+                            background-color: rgba(0,0,0,0.4);
+                        }
+
+                        /* Modal Content */
+                        .modal-content {
+                            background-color: #fefefe;
+                            margin: auto;
+                            padding: 20px;
+                            border: 1px solid #888;
+                            width: 80%;
+                        }
+
+                        /* The Close Button */
+                        .close {
+                            color: #463d3d!important;
+                            float: right;
+                            font-size: 28px;
+                            font-weight: bold;
+                            opacity: 1;
+                        }
+
+                        .close:hover,
+                        .close:focus {
+                            color: #000;
+                            text-decoration: none;
+                            cursor: pointer;
+                        }
+                        .select_kyhieucc select {
+                            -webkit-appearance: none;
+                            -moz-appearance: none;
+                            text-indent: 1px;
+                            text-overflow: '';
+                        }
+                        body.o_web_client {
+                            overflow-y: hidden;
+                        }
+                    </style>
+                    <group invisible="1">
+                        <field name="name" string="Tên bảng chấm công" invisible="1"
+                               />
+                    </group>
+                    <group>
+                        <field name="block_id"
+                               options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
+                                class="donvi_chamcong"/>
+                    </group>
+
+                    <group>
+                        <group class="date_cc">
+                            <label for="date_from" string="Chu kỳ chấm công"/>
+                            <div>
+                                <field name="date_from"
+                                       class="date1 oe_inline"/>
+                                -
+                                <field name="date_to"
+                                       class="date2 oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="create_date" widget="date" string="Ngày tạo"
+                                   attrs="{'invisible': [('id','=',False)]}"
+                                   style="max-width: 200px;" readonly="1" force_save="1"/>
+                        </group>
+                    </group>
+
+                    <group col="4" invisible="1">
+                        <field name="is_show_ngay29" invisible="1"/>
+                        <field name="is_show_ngay30" invisible="1"/>
+                        <field name="is_show_ngay31" invisible="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Bảng chấm công tháng" name="data_timesheet">
+                            <field name="item_ids"
+                                   widget="one2many_list">
+                                <tree editable="bottom" create="true" open="false"
+                                      class="color_tree_row tbl_bangchamcong"
+                                      datn_fixheader="true" tableFixer="left" fixColumn="2"
+                                      default_order="employee_id ASC" limit="100">
+                                    <field name="employee_id"
+                                           options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
+                                    />
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="cong_chuan" invisible="1"/>
+                                    <field name="ngay_cong" invisible="1"/>
+                                    <field name="ngay1" />
+                                    <field name="ngay2" />
+                                    <field name="ngay3" />
+                                    <field name="ngay4" />
+                                    <field name="ngay5" />
+                                    <field name="ngay6" />
+                                    <field name="ngay7" />
+                                    <field name="ngay8" />
+                                    <field name="ngay9" />
+                                    <field name="ngay10"/>
+                                    <field name="ngay11" />
+                                    <field name="ngay12" />
+                                    <field name="ngay13" />
+                                    <field name="ngay14" />
+                                    <field name="ngay15" />
+                                    <field name="ngay16" />
+                                    <field name="ngay17" />
+                                    <field name="ngay18" />
+                                    <field name="ngay19" />
+                                    <field name="ngay20" />
+                                    <field name="ngay21" />
+                                    <field name="ngay22" />
+                                    <field name="ngay23" />
+                                    <field name="ngay24" />
+                                    <field name="ngay25" />
+                                    <field name="ngay26" />
+                                    <field name="ngay27" />
+                                    <field name="ngay28" />
+                                    <field name="ngay29"
+                                           attrs="{'column_invisible': [('parent.is_show_ngay29','=', False)]}"/>
+                                    <field name="ngay30"
+                                           attrs="{'column_invisible': [('parent.is_show_ngay30','=', False)]}"/>
+                                    <field name="ngay31"
+                                           attrs="{'column_invisible': [('parent.is_show_ngay31','=', False)]}"/>
+                                    <field name="day_of_month" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </form>
+            </field>
+        </record>
+
+        <record id="datn_hr_chamcong_search" model="ir.ui.view">
+            <field name="name">Bảng chấm công tháng</field>
+            <field name="model">datn.hr.chamcong</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name" string="Tên bảng chấm công"/>
+
+                </search>
+            </field>
+        </record>
+
+        <record id="datn_hr_chamcong_action" model="ir.actions.act_window">
+            <field name="name">Bảng chấm công tháng</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">datn.hr.chamcong</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_ids" eval="[(5, 0, 0),
-                (0, 0, {'view_mode': 'tree', 'view_id': ref('datn_hr_chamcong_tree')})]"/>
+            <field name="context">{'search_default_current_year':1, 'view_from_action': 'datn_hr_chamcong'}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Nhập các tiêu chí để tìm kiếm thông tin Bảng chấm công.
+                </p>
+                <p>
+                    Nhập các tiêu chí tìm kiếm liên quan đến đơn vị bạn muốn tìm và nhấn Enter hoặc click vào nút Tìm
+                    kiếm. Trong giới hạn quyền dữ liệu được cấp cho tài khoản, bạn có thể dễ dàng tìm thấy tất cả thông
+                    tin bạn cần
+                </p>
+            </field>
         </record>
 
+        <record model="ir.actions.act_window.view" id="datn_hr_chamcong_tree_action">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="datn_hr_chamcong_tree"/>
+            <field name="act_window_id" ref="datn_hr_chamcong_action"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="datn_hr_chamcong_form_action">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="datn_hr_chamcong_form"/>
+            <field name="act_window_id" ref="datn_hr_chamcong_action"/>
+        </record>
+
+
+        <record id="action_server_confirmed_datn_hr_chamcong" model="ir.actions.server">
+            <field name="name">Xác nhận lại chấm công</field>
+            <field name="type">ir.actions.server</field>
+            <field name="model_id" ref="model_datn_hr_chamcong"/>
+            <field name="binding_model_id" ref="model_datn_hr_chamcong"/>
+            <field name="state">code</field>
+            <field name="code">
+                if records:
+                    for rec in records:
+                        if rec.state == 'confirmed':
+                            rec.action_draft()
+                            rec.action_confirmed()
+                        else:
+                            rec.action_confirmed()
+            </field>
+        </record>
     </data>
 </odoo>
