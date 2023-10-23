@@ -5,6 +5,7 @@ from odoo.http import request
 import cv2, os
 import numpy as np
 from PIL import Image
+import shutil
 
 
 class EmployeeProfile(models.Model):
@@ -12,6 +13,7 @@ class EmployeeProfile(models.Model):
     _description = 'Bảng thông tin nhân viên'
 
     def loaf_face_ai_user_new(self):
+        FGFGF = self.env.uid
         cam = cv2.VideoCapture(0)
         # Tạo một cửa sổ pop-up mới và di chuyển nó lên đầu tiên
         cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
@@ -83,15 +85,79 @@ class EmployeeProfile(models.Model):
                     Ids.append(Id)
         return faceSamples, Ids
 
+
     def accept_face_ai(self):
-        recognizer = cv2.face.LBPHFaceRecognizer_create()
-        # Lấy các khuôn mặt và ID từ thư mục dataSet
-        faceSamples, Ids = self.getImagesAndLabels('custom_addons/hrm_face_ai/dataSet')
-        # Train model để trích xuất đặc trưng các khuôn mặt và gán với từng nahan viên
-        recognizer.train(faceSamples, np.array(Ids))
-        # Lưu model
-        recognizer.save('custom_addons/hrm_face_ai/recognizer/trainner.yml')
-        print("Trained!")
+        try:
+            # #Code xóa thi thêm mới
+            # recognizer = cv2.face.LBPHFaceRecognizer_create()
+            # # Lấy các khuôn mặt và ID từ thư mục dataSet
+            # faceSamples, Ids = self.getImagesAndLabels('custom_addons/hrm_face_ai/dataSet')
+            # # Train model để trích xuất đặc trưng các khuôn mặt và gán với từng nahan viên
+            # recognizer.train(faceSamples, np.array(Ids))
+            # # Lưu model
+            # recognizer.save('custom_addons/hrm_face_ai/recognizer/trainner.yml')
+
+            model_path = 'custom_addons/hrm_face_ai/recognizer/trainner.yml'
+
+            if os.path.exists(model_path):
+                # Nếu tệp model đã tồn tại, đọc model từ tệp
+                recognizer = cv2.face.LBPHFaceRecognizer_create()
+                recognizer.read(model_path)
+            else:
+                # Nếu tệp model không tồn tại, tạo mới model
+                recognizer = cv2.face.LBPHFaceRecognizer_create()
+
+            # Lấy các khuôn mặt và ID từ thư mục dataSet
+            faceSamples, Ids = self.getImagesAndLabels('custom_addons/hrm_face_ai/dataSet')
+
+            if os.path.exists(model_path):
+                # Nếu tệp model đã tồn tại, ghi thêm vào model hiện có
+                recognizer.update(faceSamples, np.array(Ids))
+            else:
+                # Nếu tệp model không tồn tại, train model từ đầu
+                recognizer.train(faceSamples, np.array(Ids))
+
+            # Lưu model
+            recognizer.save(model_path)
+            #Xóa ảnh
+            folder_path = 'custom_addons/hrm_face_ai/dataSet'
+
+            # Kiểm tra xem thư mục tồn tại
+            if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                # Lặp qua tất cả các file và thư mục trong thư mục
+                for filename in os.listdir(folder_path):
+                    file_path = os.path.join(folder_path, filename)
+                    # Kiểm tra xem nó là tệp tin hay thư mục
+                    if os.path.isfile(file_path):
+                        # Xóa tệp tin
+                        os.remove(file_path)
+                    elif os.path.isdir(file_path):
+                        # Xóa thư mục (với tất cả các tệp tin và thư mục con bên trong)
+                        shutil.rmtree(file_path)
+
+            notification = {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': ('Duyệt chấm công FaceAi!'),
+                    'message': 'Duyệt thành công',
+                    'type': 'success',  # types: success,warning,danger,info
+                    'sticky': False,  # True/False will display for few seconds if false
+                },
+            }
+            return notification
+        except:
+            notification = {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': ('Duyệt chấm công FaceAi!'),
+                    'message': 'Bạn chưa duyệt thành công, vui lòng kiểm tra lại!!',
+                    'type': 'danger',  # types: success,warning,danger,info
+                    'sticky': False,  # True/False will display for few seconds if false
+                },
+            }
+            return notification
 
     def getProfile(self, id):
         SQL = ''
@@ -105,103 +171,117 @@ class EmployeeProfile(models.Model):
         return profile
 
     def chamcong_face_ai(self):
-        # Khởi tạo bộ phát hiện khuôn mặt
-        faceDetect = cv2.CascadeClassifier('custom_addons/hrm_face_ai/views/haarcascade_frontalface_alt.xml')
+        try:
+            # Khởi tạo bộ phát hiện khuôn mặt
+            faceDetect = cv2.CascadeClassifier('custom_addons/hrm_face_ai/views/haarcascade_frontalface_alt.xml')
 
-        # Khởi tạo bộ nhận diện khuôn mặt
-        recognizer = cv2.face.LBPHFaceRecognizer_create()
-        recognizer.read('custom_addons/hrm_face_ai/recognizer/trainner.yml')
+            # Khởi tạo bộ nhận diện khuôn mặt
+            recognizer = cv2.face.LBPHFaceRecognizer_create()
+            recognizer.read('custom_addons/hrm_face_ai/recognizer/trainner.yml')
 
-        id = 0
-        # set text style
-        fontface = cv2.FONT_HERSHEY_SIMPLEX
-        fontscale = 1
-        fontcolor = (0, 255, 0)
-        fontcolor1 = (0, 0, 255)
+            id = 0
+            # set text style
+            fontface = cv2.FONT_HERSHEY_SIMPLEX
+            fontscale = 1
+            fontcolor = (0, 255, 0)
+            fontcolor1 = (0, 0, 255)
 
-        # Hàm lấy thông tin người dùng qua ID
+            # Hàm lấy thông tin người dùng qua ID
 
-        # Khởi tạo camera
-        cam = cv2.VideoCapture(0)
-        check_thoat = False
+            # Khởi tạo camera
+            cam = cv2.VideoCapture(0)
+            check_thoat = False
 
-        # Tạo một cửa sổ pop-up mới và di chuyển nó lên đầu tiên
-        cv2.namedWindow('Face', cv2.WINDOW_NORMAL)
-        cv2.setWindowProperty('Face', cv2.WND_PROP_TOPMOST, 1)
+            # Tạo một cửa sổ pop-up mới và di chuyển nó lên đầu tiên
+            cv2.namedWindow('Face', cv2.WINDOW_NORMAL)
+            cv2.setWindowProperty('Face', cv2.WND_PROP_TOPMOST, 1)
+            name_employee = ''
+            while True:
+                # Đọc ảnh từ camera
+                ret, img = cam.read()
 
-        while True:
-            # Đọc ảnh từ camera
-            ret, img = cam.read()
+                # Lật ảnh cho đỡ bị ngược
+                img = cv2.flip(img, 1)
 
-            # Lật ảnh cho đỡ bị ngược
-            img = cv2.flip(img, 1)
+                # Vẽ khung chữ nhật để định vị vùng người dùng đưa mặt vào
+                centerH = img.shape[0] // 2
+                centerW = img.shape[1] // 2
+                sizeboxW = 300
+                sizeboxH = 400
+                cv2.rectangle(img, (centerW - sizeboxW // 2, centerH - sizeboxH // 2),
+                              (centerW + sizeboxW // 2, centerH + sizeboxH // 2), (255, 255, 255), 5)
 
-            # Vẽ khung chữ nhật để định vị vùng người dùng đưa mặt vào
-            centerH = img.shape[0] // 2
-            centerW = img.shape[1] // 2
-            sizeboxW = 300
-            sizeboxH = 400
-            cv2.rectangle(img, (centerW - sizeboxW // 2, centerH - sizeboxH // 2),
-                          (centerW + sizeboxW // 2, centerH + sizeboxH // 2), (255, 255, 255), 5)
+                # Chuyển ảnh về xám
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-            # Chuyển ảnh về xám
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                # Phát hiện các khuôn mặt trong ảnh camera
+                faces = faceDetect.detectMultiScale(gray, 1.3, 5)
 
-            # Phát hiện các khuôn mặt trong ảnh camera
-            faces = faceDetect.detectMultiScale(gray, 1.3, 5)
+                # Lặp qua các khuôn mặt nhận được để hiện thông tin
+                for (x, y, w, h) in faces:
+                    # Vẽ hình chữ nhật quanh mặt
+                    cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-            # Lặp qua các khuôn mặt nhận được để hiện thông tin
-            for (x, y, w, h) in faces:
-                # Vẽ hình chữ nhật quanh mặt
-                cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                    # Nhận diện khuôn mặt, trả ra 2 tham số id: mã nhân viên và dist (dộ sai khác)
+                    id, dist = recognizer.predict(gray[y:y + h, x:x + w])
 
-                # Nhận diện khuôn mặt, trả ra 2 tham số id: mã nhân viên và dist (dộ sai khác)
-                id, dist = recognizer.predict(gray[y:y + h, x:x + w])
+                    profile = None
 
-                profile = None
+                    # Nếu độ sai khác < 25% thì lấy profile
+                    if dist <= 70:
+                        profile = self.getProfile(id)
 
-                # Nếu độ sai khác < 25% thì lấy profile
-                if dist <= 70:
-                    profile = self.getProfile(id)
+                    # Hiển thị thông tin tên người hoặc Unknown nếu không tìm thấy
+                    if profile is not None:
+                        cv2.putText(img, "Name: " + str(profile['name']), (x, y + h + 30), fontface, fontscale, fontcolor,
+                                    2)
+                        name_employee = str(profile['name'])
+                        check_thoat = True
+                    else:
+                        cv2.putText(img, "Name: Unknown", (x, y + h + 30), fontface, fontscale, fontcolor1, 2)
 
-                # Hiển thị thông tin tên người hoặc Unknown nếu không tìm thấy
-                if profile is not None:
-                    cv2.putText(img, "Name: " + str(profile['name']), (x, y + h + 30), fontface, fontscale, fontcolor,
-                                2)
-                    check_thoat = True
-                else:
-                    cv2.putText(img, "Name: Unknown", (x, y + h + 30), fontface, fontscale, fontcolor1, 2)
+                cv2.imshow('Face', img)
 
-            cv2.imshow('Face', img)
+                # Nếu nhấn q thì thoát
+                if cv2.waitKey(1) == ord('q') or check_thoat:
+                    break
 
-            # Nếu nhấn q thì thoát
-            if cv2.waitKey(1) == ord('q') or check_thoat:
-                break
+            cam.release()
+            cv2.destroyAllWindows()
 
-        cam.release()
-        cv2.destroyAllWindows()
-
-        if check_thoat:
+            if check_thoat:
+                notification = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': ('Thông báo điểm danh'),
+                        'message': 'Điểm danh thành công nhân viên %s'%(name_employee),
+                        'type': 'success',  # types: success,warning,danger,info
+                        'sticky': False,  # True/False will display for few seconds if false
+                    },
+                }
+                return notification
+            else:
+                notification = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': ('Thông báo điểm danh'),
+                        'message': 'Bạn chưa điểm danh thành công, và bạn đã thoát điểm danh!',
+                        'type': 'warningq',  # types: success,warning,danger,info
+                        'sticky': False,  # True/False will display for few seconds if false
+                    },
+                }
+                return notification
+        except:
             notification = {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': ('Thông báo điểm danh'),
-                    'message': 'Điểm danh thành công',
-                    'type': 'success',  # types: success,warning,danger,info
-                    'sticky': True,  # True/False will display for few seconds if false
-                },
-            }
-            return notification
-        else:
-            notification = {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': ('Thông báo điểm danh'),
-                    'message': 'Bạn chưa điểm danh thành công, và bạn đã thoát điểm danh!',
-                    'type': 'warningq',  # types: success,warning,danger,info
-                    'sticky': True,  # True/False will display for few seconds if false
+                    'message': 'Điểm danh thất bại. Nếu đây là lỗi hãy báo lại nhân viên phòng máy.',
+                    'type': 'danger',  # types: success,warning,danger,info
+                    'sticky': False,  # True/False will display for few seconds if false
                 },
             }
             return notification
