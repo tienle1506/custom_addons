@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 from . import constraint
 from lxml import etree
 import json
-import cv2
+
 
 
 class EmployeeProfile(models.Model):
