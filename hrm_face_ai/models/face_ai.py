@@ -1,7 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.http import request
 from datetime import datetime,time
-
+from dateutil.relativedelta import relativedelta
 #FACE AI
 import cv2, os
 import numpy as np
@@ -252,39 +252,28 @@ class EmployeeProfile(models.Model):
             cv2.destroyAllWindows()
 
             if check_thoat:
-                aa=self.env.user.id
-                SQL = ''
-                SQL += '''SELECT emp.id AS employee_id, hrbl.id as block_id, hrbl.name as block_name
-                       FROM hrm_employee_profile emp INNER JOIN res_users lg ON lg.id = emp.acc_id 
-                       INNER JOIN hrm_blocks hrbl ON hrbl.id = emp.block_id
-                       WHERE lg.id = %s;'''%(self.env.user.id, )
-                cr = self.env.cr
-                cr.execute(SQL)
-                datas = cr.dictfetchall()
-                data = datas[0]
-                if data['employee_id'] == employee_id_login:
-                    self.create_or_write_checkin_checkout(data.get('employee_id'), data.get('block_id'), data.get('block_name'))
-                    notification = {
-                        'type': 'ir.actions.client',
-                        'tag': 'display_notification',
-                        'params': {
-                            'title': ('Thông báo điểm danh'),
-                            'message': 'Điểm danh thành công nhân viên %s' % (name_employee),
-                            'type': 'success',  # types: success,warning,danger,info
-                            'sticky': False,  # True/False will display for few seconds if false
-                        },
-                    }
-                else:
-                    notification = {
-                        'type': 'ir.actions.client',
-                        'tag': 'display_notification',
-                        'params': {
-                            'title': ('Thông báo điểm danh'),
-                            'message': 'Điểm danh không thành công thành công nhân viên %s' % (name_employee),
-                            'type': 'success',  # types: success,warning,danger,info
-                            'sticky': False,  # True/False will display for few seconds if false
-                        },
-                    }
+                notification = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': ('Thông báo điểm danh'),
+                        'message': 'Điểm danh thành công nhân viên %s'%(name_employee),
+                        'type': 'success',  # types: success,warning,danger,info
+                        'sticky': False,  # True/False will display for few seconds if false
+                    },
+                }
+                return notification
+            else:
+                notification = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': ('Thông báo điểm danh'),
+                        'message': 'Bạn chưa điểm danh thành công, và bạn đã thoát điểm danh!',
+                        'type': 'warningq',  # types: success,warning,danger,info
+                        'sticky': False,  # True/False will display for few seconds if false
+                    },
+                }
                 return notification
 
         except:
@@ -299,52 +288,6 @@ class EmployeeProfile(models.Model):
                 },
             }
             return notification
-
-    def create_or_write_checkin_checkout(self, employee_id, block_id, block_name):
-        #Check xem có bản ghi đó chưa
-        current_date = datetime.today().date()
-        employee = self.env['datn.hr.checkin.checkout.line'].search([('day', '=', current_date)])
-        now = datetime.now()  # Lấy thời gian hiện tại
-        start_month = now.replace(day=1).date()
-        parent_checkin_checkout = self.env['datn.hr.checkin.checkout.line'].search([('date_from', '=', start_month)])
-        if not parent_checkin_checkout:
-            values = {
-                'name': 'Bang chấm công tháng %s của khối %s'%(start_month, block_name),
-                'block_id': block_id,
-                'date_from': start_month
-            }
-            line = self.env['datn.hr.checkin.checkout.line'].create(values)
-            return line
-        parent_checkin_checkout = self.env['datn.hr.checkin.checkout.line'].search([('date_from', '=', start_month)])
-        if not employee:
-            values = {
-                'checkin_checkout_id': parent_checkin_checkout.id,
-                'employee_id': employee_id,  # Đảm bảo đã gán giá trị cho employee_id trước đó
-                'checkin': datetime.now(),
-            }
-            line = self.env['datn.hr.checkin.checkout.line'].create(values)
-            return line
-        else:
-            #Nếu mà chấm công trước 10h thì lưu vào checkin, ngược lại lưu vào checkout
-            target_time = time(hour=10)  # Giá trị thời gian muốn so sánh
-            checkin_time = employee.checkin.time()  # Trích xuất giá trị thời gian từ checkin
-            if target_time > checkin_time:
-                line = self.env['datn.hr.checkin.checkout.line'].browse(employee.id)
-                values = {
-                    'checkin': datetime.now()
-                }
-                line.write(values)
-                return line
-            else:
-                line = self.env['datn.hr.checkin.checkout.line'].browse(employee.id)
-                values = {
-                    'checkout': datetime.now()
-                }
-                line.write(values)
-                return line
-
-
-
 
 
 
