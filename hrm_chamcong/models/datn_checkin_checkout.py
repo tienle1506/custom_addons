@@ -34,6 +34,9 @@ class DATNHrCheckInCheckOut(models.Model):
     file_name = fields.Char(u'Tên tệp tin')
     is_import = fields.Boolean(u'Import dữ liệu')
 
+    _sql_constraints = [
+        ('unique_block_day', 'unique(block_id, date_from)', u'Phòng ban đã được tạo để ghi checkin checkout')
+    ]
     def default_block_profile(self):
         """kiểm tra điều kiện giữa khối văn phòng và thương mại"""
         if self.env.user.block_id == constraint.BLOCK_OFFICE_NAME:
@@ -275,6 +278,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
     checkout = fields.Datetime(string='Giờ ra')
     checkin = fields.Datetime(string='Giờ vào')
     day = fields.Date(string='Ngày', compute='_compute_date', store=True)
+    timeofday = fields.Float(string="Số giờ trong ngày")
 
     _sql_constraints = [
         ('unique_employee_day', 'unique(employee_id, day)', u'Nhân viên ững với mõi ngày chỉ có 1 bản ghi chấm công')
@@ -368,5 +372,9 @@ class DATNHrCheckInCheckOutLine(models.Model):
 
                 if record.checkin.date() != record.checkout.date():
                     raise ValidationError(_(u'Giờ vào giờ ra của 1 bản ghi phải nằm trong 1 ngày!'))
+                # Tính khoảng thời gian giữa hai ngày
+                time_difference = date_to - date_from
+
+                self.timeofday = time_difference.total_seconds() / 3600
 
 
