@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.http import request
-
+from datetime import datetime,time
+from dateutil.relativedelta import relativedelta
 #FACE AI
 import cv2, os
 import numpy as np
@@ -13,7 +14,6 @@ class EmployeeProfile(models.Model):
     _description = 'Bảng thông tin nhân viên'
 
     def loaf_face_ai_user_new(self):
-        FGFGF = self.env.uid
         cam = cv2.VideoCapture(0)
         # Tạo một cửa sổ pop-up mới và di chuyển nó lên đầu tiên
         cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
@@ -196,6 +196,7 @@ class EmployeeProfile(models.Model):
             cv2.namedWindow('Face', cv2.WINDOW_NORMAL)
             cv2.setWindowProperty('Face', cv2.WND_PROP_TOPMOST, 1)
             name_employee = ''
+            employee_id_login = 0
             while True:
                 # Đọc ảnh từ camera
                 ret, img = cam.read()
@@ -236,6 +237,7 @@ class EmployeeProfile(models.Model):
                         cv2.putText(img, "Name: " + str(profile['name']), (x, y + h + 30), fontface, fontscale, fontcolor,
                                     2)
                         name_employee = str(profile['name'])
+                        employee_id_login = profile['id']
                         check_thoat = True
                     else:
                         cv2.putText(img, "Name: Unknown", (x, y + h + 30), fontface, fontscale, fontcolor1, 2)
@@ -250,29 +252,40 @@ class EmployeeProfile(models.Model):
             cv2.destroyAllWindows()
 
             if check_thoat:
-                notification = {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': ('Thông báo điểm danh'),
-                        'message': 'Điểm danh thành công nhân viên %s'%(name_employee),
-                        'type': 'success',  # types: success,warning,danger,info
-                        'sticky': False,  # True/False will display for few seconds if false
-                    },
-                }
+                SQL = ''
+                SQL += '''SELECT emp.id AS employee_id, hrbl.id as block_id, hrbl.name as block_name
+                       FROM hrm_employee_profile emp INNER JOIN res_users lg ON lg.id = emp.acc_id 
+                       INNER JOIN hrm_blocks hrbl ON hrbl.id = emp.block_id
+                       WHERE lg.id = %s;'''%(self.env.user.id, )
+                cr = self.env.cr
+                cr.execute(SQL)
+                datas = cr.dictfetchall()
+                data = datas[0]
+                if data['employee_id'] == employee_id_login:
+                    self.create_or_write_checkin_checkout(data.get('employee_id'), data.get('block_id'), data.get('block_name'))
+                    notification = {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': ('Thông báo điểm danh'),
+                            'message': 'Điểm danh thành công nhân viên %s' % (name_employee),
+                            'type': 'success',  # types: success,warning,danger,info
+                            'sticky': False,  # True/False will display for few seconds if false
+                        },
+                    }
+                else:
+                    notification = {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': ('Thông báo điểm danh'),
+                            'message': 'Điểm danh không thành công thành công nhân viên %s' % (name_employee),
+                            'type': 'warning',  # types: success,warning,danger,info
+                            'sticky': False,  # True/False will display for few seconds if false
+                        },
+                    }
                 return notification
-            else:
-                notification = {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': ('Thông báo điểm danh'),
-                        'message': 'Bạn chưa điểm danh thành công, và bạn đã thoát điểm danh!',
-                        'type': 'warningq',  # types: success,warning,danger,info
-                        'sticky': False,  # True/False will display for few seconds if false
-                    },
-                }
-                return notification
+
         except:
             notification = {
                 'type': 'ir.actions.client',
@@ -285,6 +298,58 @@ class EmployeeProfile(models.Model):
                 },
             }
             return notification
+
+    def create_or_write_checkin_checkout(self, employee_id, block_id, block_name):
+        #Check xem có bản ghi đó chưa
+        current_date = datetime.today().date()
+        employee = self.env['datn.hr.checkin.checkout.line'].search([('day', '=', current_date)])
+        now = datetime.now()  # Lấy thời gian hiện tại
+        start_month = now.replace(day=1).date()
+        end_month = start_month + relativedelta(day=31)
+        cr = self.env.cr
+        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' '''% (start_month)
+        cr.execute(SQL1)
+        datas = cr.dictfetchall()
+        if len(datas) > 0:
+            parent_checkin_checkout = datas[0]
+        else:
+            parent_checkin_checkout = []
+        if not parent_checkin_checkout:
+            name = 'Bảng chấm công tháng %s của khối %s'%(start_month, block_name)
+            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, block_id, date_from, date_to) VALUES (%s, %s, %s,%s)'''
+            values = (name, block_id, start_month, end_month)
+            cr.execute(SQL2, values)
+
+            cr.execute(SQL1)
+            datas = cr.dictfetchall()
+            if len(datas) > 0:
+                parent_checkin_checkout = datas[0]
+            else:
+                parent_checkin_checkout = []
+        if not employee:
+            target_time = time(hour=10)  # Giá trị thời gian muốn so sánh
+            checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
+
+            if target_time > checkin_time:
+                SQL3 ='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day) VALUES (%s, %s, %s, %s);'''
+            else:
+                SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day) VALUES (%s, %s, %s, %s);'''
+            values = (parent_checkin_checkout['id'], employee_id, datetime.now(), current_date)
+            cr.execute(SQL3, values)
+        else:
+            #nếu đã tồn tại thì sẽ đc update vào checkout
+            line = self.env['datn.hr.checkin.checkout.line'].sudo().browse(employee.id)
+            values = {
+                'day': current_date,
+                'checkout': datetime.now(),
+                'checkin': line.checkin
+            }
+            line.write(values)
+            return line
+
+
+
+
 
 
 
