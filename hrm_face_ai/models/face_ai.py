@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.http import request
-
+from datetime import datetime,time
+from dateutil.relativedelta import relativedelta
 #FACE AI
 import cv2, os
 import numpy as np
@@ -13,7 +14,6 @@ class EmployeeProfile(models.Model):
     _description = 'Bảng thông tin nhân viên'
 
     def loaf_face_ai_user_new(self):
-        FGFGF = self.env.uid
         cam = cv2.VideoCapture(0)
         # Tạo một cửa sổ pop-up mới và di chuyển nó lên đầu tiên
         cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
@@ -196,6 +196,7 @@ class EmployeeProfile(models.Model):
             cv2.namedWindow('Face', cv2.WINDOW_NORMAL)
             cv2.setWindowProperty('Face', cv2.WND_PROP_TOPMOST, 1)
             name_employee = ''
+            employee_id_login = 0
             while True:
                 # Đọc ảnh từ camera
                 ret, img = cam.read()
@@ -236,6 +237,7 @@ class EmployeeProfile(models.Model):
                         cv2.putText(img, "Name: " + str(profile['name']), (x, y + h + 30), fontface, fontscale, fontcolor,
                                     2)
                         name_employee = str(profile['name'])
+                        employee_id_login = profile['id']
                         check_thoat = True
                     else:
                         cv2.putText(img, "Name: Unknown", (x, y + h + 30), fontface, fontscale, fontcolor1, 2)
@@ -273,6 +275,7 @@ class EmployeeProfile(models.Model):
                     },
                 }
                 return notification
+
         except:
             notification = {
                 'type': 'ir.actions.client',
