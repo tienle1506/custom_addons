@@ -339,10 +339,13 @@ class EmployeeProfile(models.Model):
         else:
             #nếu đã tồn tại thì sẽ đc update vào checkout
             line = self.env['datn.hr.checkin.checkout.line'].sudo().browse(employee.id)
+            time_difference = datetime.now() - line.checkin
+            timeofday = round(time_difference.total_seconds() / 3600, 2)
             values = {
                 'day': current_date,
                 'checkout': datetime.now(),
-                'checkin': line.checkin
+                'checkin': line.checkin,
+                'timeofday': timeofday
             }
             line.write(values)
             return line
