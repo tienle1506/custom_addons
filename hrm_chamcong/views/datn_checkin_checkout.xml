@@ -87,6 +87,7 @@
                                     <field name="day" readonly="1" force_save="1"/>
                                     <field name="checkin"/>
                                     <field name="checkout"/>
+                                    <field name="timeofday"/>
                                     <field name="note"/>
                                 </tree>
                             </field>
@@ -106,7 +107,12 @@
             <field name="model">datn.hr.checkin.checkout</field>
             <field name="arch" type="xml">
                 <search>
-                    <field name="name" string="Bảng CheckIn CheckOut"/>
+                    <field name="employee_id"/>
+                    <field name="day"/>
+                     <group expand="0" string="Group By">
+                        <filter name="employee_id" string="Nhân viên" domain="[]" context="{'group_by':'employee_id'}"/>
+                        <filter string="ngày" name="day" domain="[]" context="{'group_by':'day'}"/>
+                    </group>
                 </search>
             </field>
         </record>

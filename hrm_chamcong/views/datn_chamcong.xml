@@ -180,7 +180,6 @@
                                            attrs="{'column_invisible': [('parent.is_show_ngay30','=', False)]}"/>
                                     <field name="ngay31"
                                            attrs="{'column_invisible': [('parent.is_show_ngay31','=', False)]}"/>
-                                    <field name="day_of_month" invisible="1"/>
                                 </tree>
                             </field>
                         </page>
