@@ -19,4 +19,15 @@
               groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only,hrm.hrm_group_create_edit">
     </menuitem>
 
+    <menuitem id="menu_quanly_letet_thuong" name="Quản lý nghỉ, thưởng"
+               parent="hrm.menu_field" sequence="5"
+               groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm.hrm_group_read_only,hrm.hrm_group_create_edit">
+    </menuitem>
+    <menuitem id="menu_datn_hr_le_tet_action" name="Quản lý lễ tết"
+              parent="menu_quanly_letet_thuong"
+              sequence="1"
+              action='datn_hr_le_tet_action'
+              groups="hrm.hrm_group_create_edit,hrm.hrm_group_config_access">
+    </menuitem>
+
 </odoo>
