@@ -104,7 +104,7 @@
 
         <record id="datn_hr_checkin_checkout_search" model="ir.ui.view">
             <field name="name">Bảng CheckIn CheckOut</field>
-            <field name="model">datn.hr.checkin.checkout</field>
+            <field name="model">datn.hr.checkin.checkout.line</field>
             <field name="arch" type="xml">
                 <search>
                     <field name="employee_id"/>
