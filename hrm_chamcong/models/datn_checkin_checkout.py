@@ -238,11 +238,6 @@ class DATNHrCheckInCheckOut(models.Model):
                 worksheet.write(5 + stt, 3, '', style_1_left)
                 worksheet.write(5 + stt, 4, '', style_1_left)
                 worksheet.write(5 + stt, 5, '', style_1_left)
-
-
-
-
-
             namefile = 'Mau_import_mon_hoc'
             # Encode to file
             workbook.close()
@@ -292,31 +287,6 @@ class DATNHrCheckInCheckOutLine(models.Model):
             self.day = self.checkin.date()
         elif self.checkout:
             self.day = self.checkout.date()
-
-    # def name_search(self, name='', args=None, operator='ilike', limit=100):
-    #     context = self.env.context or {}
-    #     emp_domain = []
-    #     if context.get('parent_block_id', False):
-    #         emp_domain = [('block_id', '=', context.get('parent_block_id'))]
-    #     return super(DATNHrCheckInCheckOutLine, self).name_search(name, args=args + emp_domain, operator=operator,
-    #                                                               limit=limit)
-    #
-    # def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-    #     context = self.env.context or {}
-    #     emp_domain = []
-    #     if context.get('parent_block_id', False):
-    #         emp_domain = [('block_id', '=', context.get('parent_block_id'))]
-    #     return super(DATNHrCheckInCheckOutLine, self).search_read(domain=domain + emp_domain, fields=fields,
-    #                                                               offset=offset, limit=limit, order=order)
-    #
-    # def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-    #     context = self.env.context or {}
-    #     emp_domain = []
-    #     if context.get('parent_block_id', False):
-    #         emp_domain = [('block_id', '=', context.get('parent_block_id'))]
-    #     return super(DATNHrCheckInCheckOutLine, self).read_group(domain + emp_domain, fields, groupby, offset=offset,
-    #                                                              limit=limit, orderby=orderby, lazy=lazy)
-
     @property
     def date_from(self):
         return self.env.context.get('date_from', False)

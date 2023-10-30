@@ -28,6 +28,7 @@
         'security/ir.model.access.csv',
         'views/datn_chamcong.xml',
         'views/datn_checkin_checkout.xml',
+        'views/datn_hrm_le_tet.xml',
         'views/menu_item.xml',
 
     ],
