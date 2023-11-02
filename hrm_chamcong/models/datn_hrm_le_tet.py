@@ -11,19 +11,20 @@ from io import BytesIO
 from . import style_excel_wb
 from ...hrm.models import constraint
 
-class DATNHrLeTet(models.Model):
-    _name = 'datn.hr.le.tet'
+
+class DATNHrmLeTet(models.Model):
+    _name = "datn.hrm.le.tet"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
     _description = u'Quản lý ngày lễ tết'
     _order = "date_from DESC, date_to DESC"
 
     name = fields.Char(string=u'Tên ngày lễ tết', size=128, track_visibility='always', )
-    block_id = fields.Many2many('hr_blocks', 'block_le_tet_rel', 'block_id', 'le_tet_id', string="Khối")
+    block_id = fields.Many2many('hrm.blocks', 'block_le_tet_rel', 'block_id', 'le_tet_id', string="Khối")
 
     data = fields.Binary('File', readonly=True)
     date_from = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', format='%Y-%m-%d')
-    item_ids = fields.One2many('datn.hr.le.tet.line', string='Items', inverse_name='le_tet_id',
+    item_ids = fields.One2many('datn.hrm.le.tet.line', string='Items', inverse_name='le_tet_id',
                                track_visibility='always')
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
@@ -240,18 +241,19 @@ class DATNHrLeTet(models.Model):
 
     def action_draft(self):
         self.state = 'draft'
+
     def action_confirmed(self):
         self.state = 'confirmed'
 
 
-class DATNHrLeTetLine(models.Model):
-    _name = 'datn.hr.le.tet.line'
+class DATNHrmLeTetLine(models.Model):
+    _name = 'datn.hrm.le.tet.line'
     _inherit = ['mail.thread']
     _description = u'Bảng chi tiết nhân sự hưởng lễ tết'
     _order = "block_id, employee_id"
 
     employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân viên', ondelete='cascade')
-    le_tet_id = fields.Many2one('datn.hr.le.tet', string=u'Bảng lễ tết', ondelete='cascade', required=True)
+    le_tet_id = fields.Many2one('datn.hrm.le.tet', string=u'Bảng lễ tết', ondelete='cascade', required=True)
     note = fields.Text(string='Ghi chú')
     date_from = fields.Date(u'Từ ngày', widget='date', related='le_tet_id.date_from', store=True, format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', related='le_tet_id.date_to', store=True, format='%Y-%m-%d')
