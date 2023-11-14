@@ -1,0 +1,17 @@
+<openerp>
+    <data>
+        <record id="ir_cron_test_cron_job" model="ir.cron">
+            <field name="name">Test Cron Job</field>
+            <field name="model_id" ref="model_cron_job_cong_phep"/>
+            <field name="state">code</field>
+            <field name="code">model.run()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="active" eval="True"/>
+            <field name="nextcall" eval="(DateTime.now().replace(day=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+    </data>
+</openerp>
