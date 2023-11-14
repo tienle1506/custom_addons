@@ -229,7 +229,7 @@ class EmployeeProfile(models.Model):
                     profile = None
 
                     # Nếu độ sai khác < 25% thì lấy profile
-                    if dist <= 70:
+                    if dist <= 50:
                         profile = self.getProfile(id)
 
                     # Hiển thị thông tin tên người hoặc Unknown nếu không tìm thấy
@@ -307,7 +307,7 @@ class EmployeeProfile(models.Model):
         start_month = now.replace(day=1).date()
         end_month = start_month + relativedelta(day=31)
         cr = self.env.cr
-        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' '''% (start_month)
+        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' and block_id = %s '''% (start_month, block_id)
         cr.execute(SQL1)
         datas = cr.dictfetchall()
         if len(datas) > 0:
@@ -316,8 +316,8 @@ class EmployeeProfile(models.Model):
             parent_checkin_checkout = []
         if not parent_checkin_checkout:
             name = 'Bảng chấm công tháng %s của khối %s'%(start_month, block_name)
-            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, block_id, date_from, date_to) VALUES (%s, %s, %s,%s)'''
-            values = (name, block_id, start_month, end_month)
+            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, block_id, date_from, date_to, state) VALUES (%s, %s, %s,%s, %s)'''
+            values = (name, block_id, start_month, end_month, 'draft')
             cr.execute(SQL2, values)
 
             cr.execute(SQL1)
@@ -327,25 +327,32 @@ class EmployeeProfile(models.Model):
             else:
                 parent_checkin_checkout = []
         if not employee:
-            target_time = time(hour=10)  # Giá trị thời gian muốn so sánh
+            target_time = time(hour=10)
+            checkin_time_io = datetime.now()
+            # Giá trị thời gian muốn so sánh
             checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
-
-            if target_time > checkin_time:
-                SQL3 ='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day) VALUES (%s, %s, %s, %s);'''
-            else:
-                SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day) VALUES (%s, %s, %s, %s);'''
-            values = (parent_checkin_checkout['id'], employee_id, datetime.now(), current_date)
-            cr.execute(SQL3, values)
+            SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day) VALUES (%s, %s, '%s', '%s');''' % (
+            (parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date))
+            if target_time <= checkin_time:
+                SQL3 = ''
+                SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day) VALUES (%s, %s, '%s','%s');'''%((parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date))
+            cr.execute(SQL3)
         else:
             #nếu đã tồn tại thì sẽ đc update vào checkout
             line = self.env['datn.hr.checkin.checkout.line'].sudo().browse(employee.id)
-            time_difference = datetime.now() - line.checkin
-            timeofday = round(time_difference.total_seconds() / 3600, 2)
+            note = ''
+            if line.checkin:
+                time_difference = datetime.now() - line.checkin
+                timeofday = round(time_difference.total_seconds() / 3600, 2)
+            else:
+                timeofday = 0
+                note = 'Quên chấm công vào'
             values = {
                 'day': current_date,
                 'checkout': datetime.now(),
                 'checkin': line.checkin,
-                'timeofday': timeofday
+                'timeofday': timeofday,
+                'note': note
             }
             line.write(values)
             return line

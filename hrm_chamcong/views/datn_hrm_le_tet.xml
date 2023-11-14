@@ -8,7 +8,8 @@
                 <tree class="widget-khoi-tree"
                       decoration-info="state=='draft'"
                       default_order="block_id">
-                    <field name="block_id"/>
+                    <field name="name"/>
+                    <field name="block_id" widget="many2many_tags"/>
                     <field name="date_from"/>
                     <field name="date_to"/>
                     <field name="state"/>
@@ -26,6 +27,7 @@
                                 class="oe_highlight"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
                                 states="confirmed"/>
+                        <button string="Tải dữ liệu" name="action_loaddata" type="object" class="oe_highlight"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
@@ -33,12 +35,12 @@
                     </group>
                     <group>
                         <group>
-                            <field name="block_id"
-                                   options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
+                            <field string="Khối" name="block_id" widget="many2many_tags" required="1"
+                               options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
                         </group>
                         <group class="date_letet">
-                                <field name="date_from" class="date1 oe_inline"/>
-                                <field name="date_to" class="date2 oe_inline"/>
+                                <field name="date_from" class="date1 oe_inline" required="1"/>
+                                <field name="date_to" class="date2 oe_inline" required="1"/>
                         </group>
                     </group>
                     <group>
@@ -74,7 +76,7 @@
                                       class="color_tree_row"
                                       tableFixer="left" fixColumn="2"
                                       default_order="employee_id ASC" limit="100">
-                                    <field name="employee_id" required="1" widget="many2one" context="{'parent_block_id': parent.block_id}"
+                                    <field name="employee_id" required="1" widget="many2one" context="{'parent_block_id_le': parent.block_id}"
                                            options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
                                     <field name="block_id" readonly="1" force_save="1"/>
                                     <field name="date_from" readonly="1" force_save="1"/>

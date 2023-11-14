@@ -31,7 +31,7 @@ class DATNHrChamCong(models.Model):
     date_from = fields.Date(u'Từ ngày', required=True, default=_default_date_from,)
     date_to = fields.Date(u'Đến ngày', required=True, default=_default_date_to, track_visibility='always', )
     block_id = fields.Many2one('hrm.blocks', string=u'Khối', required=True)
-    item_ids = fields.One2many('datn.hr.chamcong.line', 'chamcong_id', track_visibility='always',)
+    item_ids = fields.One2many('datn.hr.chamcong.line', 'chamcong_id')
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
     # Lưu dữ liệu các bản ghi chấm công khi onchange phục vụ chức năng export
@@ -44,6 +44,22 @@ class DATNHrChamCong(models.Model):
     is_show_ngay29 = fields.Boolean(string=u"Có ngày 29", compute='_compute_date', store=True)
     is_show_ngay30 = fields.Boolean(string=u"Có ngày 30", compute='_compute_date', store=True)
     is_show_ngay31 = fields.Boolean(string=u"Có ngày 31", compute='_compute_date', store=True)
+
+    @api.onchange('date_from', 'block_id')
+    def onchange_name(self):
+        name = 'Bảng chấm công tháng %s năm %s khối %s'%(str(self.date_from.month), str(self.date_from.year), self.block_id.name)
+        self.name = name
+
+    @api.onchange('date_from')
+    def onchange_date_from(self):
+        if self.date_from:
+            date_from_str = self.date_from.strftime('%Y-%m-%d')
+            year, month, _ = map(int, date_from_str.split('-'))
+            _, last_day = calendar.monthrange(year, month)
+            date_to = f'{year}-{month:02d}-{last_day:02d}'
+            date_from = datetime.strptime(str(self.date_from), '%Y-%m-%d').replace(day=1)
+            self.date_to = date_to
+            self.date_from = date_from
     @api.depends('date_from', 'date_to')
     def _compute_date(self):
         if not self.date_from and not self.date_to:
@@ -77,6 +93,59 @@ class DATNHrChamCong(models.Model):
                 ext = tmp[len(tmp) - 1]
                 if ext != 'xls' and ext != 'xlsx':
                     raise ValidationError(_(u"Tệp tin tải lên phải là định dạng file excel. Vui lòng xem lại."))
+
+    def action_loaddata(self):
+        self.item_ids.unlink()
+        if self.block_id:
+            cr = self.env.cr
+            SQL = ''
+            SQL += '''SELECT ckl.* FROM datn_hr_checkin_checkout_line ckl
+                    LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
+                    WHERE ck.block_id = %s AND ck.date_from = '%s'
+                    AND  ck.date_to = '%s' AND ck.state = 'confirmed'
+                    ORDER BY ckl.employee_id
+            '''%(self.block_id.id, self.date_from, self.date_to)
+            cr.execute(SQL)
+            employees = cr.dictfetchall()
+            if employees:
+                for i in range(0, len(employees)):
+                    ngay = employees[i].get('checkin').day
+                    ngayx = 'ngay%s'%(ngay)
+                    if employees[i].get('timeofday') and float(employees[i].get('timeofday')) >= 8:
+                        time = 1
+                    elif employees[i].get('timeofday') and float(employees[i].get('timeofday')) < 8:
+                        time = round(float(employees[i].get('timeofday')) / 8, 2)
+                    else:
+                        time = 0
+                    filtered_employees = self.item_ids.employee_id.filtered(lambda emp: emp.id == employees[i].get('employee_id'))
+                    if not filtered_employees:
+                        lines = []
+                        lines.append((0, 0, {
+                            'employee_id': employees[i].get('employee_id'),
+                            ngayx: time
+                        }))
+                        self.item_ids = (lines)
+                    else:
+                        for item in self.item_ids:
+                            if item['employee_id'].id == employees[i].get('employee_id'):
+                                item[ngayx] = time
+            cr = self.env.cr
+            SQL = ''
+            SQL += '''SELECT ckl.* FROM datn_hrm_le_tet_line ckl
+                                LEFT JOIN datn_hrm_le_tet ck ON ck.id = ckl.le_tet_id
+                                WHERE ckl.block_id = %s AND ckl.date_from >= '%s'
+                                AND  ckl.date_to <= '%s' AND ck.state = 'confirmed'
+                                ORDER BY ckl.employee_id
+                        ''' % (self.block_id.id, self.date_from, self.date_to)
+            cr.execute(SQL)
+            le_tet_employees = cr.dictfetchall()
+
+
+
+    def action_draft(self):
+        self.state = 'draft'
+    def action_confirmed(self):
+        self.state = 'confirmed'
 class DATNHrChamCongLine(models.Model):
     _name = 'datn.hr.chamcong.line'
     _description = u'Chấm công nhân sự'

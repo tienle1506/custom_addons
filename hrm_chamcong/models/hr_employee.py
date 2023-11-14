@@ -22,6 +22,9 @@ class EmployeeProfile(models.Model):
         emp_domain = []
         if context.get('parent_block_id', False):
             emp_domain = [('block_id', '=', context.get('parent_block_id'))]
+        if context.get('parent_block_id_le', False):
+            khoi_id = context.get('parent_block_id_le', False)[0][2]
+            emp_domain = [('block_id', 'in', khoi_id)]
         return super(EmployeeProfile, self)._name_search(name, args=args + emp_domain, operator=operator,
                                                                   limit=limit)
 
@@ -32,6 +35,8 @@ class EmployeeProfile(models.Model):
         emp_domain = []
         if context.get('parent_block_id', False):
             emp_domain = [('block_id', '=', context.get('parent_block_id'))]
+        if context.get('parent_block_id_le', False):
+            emp_domain = [('block_id', 'in', context.get('parent_block_id_le'))]
         return super(EmployeeProfile, self).search_read(domain=domain + emp_domain, fields=fields,
                                                                   offset=offset, limit=limit, order=order)
 
@@ -41,5 +46,7 @@ class EmployeeProfile(models.Model):
         emp_domain = []
         if context.get('parent_block_id', False):
             emp_domain = [('block_id', '=', context.get('parent_block_id'))]
+        if context.get('parent_block_id_le', False):
+            emp_domain = [('block_id', 'in', [context.get('parent_block_id_le')])]
         return super(EmployeeProfile, self).read_group(domain + emp_domain, fields, groupby, offset=offset,
                                                                  limit=limit, orderby=orderby, lazy=lazy)

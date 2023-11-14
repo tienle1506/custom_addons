@@ -22,8 +22,8 @@ class DATNHrCheckInCheckOut(models.Model):
     block_id = fields.Many2one('hrm.blocks', string='Khối', required=True,
                     default=lambda self: self.default_block_profile(),
                     tracking=True)
-    date_from = fields.Date(u'Từ ngày', required=True, widget='date', format='%Y-%m-%d')
-    date_to = fields.Date(u'Đến ngày', required=True, widget='date', format='%Y-%m-%d')
+    date_from = fields.Date(u'Từ ngày', required=True, widget='date', format='%m-%d-%Y')
+    date_to = fields.Date(u'Đến ngày', required=True, widget='date', format='%m-%d-%Y')
     item_ids = fields.One2many('datn.hr.checkin.checkout.line', string='Items', inverse_name='checkin_checkout_id',
                                track_visibility='always')
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
@@ -96,32 +96,46 @@ class DATNHrCheckInCheckOut(models.Model):
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
 
                 try:
-                    checkin = sheet.cell_value(row, 3)
+                    checkin = str(sheet.cell_value(row, 3)).strip() if sheet.cell_value(row, 3) else ''
                     if checkin:
-                        checkin = datetime.strptime(checkin, '%Y-%m-%d %H:%M:%S')
+                        # Chuyển đổi chuỗi datetime thành đối tượng datetime
+                        checkin_datetime = datetime.strptime(checkin, '%d-%m-%Y %H:%M:%S')
+
+                        # Trừ đi 5 giờ bằng cách sử dụng timedelta
+                        new_datetime = checkin_datetime - timedelta(hours=7)
+
+                        # Chuyển đổi đối tượng datetime thành chuỗi datetime mới
+                        checkin = new_datetime.strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         checkin = None
                 except ValueError:
-                    raise ValidationError(f'Không đúng định dạng của DateTime %Y-%m-%d %H:%M:%S dòng {row}')
+                    raise ValidationError(f'Không đúng định dạng của DateTime %d-%m-%Y %H:%M:%S dòng {row}')
 
                 try:
-                    checkout = sheet.cell_value(row, 4)
+                    checkout = str(sheet.cell_value(row, 4)).strip() if sheet.cell_value(row, 4) else ''
                     if checkout:
-                        checkout = datetime.strptime(checkout, '%Y-%m-%d %H:%M:%S')
+                        # Chuyển đổi chuỗi datetime thành đối tượng datetime
+                        checkout_datetime = datetime.strptime(checkout, '%d-%m-%Y %H:%M:%S')
+
+                        # Trừ đi 5 giờ bằng cách sử dụng timedelta
+                        new_datetime = checkout_datetime - timedelta(hours=7)
+
+                        # Chuyển đổi đối tượng datetime thành chuỗi datetime mới
+                        checkout = new_datetime.strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         checkout = None
                 except ValueError:
-                    raise ValidationError(f'Không đúng định dạng của DateTime %Y-%m-%d %H:%M:%S dòng {row}')
+                    raise ValidationError(f'Không đúng định dạng của DateTime %d-%m-%Y %H:%M:%S dòng {row}')
+                if checkin and checkout:
+                    lines.append((0, 0, {
+                        'employee_id': employee.id,
+                        'checkin': checkin,
+                        'checkout': checkout,
+                        'note': sheet.cell_value(row, 5).strip()
+                    }))
 
-                lines.append((0, 0, {
-                    'employee_id': employee.id,
-                    'checkin': checkin,
-                    'checkout': checkout,
-                    'note': sheet.cell_value(row, 5).strip()
-                }))
-
-                # cập nhật item_ids
-                self.item_ids = lines
+                    # cập nhật item_ids
+                    self.item_ids = lines
 
     #Todo Tải file mẫu import
     def download_template_file(self):
@@ -269,11 +283,11 @@ class DATNHrCheckInCheckOutLine(models.Model):
 
     employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân viên', ondelete='cascade')
     checkin_checkout_id = fields.Many2one('datn.hr.checkin.checkout', string=u'Bảng CheckIn CheckOut', ondelete='cascade', required=True)
-    note = fields.Text(string='Ghi chú')
-    checkout = fields.Datetime(string='Giờ ra')
-    checkin = fields.Datetime(string='Giờ vào')
+    note = fields.Text(string='Ghi chú', compute='_compute_date', store=True)
+    checkout = fields.Datetime(string='Giờ ra', widget='date', format='%m-%d-%Y')
+    checkin = fields.Datetime(string='Giờ vào', widget='date', format='%m-%d-%Y')
     day = fields.Date(string='Ngày', compute='_compute_date', store=True)
-    timeofday = fields.Float(string="Số giờ trong ngày")
+    timeofday = fields.Float(string="Số giờ trong ngày", compute='_compute_date', store=True)
 
     _sql_constraints = [
         ('unique_employee_day', 'unique(employee_id, day)', u'Nhân viên ững với mõi ngày chỉ có 1 bản ghi chấm công')
@@ -287,6 +301,18 @@ class DATNHrCheckInCheckOutLine(models.Model):
             self.day = self.checkin.date()
         elif self.checkout:
             self.day = self.checkout.date()
+        if self.checkin and self.checkout:
+            time_difference = self.checkout - self.checkin
+            self.timeofday = (time_difference.total_seconds() / 3600) - 1.5
+        else:
+            self.timeofday = 0
+        if self.checkin and not self.checkout:
+            self.note = 'Quên chấm công ra'
+        elif self.checkout and not self.checkin:
+            self.note = 'Quên chấm công vào'
+        else:
+            self.note = ''
+
     @property
     def date_from(self):
         return self.env.context.get('date_from', False)
@@ -343,8 +369,8 @@ class DATNHrCheckInCheckOutLine(models.Model):
                 if record.checkin.date() != record.checkout.date():
                     raise ValidationError(_(u'Giờ vào giờ ra của 1 bản ghi phải nằm trong 1 ngày!'))
                 # Tính khoảng thời gian giữa hai ngày
-                time_difference = date_to - date_from
+                time_difference = record.checkout - record.checkin
 
-                self.timeofday = time_difference.total_seconds() / 3600
+                record.timeofday = time_difference.total_seconds() / 3600
 
 

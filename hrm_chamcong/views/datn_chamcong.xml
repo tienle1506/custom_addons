@@ -11,8 +11,8 @@
                       default_order="block_id">
                     <field name="block_id"/>
                     <field name="name" string="Tên bảng chấm công"/>
-                    <field name="date_from" invisible="1"/>
-                    <field name="date_to" invisible="1"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
                     <field name="state"/>
                 </tree>
             </field>
@@ -23,6 +23,14 @@
             <field name="model">datn.hr.chamcong</field>
             <field name="arch" type="xml">
                 <form class="bangchamcong fixed-scrollbar">
+                    <header>
+                        <button string="Xác nhận" name="action_confirmed" type="object" states="draft"
+                                class="oe_highlight" groups="hrm.hrm_group_create_edit"/>
+                        <button string="Soạn thảo" name="action_draft" type="object"
+                                states="confirmed" groups="hrm.hrm_group_create_edit"/>
+                        <button string="Tải dữ liệu" groups="hrm.hrm_group_create_edit" name="action_loaddata" type="object" class="oe_edit_only oe_highlight"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
                      <style>
                         .o_view_controller {
                             overflow: scroll !important;
@@ -95,9 +103,8 @@
                             overflow-y: hidden;
                         }
                     </style>
-                    <group invisible="1">
-                        <field name="name" string="Tên bảng chấm công" invisible="1"
-                               />
+                    <group>
+                        <field name="name" string="Tên bảng chấm công" readonly="1" force_save="1"/>
                     </group>
                     <group>
                         <field name="block_id"
@@ -112,14 +119,10 @@
                                 <field name="date_from"
                                        class="date1 oe_inline"/>
                                 -
-                                <field name="date_to"
+                                <field name="date_to" readonly="1" force_save="1"
                                        class="date2 oe_inline"/>
                             </div>
                         </group>
-                        <group>
-                        </group>
-                    </group>
-                    <group>
                         <group>
                             <field name="create_date" widget="date" string="Ngày tạo"
                                    attrs="{'invisible': [('id','=',False)]}"

@@ -24,9 +24,9 @@
                 <form>
                     <header>
                         <button string="Xác nhận" name="action_confirmed" type="object" states="draft"
-                                class="oe_highlight" groups="hrm_chamcong.hrm_user_demo"/>
+                                class="oe_highlight" groups="hrm.hrm_group_create_edit"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                states="confirmed" groups="hrm_chamcong.hrm_user_demo"/>
+                                states="confirmed" groups="hrm.hrm_group_create_edit"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
@@ -87,7 +87,7 @@
                                     <field name="day" readonly="1" force_save="1"/>
                                     <field name="checkin"/>
                                     <field name="checkout"/>
-                                    <field name="timeofday"/>
+                                    <field name="timeofday" readonly="1" force_save="1"/>
                                     <field name="note"/>
                                 </tree>
                             </field>
