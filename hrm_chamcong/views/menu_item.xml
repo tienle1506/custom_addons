@@ -35,7 +35,16 @@
               parent="menu_quanly_letet_thuong"
               sequence="1"
               action='datn_hrm_le_tet_action'
-              groups="base.group_user">
+              groups="hrm.hrm_group_config_access,hrm.hrm_group_create_edit">
     </menuitem>
+
+     <menuitem id="menu_datn_loai_nghi_action" name="Cấu hình loại nghỉ"
+              parent="hrm.config"
+              sequence="12"
+              action='datn_loai_nghi_action'
+              groups="hrm.hrm_group_config_access">
+    </menuitem>
+
+
 
 </odoo>

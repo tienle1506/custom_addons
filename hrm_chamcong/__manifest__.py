@@ -31,6 +31,7 @@
         'views/datn_hrm_le_tet.xml',
         'views/hr_employee.xml',
         'views/datn_cong_tang_cuong.xml',
+        'views/datn_loai_nghi.xml',
         'views/menu_item.xml',
 
     ],
