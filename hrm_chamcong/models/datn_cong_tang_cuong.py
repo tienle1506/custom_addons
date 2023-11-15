@@ -243,7 +243,7 @@ class DATNHrmLeTet(models.Model):
         self.state = 'confirmed'
 
 
-class DATNHrmLeTetLine(models.Model):
+class DATNCongTangCuongLine(models.Model):
     _name = 'datn.cong.tang.cuong.line'
     _inherit = ['mail.thread']
     _description = u'Bảng chi tiết nhân sự hưởng công tăng cường'

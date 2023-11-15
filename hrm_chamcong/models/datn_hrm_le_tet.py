@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from odoo import api, fields, models, _
 from odoo.exceptions import Warning, ValidationError
 import xlrd
@@ -20,7 +20,6 @@ class DATNHrmLeTet(models.Model):
 
     name = fields.Char(string=u'Tên ngày lễ tết', size=128, track_visibility='always', )
     block_id = fields.Many2many('hrm.blocks', 'block_le_tet_rel', 'block_id', 'le_tet_id', string="Khối")
-
     data = fields.Binary('File', readonly=True)
     date_from = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', format='%Y-%m-%d')
@@ -51,7 +50,7 @@ class DATNHrmLeTet(models.Model):
         lines = []
         if self.block_id:
             for block_id in self.block_id:
-                employees = self.env['hrm.employee.profile'].search([('block_id', '=', block_id.id)])
+                employees = self.env['hrm.employee.profile'].search([('block_id', '=', block_id.id), ('work_start_date', '<=', date.today())])
                 for employee in employees:
                     lines.append((0, 0, {'employee_id': employee.id}))
         self.item_ids = lines

@@ -34,6 +34,14 @@ class TestCronJob(models.Model):
                 cong_phep = int(thang_hien_tai) - int(thang_vao_lam)
             else:
                 cong_phep = int(thang_hien_tai)
+            SQL2 = '''SELECT SUM(cl.cong_them) as cong_them FROM datn_cong_tang_cuong_line cl
+                        LEFT JOIN datn_cong_tang_cuong c ON c.id = cl.cong_them_id
+                        WHERE c.state = 'confirmed' AND cl.year = '%s'
+                        AND cl.employee_id = %s'''%(nam_hien_tai, datas[i].get('id') )
+            cr.execute(SQL2)
+            data_cong_them = cr.dictfetchall()
+            if data_cong_them:
+                cong_phep += data_cong_them[0].get('cong_them')
             SQL1 = '''UPDATE hrm_employee_profile
                             SET so_ngay_duoc_phan_bo = %s
                             WHERE id = %s;''' % (cong_phep, datas[i].get('id'))
