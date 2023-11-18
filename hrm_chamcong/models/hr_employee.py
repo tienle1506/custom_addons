@@ -7,7 +7,6 @@ class EmployeeProfile(models.Model):
     _inherit = 'hrm.employee.profile'
     _description = 'Bảng thông tin nhân viên'
 
-
     def read(self, fields=None, load='_classic_read'):
         self.check_access_rule('read')
         return super(EmployeeProfile, self).read(fields, load=load)

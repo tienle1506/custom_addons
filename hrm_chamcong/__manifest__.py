@@ -32,8 +32,10 @@
         'views/hr_employee.xml',
         'views/datn_cong_tang_cuong.xml',
         'views/datn_loai_nghi.xml',
+        'views/datn_dang_ky_nghi_nhanvien.xml',
+        'views/datn_phe_duyet.xml',
+        'views/datn_create_view_pheduyet.xml',
         'views/menu_item.xml',
-
     ],
     # only loaded in demonstration mode
     'demo': [

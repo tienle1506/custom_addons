@@ -9,4 +9,10 @@
         <field name="category_id" ref="module_hrm_chamcong"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
+
+    <record id="hrm_phe_duyet_dang_ky_nghi" model="res.groups">
+        <field name="name">Phê duyệt đăng ký nghỉ</field>
+        <field name="category_id" ref="module_hrm_chamcong"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 </odoo>

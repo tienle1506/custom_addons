@@ -19,7 +19,7 @@
               groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only,hrm.hrm_group_create_edit">
     </menuitem>
 
-    <menuitem id="menu_item_cong_tang_cuonh"
+    <menuitem id="menu_item_cong_tang_cuong"
               name='Công tăng cường'
               parent="menu_chamcong"
               sequence="3"
@@ -29,8 +29,16 @@
 
     <menuitem id="menu_quanly_letet_thuong" name="Quản lý nghỉ, thưởng"
                parent="hrm.menu_field" sequence="5"
-               groups="base.group_user">
+               groups="base.group_user,hrm_chamcong.hrm_phe_duyet_dang_ky_nghi,hrm.hrm_group_own_edit">
     </menuitem>
+
+    <menuitem id="menu_dang_ky_nghi_nhanvien" name="Đăng ký nghỉ nhân viên"
+              parent="menu_quanly_letet_thuong"
+              sequence="2"
+              action='datn_dang_ky_nghi_nhanvien_action'
+              groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi,hrm.hrm_group_own_edit">
+    </menuitem>
+
     <menuitem id="menu_datn_hrm_le_tet_action" name="Quản lý lễ tết"
               parent="menu_quanly_letet_thuong"
               sequence="1"
@@ -42,7 +50,21 @@
               parent="hrm.config"
               sequence="12"
               action='datn_loai_nghi_action'
+              groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only">
+    </menuitem>
+
+    <menuitem id="menu_datn_view_pheduyet_action" name="Cấu hình giao diện phê duyệt"
+              parent="hrm.config"
+              sequence="13"
+              action='datn_phe_duyet_action'
               groups="hrm.hrm_group_config_access">
+    </menuitem>
+
+    <menuitem id="menu_datn_phe_duyet" name="Phê duyệt nghỉ"
+              parent="menu_quanly_letet_thuong"
+              sequence="13"
+              action='hr_request_type_action'
+              groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi">
     </menuitem>
 
 
