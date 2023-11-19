@@ -25,10 +25,10 @@
                 <form class="bangchamcong fixed-scrollbar">
                     <header>
                         <button string="Xác nhận" name="action_confirmed" type="object" states="draft"
-                                class="oe_highlight" groups="hrm.hrm_group_create_edit"/>
+                                class="oe_highlight" groups="hrm_chamcong.hrm_quyen_hr"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                states="confirmed" groups="hrm.hrm_group_create_edit"/>
-                        <button string="Tải dữ liệu" groups="hrm.hrm_group_create_edit" name="action_loaddata" type="object" class="oe_edit_only oe_highlight"/>
+                                states="confirmed" groups="hrm_chamcong.hrm_quyen_hr"/>
+                        <button string="Tải dữ liệu" groups="hrm_chamcong.hrm_quyen_hr" name="action_loaddata" type="object" class="oe_edit_only oe_highlight"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                      <style>
@@ -197,7 +197,6 @@
             <field name="arch" type="xml">
                 <search>
                     <field name="name" string="Tên bảng chấm công"/>
-
                 </search>
             </field>
         </record>

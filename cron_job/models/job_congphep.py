@@ -41,7 +41,7 @@ class TestCronJob(models.Model):
             cr.execute(SQL2)
             data_cong_them = cr.dictfetchall()
             if data_cong_them:
-                cong_phep += data_cong_them[0].get('cong_them') if  data_cong_them[0].get('cong_them') else 0
+                cong_phep += data_cong_them[0].get('cong_them') if data_cong_them[0].get('cong_them') else 0
             SQL1 = '''UPDATE hrm_employee_profile
                             SET so_ngay_duoc_phan_bo = %s
                             WHERE id = %s;''' % (cong_phep, datas[i].get('id'))

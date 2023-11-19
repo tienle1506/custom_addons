@@ -95,22 +95,23 @@
             </field>
         </record>
 
-<!--        <record id="datn_hrm_le_tet_search" model="ir.ui.view">-->
-<!--            <field name="name">Quản lý lễ tết</field>-->
-<!--            <field name="model">datn.hrm.le.tet.line</field>-->
-<!--            <field name="arch" type="xml">-->
-<!--                <search>-->
-<!--                    <field name="employee_id"/>-->
-<!--                     <group expand="0" string="Group By">-->
-<!--                        <filter name="employee_id" string="Nhân viên" domain="[]" context="{'group_by':'employee_id'}"/>-->
-<!--                        <filter string="Khối" name="block_id" domain="[]" context="{'group_by':'block_id'}"/>-->
-<!--                    </group>-->
-<!--                </search>-->
-<!--            </field>-->
-<!--        </record>-->
+        <record id="datn_cong_tang_cuong_search" model="ir.ui.view">
+            <field name="name">Quản lý công tăng cường</field>
+            <field name="model">datn.cong.tang.cuong</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name" filter_domain="['|', ('name','ilike',self), ('ref','ilike',self)]" string="Move"/>
+                    <field name="year"/>
+                     <group expand="0" string="Group By">
+                        <filter name="year" string="Năm" domain="[]" context="{'group_by':'year'}"/>
+                        <filter name="block_id" string="Khối" domain="[]" context="{'group_by':'block_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
 
         <record id="datn_cong_tang_cuong_action" model="ir.actions.act_window">
-            <field name="name">Quản lý lễ tết</field>
+            <field name="name">Quản lý công tăng cường</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">datn.cong.tang.cuong</field>
             <field name="view_mode">tree,form</field>

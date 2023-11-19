@@ -2,21 +2,21 @@
 
     <menuitem id="menu_chamcong" name="Quản lý chấm công"
                parent="hrm.menu_field" sequence="4"
-               groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm.hrm_group_read_only,hrm.hrm_group_create_edit">
+               groups="hrm_chamcong.hrm_phe_duyet_tang_ca,hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm.hrm_group_read_only,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
     <menuitem id="menu_item_chamcong"
               name='Chấm công tháng'
               parent="menu_chamcong"
               sequence="1"
               action="datn_hr_chamcong_action"
-              groups="hrm.hrm_group_config_access,hrm.hrm_group_create_edit">
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
     <menuitem id="menu_item_checkin_checkout"
               name='Checkin checkout'
               parent="menu_chamcong"
               sequence="2"
               action="datn_hr_checkin_checkout_action"
-              groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only,hrm.hrm_group_create_edit">
+              groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
 
     <menuitem id="menu_item_cong_tang_cuong"
@@ -24,7 +24,15 @@
               parent="menu_chamcong"
               sequence="3"
               action="datn_cong_tang_cuong_action"
-              groups="hrm.hrm_group_config_access,hrm.hrm_group_create_edit">
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
+    </menuitem>
+
+    <menuitem id="menu_item_dang_ky_tang_ca_nhan_vien"
+              name='Đăngký tăng ca nhân viên'
+              parent="menu_chamcong"
+              sequence="4"
+              action="datn_dang_ky_tang_ca_nhan_vien_action"
+              groups="hrm_chamcong.hrm_phe_duyet_tang_ca,hrm.hrm_group_own_edit">
     </menuitem>
 
     <menuitem id="menu_quanly_letet_thuong" name="Quản lý nghỉ, thưởng"
@@ -43,7 +51,7 @@
               parent="menu_quanly_letet_thuong"
               sequence="1"
               action='datn_hrm_le_tet_action'
-              groups="hrm.hrm_group_config_access,hrm.hrm_group_create_edit">
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
 
      <menuitem id="menu_datn_loai_nghi_action" name="Cấu hình loại nghỉ"

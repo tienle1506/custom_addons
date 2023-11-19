@@ -20,7 +20,7 @@ class DATNHrmLeTet(models.Model):
     year = fields.Selection(selection=[(str(year), str(year)) for year in range(1975, 2099)], string='Năm áp dụng', default=str(fields.Date.today().year))
     block_id = fields.Many2many('hrm.blocks', 'block_cong_them_rel', 'block_id', 'cong_them_id', string="Khối")
     data = fields.Binary('File', readonly=True)
-    ngay_tao = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d', default=fields.Date.today)
+    ngay_tao = fields.Date(u'Ngày tạo', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     cong_them = fields.Integer(string=u'Công phép bổ sung')
     item_ids = fields.One2many('datn.cong.tang.cuong.line', string='Items', inverse_name='cong_them_id',
                                track_visibility='always')
@@ -238,11 +238,10 @@ class DATNHrmLeTet(models.Model):
 
     def action_draft(self):
         self.state = 'draft'
-
+        self.env['cron.job.cong.phep'].run()
     def action_confirmed(self):
         self.state = 'confirmed'
-
-
+        self.env['cron.job.cong.phep'].run()
 class DATNCongTangCuongLine(models.Model):
     _name = 'datn.cong.tang.cuong.line'
     _inherit = ['mail.thread']

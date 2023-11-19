@@ -54,6 +54,24 @@ class HrRequestType(models.Model):
                 data = self.env.cr.dictfetchone()
                 if data:
                     my_request = data['count']
+        elif request.code == 'PTC':
+            if emp:
+                self.env.cr.execute("""
+                    SELECT count(*) FROM datn_tangca dkn
+                    LEFT JOIN employee_duyet_tang_ca_rel dnr ON dnr.tang_ca_id = dkn.id
+                    WHERE dnr.employee_id = %s AND state = 'confirmed'
+                """, (emp.id,))
+                data = self.env.cr.dictfetchone()
+                if data:
+                    need_approve = data['count']
+                # ----- lấy số lượng yêu cầu của tôi
+                self.env.cr.execute("""
+                    SELECT count(*) FROM datn_tangca
+                    WHERE employee_id = %s and state = 'confirmed'
+                """, (emp.id,))
+                data = self.env.cr.dictfetchone()
+                if data:
+                    my_request = data['count']
         return need_approve, my_request
 
     def open_approve_request(self):
@@ -71,7 +89,7 @@ class HrRequestType(models.Model):
     def _get_action(self, is_form=False, my_request=False):
         if my_request:
             context = {
-                'view_from_action': 'datn_loai_nghi'
+                'view_from_action': 'datn_loai_phe_duyet'
             }
         else:
             context = {
@@ -79,5 +97,8 @@ class HrRequestType(models.Model):
             }
         if self.code == 'DXN':
             action = self.env.ref('hrm_chamcong.datn_dang_ky_nghi_nhanvien_action').sudo().read()[0]
+            action['context'] = context
+        elif self.code == 'PTC':
+            action = self.env.ref('hrm_chamcong.datn_dang_ky_tang_ca_nhan_vien_action').sudo().read()[0]
             action['context'] = context
         return action
