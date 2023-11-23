@@ -26,15 +26,15 @@
                 <form>
                     <header>
                         <button string="Gửi phê duyệt" name="action_send_approve" type="object" attrs="{'invisible': [('state','!=','draft')]}"
-                                class="oe_highlight"/>
+                                class="oe_highlight oe_edit_only"/>
                         <button string="Phê duyệt" name="action_approve" type="object" attrs="{'invisible': ['|', ('state','=','draft'), ('state','=','approved')]}"
                                 groups="hrm_chamcong.hrm_phe_duyet_tang_ca"
-                                class="oe_highlight"/>
+                                class="oe_highlight oe_edit_only"/>
                         <button string="Từ chối" name="action_refuse" type="object" attrs="{'invisible': [('state','!=','approved')]}"
-                                class="oe_highlight"
+                                class="oe_highlight oe_edit_only"
                                 groups="hrm_chamcong.hrm_phe_duyet_tang_ca"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                attrs="{'invisible': [('state','=','draft')]}"/>
+                                attrs="{'invisible': [('state','=','draft')]}" class="oe_edit_only"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from odoo import api, fields, models, _
 from odoo.exceptions import Warning, ValidationError
 import xlrd
@@ -279,7 +279,8 @@ class DATNHrCheckInCheckOutLine(models.Model):
     _name = 'datn.hr.checkin.checkout.line'
     _inherit = ['mail.thread']
     _description = u'Bảng chi tiết checkin - checkout'
-    _order = "employee_id, checkin desc, checkout desc"
+    _order = "employee_id, day desc"
+    _res_name = 'employee_id'
 
     employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân viên', ondelete='cascade')
     checkin_checkout_id = fields.Many2one('datn.hr.checkin.checkout', string=u'Bảng CheckIn CheckOut', ondelete='cascade', required=True)
@@ -288,6 +289,15 @@ class DATNHrCheckInCheckOutLine(models.Model):
     checkin = fields.Datetime(string='Giờ vào', widget='date', format='%m-%d-%Y')
     day = fields.Date(string='Ngày', compute='_compute_date', store=True)
     timeofday = fields.Float(string="Số giờ trong ngày", compute='_compute_date', store=True)
+    ly_do = fields.Selection([('quen_checkin', u'Quên chấm công vào'), ('quen_checkout', u'Quên chấm công ra'), ('quen',u'Quên chấm công vào và chấm công ra'),
+                              ('lam_sang',u'Đi làm nửa ngày sáng, nghỉ chiều'),('lam_chieu',u'Đi làm nửa ngày chiều, nghỉ sáng'),('khac', u'Khác')],
+                             string=u'Lý do xác nhận chấm công', default='quen', track_visibility='always')
+    state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
+                              ('refused', u'Từ chối')],
+                             string=u'Trạng thái', default='draft', track_visibility='always')
+    nguoi_duyet = fields.Many2many('hrm.employee.profile', 'employee_duyet_checkin_checkout_rel', 'checkin_checkout_id', 'employee_id',
+                                   string="Người duyệt")
+    color = fields.Integer(string='Màu', compute='_compute_date', store=True, default=16711680)
 
     _sql_constraints = [
         ('unique_employee_day', 'unique(employee_id, day)', u'Nhân viên ững với mõi ngày chỉ có 1 bản ghi chấm công')
@@ -295,23 +305,31 @@ class DATNHrCheckInCheckOutLine(models.Model):
 
     @api.depends('checkin', 'checkout')
     def _compute_date(self):
-        if not self.checkin and not self.checkout:
-            return
-        elif self.checkin:
-            self.day = self.checkin.date()
-        elif self.checkout:
-            self.day = self.checkout.date()
-        if self.checkin and self.checkout:
-            time_difference = self.checkout - self.checkin
-            self.timeofday = (time_difference.total_seconds() / 3600) - 1.5
-        else:
-            self.timeofday = 0
-        if self.checkin and not self.checkout:
-            self.note = 'Quên chấm công ra'
-        elif self.checkout and not self.checkin:
-            self.note = 'Quên chấm công vào'
-        else:
-            self.note = ''
+        for record in self:
+            if not record.checkin and not record.checkout:
+                return
+            elif record.checkin:
+                record.day = record.checkin.date()
+            elif record.checkout:
+                record.day = record.checkout.date()
+            if record.checkin and record.checkout:
+                record.state = 'approved'
+                checkout_time_io = record.checkout.time()  # Trích xuất giá trị thời gian hiện tại
+                target_time = time(hour=6, minute=30)
+                if checkout_time_io >= target_time:
+                    time_difference = record.checkout - record.checkin
+                    record.timeofday = time_difference.total_seconds() / 3600
+                record.note = ''
+                record.color = 255
+            else:
+                record.timeofday = 0
+                if record.checkin and not record.checkout:
+                    record.color = 16711680
+                    record.note = 'Quên chấm công ra'
+                elif record.checkout and not record.checkin:
+                    record.note = 'Quên chấm công vào'
+                    record.color = 16711680
+
 
     @property
     def date_from(self):
@@ -326,15 +344,15 @@ class DATNHrCheckInCheckOutLine(models.Model):
         for record in self:
             date_from = record.checkin_checkout_id.date_from
             date_to = record.checkin_checkout_id.date_to
-            if record.checkin:
+            if date_from and record.checkin:
                 if date_from > record.checkin.date():
                     raise ValidationError(_(u'Giờ vào phải nằm trong tháng !'))
 
-            if record.checkout:
+            if date_to and record.checkout:
                 if date_to < record.checkout.date():
                     raise ValidationError(_(u'Giờ ra phải nằm trong tháng !'))
 
-            if record.checkin and record.checkout:
+            if date_from and date_to and record.checkin and record.checkout:
                 if record.checkin > record.checkout:
                     raise ValidationError(_(u'Giờ vào phải nhỏ hơn giờ ra !'))
 
@@ -343,23 +361,21 @@ class DATNHrCheckInCheckOutLine(models.Model):
 
                 if record.checkin.date() != record.checkout.date():
                     raise ValidationError(_(u'Giờ vào giờ ra của 1 bản ghi phải nằm trong 1 ngày!'))
-
-
 
     @api.onchange('checkin', 'checkout')
     def _ochange_checkin_checkout(self):
         for record in self:
             date_from = record.checkin_checkout_id.date_from
             date_to = record.checkin_checkout_id.date_to
-            if record.checkin:
+            if date_from and record.checkin:
                 if date_from > record.checkin.date():
                     raise ValidationError(_(u'Giờ vào phải nằm trong tháng !'))
 
-            if record.checkout:
+            if date_to and record.checkout:
                 if date_to < record.checkout.date():
                     raise ValidationError(_(u'Giờ ra phải nằm trong tháng !'))
 
-            if record.checkin and record.checkout:
+            if date_to and date_from and record.checkin and record.checkout:
                 if record.checkin > record.checkout:
                     raise ValidationError(_(u'Giờ vào phải nhỏ hơn giờ ra !'))
 
@@ -368,9 +384,79 @@ class DATNHrCheckInCheckOutLine(models.Model):
 
                 if record.checkin.date() != record.checkout.date():
                     raise ValidationError(_(u'Giờ vào giờ ra của 1 bản ghi phải nằm trong 1 ngày!'))
-                # Tính khoảng thời gian giữa hai ngày
-                time_difference = record.checkout - record.checkin
 
-                record.timeofday = time_difference.total_seconds() / 3600
+    def read(self, fields=None, load='_classic_read'):
+        self.check_access_rule('read')
+        return super(DATNHrCheckInCheckOutLine, self).read(fields, load=load)
+
+    def search(self, args, offset=0, limit=None, order=None, count=False):
+        domain = []
+        return super(DATNHrCheckInCheckOutLine, self).search(domain + args, offset, limit, order, count=count)
+
+    @api.model
+    def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrCheckInCheckOutLine, self)._name_search(name, args=args + emp_domain, operator=operator,
+                                                                  limit=limit)
+
+
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrCheckInCheckOutLine, self).search_read(domain=domain + emp_domain, fields=fields,
+                                                                  offset=offset, limit=limit, order=order)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrCheckInCheckOutLine, self).read_group(domain + emp_domain, fields, groupby, offset=offset,
+                                                                 limit=limit, orderby=orderby, lazy=lazy)
+    def check_employee_view(self):
+        context = self.env.context or {}
+        emp_domain = []
+        user = self.env.user
+        employee_id = self.env['hrm.employee.profile'].search([('acc_id', '=', user.id)], limit=1)
+        if context.get('view_from_action', False):
+            emp_domain = [('employee_id', '=', employee_id.id)]
+        if context.get('view_from_action_phe_duyet', False):
+            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('state', '=', 'confirmed')]
+        return emp_domain
+
+    def action_draft(self):
+        self.state = 'draft'
+
+    def action_send_approve(self):
+        self.state = 'confirmed'
+
+    def action_refuse(self):
+        self.state = 'refused'
+
+    def action_approve(self):
+        day = self.day
+        if self.ly_do == 'quen_checkin':
+            desired_datetime = datetime.combine(day, datetime.min.time()) + timedelta(hours=1)
+            self.checkin = desired_datetime
+            self.state = 'approved'
+        elif self.ly_do == 'quen_checkout':
+            desired_datetime = datetime.combine(day, datetime.min.time()) + timedelta(hours=10)
+            self.checkout = desired_datetime
+            self.state = 'approved'
+        elif self.ly_do == 'quen':
+            desired_datetime = datetime.combine(day, datetime.min.time()) + timedelta(hours=10)
+            self.checkout = desired_datetime
+            desired_datetimeci = datetime.combine(day, datetime.min.time()) + timedelta(hours=1)
+            self.checkin = desired_datetimeci
+            self.state = 'approved'
+        elif self.ly_do == 'lam_sang':
+            desired_datetime = datetime.combine(day, datetime.min.time()) + timedelta(hours=5)
+            self.checkout = desired_datetime
+            self.state = 'approved'
+        elif self.ly_do == 'lam_chieu':
+            desired_datetime = datetime.combine(day, datetime.min.time()) + timedelta(hours=10)
+            self.checkin = self.checkout
+            self.checkout = desired_datetime
+            self.state = 'approved'
+        else:
+            self.state = 'approved'
 
 

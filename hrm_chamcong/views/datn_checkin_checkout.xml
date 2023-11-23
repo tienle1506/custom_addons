@@ -25,9 +25,11 @@
                 <form>
                     <header>
                         <button string="Xác nhận" name="action_confirmed" type="object" states="draft"
-                                class="oe_highlight" groups="hrm_chamcong.hrm_quyen_hr"/>
+                                class="oe_highlight oe_edit_only" groups="hrm_chamcong.hrm_quyen_hr"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                states="confirmed" groups="hrm_chamcong.hrm_quyen_hr"/>
+                                states="confirmed" groups="hrm_chamcong.hrm_quyen_hr"
+                                class="oe_edit_only"
+                        />
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
@@ -89,6 +91,7 @@
                                     <field name="checkin"/>
                                     <field name="checkout"/>
                                     <field name="timeofday" readonly="1" force_save="1"/>
+                                    <field name="state" required="1"/>
                                     <field name="note"/>
                                 </tree>
                             </field>
@@ -122,7 +125,7 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">datn.hr.checkin.checkout</field>
             <field name="view_mode">tree,form</field>
-            <field name="context">{'search_default_date_from':1, 'search_default_block_id':1, 'view_from_action': 'datn_hr_checkin_checkout'}</field>
+            <field name="context">{'search_default_date_from':1, 'search_default_block_id':1, 'view_from_action_all': 'datn_hr_checkin_checkout'}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Nhập các tiêu chí để tìm kiếm thông tin Bảng checkin checkout.

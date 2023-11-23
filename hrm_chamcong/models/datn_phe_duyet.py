@@ -72,6 +72,25 @@ class HrRequestType(models.Model):
                 data = self.env.cr.dictfetchone()
                 if data:
                     my_request = data['count']
+
+        elif request.code == 'PDCC':
+            if emp:
+                self.env.cr.execute("""
+                    SELECT count(*) FROM datn_hr_checkin_checkout_line dkn
+                    LEFT JOIN employee_duyet_checkin_checkout_rel dnr ON dnr.checkin_checkout_id = dkn.id
+                    WHERE dnr.employee_id = %s AND state = 'confirmed'
+                """, (emp.id,))
+                data = self.env.cr.dictfetchone()
+                if data:
+                    need_approve = data['count']
+                # ----- lấy số lượng yêu cầu của tôi
+                self.env.cr.execute("""
+                    SELECT count(*) FROM datn_hr_checkin_checkout_line
+                    WHERE employee_id = %s and state = 'confirmed'
+                """, (emp.id,))
+                data = self.env.cr.dictfetchone()
+                if data:
+                    my_request = data['count']
         return need_approve, my_request
 
     def open_approve_request(self):
@@ -100,5 +119,8 @@ class HrRequestType(models.Model):
             action['context'] = context
         elif self.code == 'PTC':
             action = self.env.ref('hrm_chamcong.datn_dang_ky_tang_ca_nhan_vien_action').sudo().read()[0]
+            action['context'] = context
+        elif self.code == 'PDCC':
+            action = self.env.ref('hrm_chamcong.datn_hrm_checkin_checkout_calendar_cnf1').sudo().read()[0]
             action['context'] = context
         return action

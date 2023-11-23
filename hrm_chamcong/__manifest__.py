@@ -36,6 +36,7 @@
         'views/datn_phe_duyet.xml',
         'views/datn_create_view_pheduyet.xml',
         'views/datn_dangky_tangca_nhanvien.xml',
+        'views/datn_hrm_checkin_checkout_nhanvien.xml',
         'views/menu_item.xml',
     ],
     # only loaded in demonstration mode

@@ -9,14 +9,14 @@
               parent="menu_chamcong"
               sequence="1"
               action="datn_hr_chamcong_action"
-              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr,hrm.hrm_group_own_edit" >
     </menuitem>
     <menuitem id="menu_item_checkin_checkout"
               name='Checkin checkout'
               parent="menu_chamcong"
               sequence="2"
               action="datn_hr_checkin_checkout_action"
-              groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only,hrm_chamcong.hrm_quyen_hr">
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
 
     <menuitem id="menu_item_cong_tang_cuong"
@@ -28,11 +28,19 @@
     </menuitem>
 
     <menuitem id="menu_item_dang_ky_tang_ca_nhan_vien"
-              name='Đăngký tăng ca nhân viên'
+              name='Đăng ký tăng ca nhân viên'
               parent="menu_chamcong"
               sequence="4"
               action="datn_dang_ky_tang_ca_nhan_vien_action"
               groups="hrm_chamcong.hrm_phe_duyet_tang_ca,hrm.hrm_group_own_edit">
+    </menuitem>
+
+    <menuitem id="menu_item_datn_hrm_checkin_checkout_calendar_cnf1"
+              name='Bảng checkin checkout nhân viên'
+              parent="menu_chamcong"
+              sequence="5"
+              action="datn_hrm_checkin_checkout_calendar_cnf1"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr,hrm.hrm_group_own_edit">
     </menuitem>
 
     <menuitem id="menu_quanly_letet_thuong" name="Quản lý nghỉ, thưởng"
