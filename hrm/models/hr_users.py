@@ -12,7 +12,7 @@ class Users(models.Model):
     department_id = fields.Many2many('hr.department', string='Phòng/Ban')
     system_ids_custom = fields.Many2many(
         'hr.system',
-        string='Hệ thống',
+        string='Hệ thống', store=True
     )
 
     company_ids_custom = fields.Many2many(

@@ -18,6 +18,7 @@
                                 <field name="type_company" required="1"/>
                                 <field name="readonly_sys" invisible="1"/>
                                 <field name="system_id" string="Hệ thống" required="1" attrs="{'readonly': [('readonly_sys', '=', True)]}" />
+                                <field name="active"/>
                             </group>
                             <group>
                                 <field name="phone_num"/>
