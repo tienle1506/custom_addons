@@ -1,13 +1,7 @@
 <odoo>
     <record id="module_hrm" model="ir.module.category">
-        <field name="name">HRM</field>
+        <field name="name">HRMS</field>
         <field name="sequence">-100</field>
-    </record>
-
-    <record id="hrm_group_read_only" model="res.groups">
-        <field name="name">Chỉ đọc</field>
-        <field name="category_id" ref="module_hrm"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="hrm_group_own_edit" model="res.groups">
@@ -27,5 +21,4 @@
         <field name="category_id" ref="module_hrm"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
-
 </odoo>

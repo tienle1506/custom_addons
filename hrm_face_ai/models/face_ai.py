@@ -302,7 +302,7 @@ class EmployeeProfile(models.Model):
     def create_or_write_checkin_checkout(self, employee_id, block_id, block_name):
         #Check xem có bản ghi đó chưa
         current_date = datetime.today().date()
-        employee = self.env['datn.hr.checkin.checkout.line'].search([('day', '=', current_date)])
+        employee = self.env['datn.hr.checkin.checkout.line'].search([('day', '=', current_date),('employee_id', '=', employee_id)])
         now = datetime.now()  # Lấy thời gian hiện tại
         start_month = now.replace(day=1).date()
         end_month = start_month + relativedelta(day=31)
