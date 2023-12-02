@@ -20,7 +20,7 @@
     'application': True,
     'sequence': -100,
     # any module necessary for this one to work correctly
-    'depends': ['hrm'],
+    'depends': ['hrm', 'base', 'mail'],
 
     # always loaded
     'data': [

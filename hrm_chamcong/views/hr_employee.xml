@@ -9,6 +9,7 @@
                <xpath expr="//field[@name='rank_id']" position="after">
                     <field name="so_ngay_duoc_phan_bo" readonly="1"/>
                     <field name="so_ngay_da_nghi" readonly="1"/>
+                    <field name="mail_nhan_thong_bao"/>
                </xpath>
             </field>
         </record>

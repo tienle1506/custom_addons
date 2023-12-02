@@ -10,7 +10,7 @@ import xlsxwriter
 from io import BytesIO
 from . import style_excel_wb
 from ...hrm.models import constraint
-class DATNHrmLeTet(models.Model):
+class DATNCongTangCuong(models.Model):
     _name = "datn.cong.tang.cuong"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
     _description = u'Quản lý công phép tăng cường'
@@ -238,9 +238,26 @@ class DATNHrmLeTet(models.Model):
 
     def action_draft(self):
         self.state = 'draft'
-        self.env['cron.job.cong.phep'].run()
     def action_confirmed(self):
         self.state = 'confirmed'
+
+    @api.model_create_single
+    def create(self, vals):
+        record = super().create(vals)
+        self.env.cr.after('commit', self._after_commit)
+        return record
+
+    def write(self, vals):
+        result = super().write(vals)
+        self.env.cr.after('commit', self._after_commit)
+        return result
+
+    def unlink(self):
+        result = super().unlink()
+        self.env.cr.after('commit', self._after_commit)
+        return result
+
+    def _after_commit(self):
         self.env['cron.job.cong.phep'].run()
 class DATNCongTangCuongLine(models.Model):
     _name = 'datn.cong.tang.cuong.line'

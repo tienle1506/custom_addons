@@ -426,11 +426,20 @@ class DATNHrCheckInCheckOutLine(models.Model):
         self.state = 'draft'
 
     def action_send_approve(self):
+        nguoi_duyet = []
+        for emp in self.nguoi_duyet:
+            if emp.mail_nhan_thong_bao:
+                nguoi_duyet.append(emp.mail_nhan_thong_bao.strip())
+        header = '''Thông báo phê duyệt chấm công %s''' % (self.employee_id.name)
+        ly_do_value = self.ly_do
+        ly_do_label = dict(self._fields['ly_do'].selection).get(ly_do_value)
+        content = u'Nhân viên %s tạo đơn xác nhận chấm công \nLý do: %s \nNgày: %s \nGhi chú: %s \nTrang web: http://localhost:8088/web' % (
+            str(self.employee_id.name), str(ly_do_label), self.day.strftime('%d/%m/%Y'), self.note)
+        if nguoi_duyet and len(nguoi_duyet) > 0:
+            self.env['my.mail.sender'].send_mail_to_customer(nguoi_duyet, header, content)
         self.state = 'confirmed'
-
     def action_refuse(self):
         self.state = 'refused'
-
     def action_approve(self):
         day = self.day
         if self.ly_do == 'quen_checkin':

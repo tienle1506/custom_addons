@@ -34,7 +34,7 @@
                                 class="oe_highlight oe_edit_only"
                                 groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                attrs="{'invisible': [('state','in',('draft','approved'))]}"
+                                attrs="{'invisible': [('state','in',('confirmed, approved'))]}"
                                 class="oe_edit_only"
                         />
                         <field name="state" widget="statusbar"/>
@@ -43,19 +43,19 @@
                         <group>
                             <field options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" name="employee_id" required="1" readonly="1" force_save="1"/>
                             <field name="block_id"  required="1" readonly="1" force_save="1"/>
-                            <field name="date_from" class="date1 oe_inline" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
-                            <field name="date_to" required="1" readonly="1" force_save="1"/>
-                            <field name="ly_do" style="max-width: 200px;" attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field name="date_from" class="date1 oe_inline" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="date_to" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="ly_do" style="max-width: 200px;" attrs="{'readonly': [('state','!=','draft')]}" domain=""/>
                             <field name="so_ngay_nghi" required="1"/>
                         </group>
                         <group>
                             <field string="Người duyệt" name="nguoi_duyet" required="1" widget="many2many_tags" attrs="{'readonly': [('state','!=','draft')]}"/>
                             <field string="Loại nghỉ" name="loai_nghi" required="1"
                                    attrs="{'readonly': [('state','!=','draft')]}"
+                                   domain="[('trang_thai_ap_dung', '=', 'True')]"
                                    options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
                             <field string="Số ngày được phân bổ" name="so_ngay_duoc_phan_bo" required="1"/>
                             <field string="Số ngày đã nghỉ" name="so_ngay_da_nghi" required="1"/>
-                            <field string="Số ngày còn lại" name="so_ngay_con_lai" required="1"/>
                             <field name="create_date" widget="date" string="Ngày tạo"
                                    attrs="{'invisible': [('id','=',False)]}"
                                    style="max-width: 200px;" readonly="1" force_save="1"/>

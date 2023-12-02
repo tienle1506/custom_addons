@@ -71,6 +71,16 @@ class DATNTangCa(models.Model):
     def action_draft(self):
         self.state = 'draft'
     def action_send_approve(self):
+        nguoi_duyet = []
+        for emp in self.nguoi_duyet:
+            if emp.mail_nhan_thong_bao:
+                nguoi_duyet.append(emp.mail_nhan_thong_bao.strip())
+        header = '''Thông báo phê duyệt đơn tăng ca của %s''' % (self.employee_id.name)
+        content = u'Nhân viên %s tạo đơn tăng ca \nLý do: %s \nSố giờ tăng ca:%s\nTừ ngày: %s - đến ngày: %s \nTrang web: http://localhost:8088/web' % (
+        str(self.employee_id.name), str(self.ly_do), str(self.so_gio_tang_ca),
+        self.date_from.strftime('%d/%m/%Y'), self.date_to.strftime('%d/%m/%Y'))
+        if nguoi_duyet and len(nguoi_duyet) > 0:
+            self.env['my.mail.sender'].send_mail_to_customer(nguoi_duyet, header, content)
         self.state = 'confirmed'
 
     def action_refuse(self):
