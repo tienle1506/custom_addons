@@ -1,7 +1,8 @@
 from odoo import models, fields, api, _
 from odoo.http import request
-from datetime import datetime,time
+from datetime import datetime,time, timedelta
 from dateutil.relativedelta import relativedelta
+
 #FACE AI
 import cv2, os
 import numpy as np
@@ -229,7 +230,7 @@ class EmployeeProfile(models.Model):
                     profile = None
 
                     # Nếu độ sai khác < 25% thì lấy profile
-                    if dist <= 50:
+                    if dist <= 70:
                         profile = self.getProfile(id)
 
                     # Hiển thị thông tin tên người hoặc Unknown nếu không tìm thấy
@@ -333,7 +334,6 @@ class EmployeeProfile(models.Model):
             checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
             SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note) VALUES (%s, %s, '%s', '%s', '%s');''' %(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
             if target_time <= checkin_time:
-                checkin_time_io -= datetime.timedelta(hours=7)
                 SQL3 = ''
                 SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day, note) VALUES (%s, %s, '%s','%s','%s');'''%(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công vào')
             cr.execute(SQL3)

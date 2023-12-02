@@ -34,7 +34,7 @@
                                 class="oe_highlight oe_edit_only"
                                 groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                attrs="{'invisible': [('state','=','draft')]}"
+                                attrs="{'invisible': [('state','in',('draft','approved'))]}"
                                 class="oe_edit_only"
                         />
                         <field name="state" widget="statusbar"/>
@@ -70,19 +70,18 @@
             </field>
         </record>
 
-<!--        <record id="datn_hrm_le_tet_search" model="ir.ui.view">-->
-<!--            <field name="name">Quản lý lễ tết</field>-->
-<!--            <field name="model">datn.hrm.le.tet.line</field>-->
-<!--            <field name="arch" type="xml">-->
-<!--                <search>-->
-<!--                    <field name="employee_id"/>-->
-<!--                     <group expand="0" string="Group By">-->
-<!--                        <filter name="employee_id" string="Nhân viên" domain="[]" context="{'group_by':'employee_id'}"/>-->
-<!--                        <filter string="Khối" name="block_id" domain="[]" context="{'group_by':'block_id'}"/>-->
-<!--                    </group>-->
-<!--                </search>-->
-<!--            </field>-->
-<!--        </record>-->
+        <record id="datn_dangkynhgi_search" model="ir.ui.view">
+            <field name="name">Quản lý lễ tết</field>
+            <field name="model">datn.dangkynghi</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter name="state_darft" string="Soạn thảo" domain="[('state', '=', 'darft')]"/>
+                    <filter name="state_confirmed" string="Chờ phê duyệt" domain="[('state', '=', 'confirmed')]"/>
+                    <filter name="state_approved" string="Phê duyệt" domain="[('state', '=', 'approved')]"/>
+                    <filter name="state_refused" string="Từ chối" domain="[('state', '=', 'refused')]"/>
+                </search>
+            </field>
+        </record>
 
         <record id="datn_dang_ky_nghi_nhanvien_action" model="ir.actions.act_window">
             <field name="name">Đăng ký nghỉ nhân viên</field>

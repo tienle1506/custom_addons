@@ -34,7 +34,7 @@
                                 class="oe_highlight oe_edit_only"
                                 groups="hrm_chamcong.hrm_phe_duyet_tang_ca"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                attrs="{'invisible': [('state','=','draft')]}" class="oe_edit_only"/>
+                                attrs="{'invisible': [('state','in',('draft','approved'))]}" class="oe_edit_only"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
