@@ -9,18 +9,18 @@
                 name="Cấu hình khối thương mại"
                 parent="menu_field"
                 sequence="1"/>
-        <menuitem
-                id="create_system"
-                name="Tạo Hệ thông"
-                parent="config_commerce"
-                action="systems_action"
-                sequence="10"/>
-        <menuitem
-                id="create_company"
-                name="Tạo Công ty"
-                parent="config_commerce"
-                action="company_action"
-                sequence="20"/>
+<!--        <menuitem-->
+<!--                id="create_system"-->
+<!--                name="Tạo Hệ thông"-->
+<!--                parent="config_commerce"-->
+<!--                action="systems_action"-->
+<!--                sequence="10"/>-->
+<!--        <menuitem-->
+<!--                id="create_company"-->
+<!--                name="Tạo Công ty"-->
+<!--                parent="config_commerce"-->
+<!--                action="company_action"-->
+<!--                sequence="20"/>-->
         <menuitem
                 id="config_office"
                 name="Cấu hình khối văn phòng"
