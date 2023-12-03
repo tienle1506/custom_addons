@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_hrm_users_form" model="ir.ui.view">
+        <field name="name">res.user.form.view</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <!-- Other fields and modifications -->
+            <xpath expr="//page[@name='access_rights']" position="replace">
+                <page name="access_rights" string="Access Rights">
+                    <!-- Existing code -->
+                    <group string="Quyền HRMS">
+                        <field name="related" invisible="1"/>
+                        <field name="block_id"/>
+                        <field name="department_id" string="Phòng ban" widget="many2many_tags"
+                               attrs="{'invisible': ['|', ('related', '=', False), ('block_id', '=', 'full')]}"/>
+                        <field name="department_id" string="Hệ thống / Công ty" widget="many2many_tags"
+                               attrs="{'invisible': ['|', ('related', '=', True), ('block_id', '=', 'full')]}"/>
+                    </group>
+                    <field name="groups_id"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

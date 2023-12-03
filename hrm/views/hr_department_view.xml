@@ -1,0 +1,62 @@
+<odoo>
+    <record id="view_departments_form" model="ir.ui.view">
+        <field name="name">hr.departments.form</field>
+        <field name="model">hr.department</field>
+        <field name="arch" type="xml">
+            <form string="Cấu hình công ty">
+                <sheet>
+                    <group>
+                        <field name="type_block" attrs="{'readonly': [('readonly_type_block', '=', False)]}" required="1"/>
+                        <field name="type_in_block_ecom" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}" required="1"/>
+                    </group>
+                    <group col="2">
+                        <group>
+                            <field name="relate" invisible="1"/>
+                            <field name="readonly_type_block" invisible="1"/>
+                            <field name="name_display" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                            <field name="name" strinvg="Tên phòng ban" attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}" />
+                            <field name="name_system" string="Tên hệ thống" attrs="{'invisible': [('relate', '!=', 3)]}"/>
+                            <field name="name_company" attrs="{'invisible': [('relate', '!=', 4)]}"/>
+                            <field name="type_company" string="Loại công ty" attrs="{'invisible': [('relate', '!=', 4)], 'required': [('relate', '=', 4)]}"/>
+                            <field name="type_system" string="Loại hệ thống" attrs="{'invisible': [('relate', '!=', 3)], 'required': [('relate', '=', 3)]}"/>
+                            <field name="department_level" force_save="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="parent_id" string="Phòng ban / Hệ thống / Công ty cấp trên:"/>
+                        </group>
+                        <group>
+                            <field name="phone_num"/>
+                            <field name="manager_id" string="Quản lý" attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')], 'required': [('type_block', '=', 'BLOCK_OFFICE_NAME')]}"/>
+                            <field name="chairperson" string="Chủ hộ" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                            <field name="vice_president" string="Phó hộ" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_departments_tree" model="ir.ui.view">
+        <field name="name">hr.departments.tree</field>
+        <field name="model">hr.department</field>
+        <field name="arch" type="xml">
+            <tree string="Phòng ban" default_order="department_level ASC">
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="department_level"/>
+                <field name="type_block"/>
+                <field name="manager_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="departments_action" model="ir.actions.act_window">
+        <field name="name">Tạo Phòng ban</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hr.department</field>
+        <!--        <field name="search_view_id" ref="departments_filter"/>-->
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_departments_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_departments_form')})]"/>
+    </record>
+</odoo>
