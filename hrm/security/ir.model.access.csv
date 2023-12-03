@@ -3,3 +3,4 @@ access_config_hr_department,access_config_hr_department,model_hr_department,hrm_
 access_config_hr_employee,access_config_hr_employee,model_hr_employee,hrm_group_config_access,1,1,1,1
 access_config_hr_system,access_config_hr_system,model_hr_system,hrm_group_config_access,1,1,1,1
 access_config_hr_company,access_config_hr_company,model_hr_company,hrm_group_config_access,1,1,1,1
+access_config_res_user,access_config_res_user,model_res_users,base.group_user,1,1,1,1
