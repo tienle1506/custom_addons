@@ -28,8 +28,6 @@
         'security/ir.model.access.csv',
         'views/hr_department_view.xml',
         'views/hr_users_view.xml',
-        'views/hr_system_view.xml',
-        'views/hr_company_view.xml',
         'views/hr_employee_view.xml',
         'views/menu.xml'
     ],

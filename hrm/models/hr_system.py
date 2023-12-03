@@ -22,6 +22,7 @@ class HrSystem(models.Model):
     vice_president = fields.Many2one('res.users', string='Phó chủ tịch')
     res_user_id = fields.Many2one('res.users')
 
+
     def _default_systems(self):
         """Kiểm tra phòng ban mặc định của người dùng và xây dựng danh sách hệ thống con và cháu."""
         if self.env.user.system_ids_custom:

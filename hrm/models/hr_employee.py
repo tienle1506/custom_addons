@@ -9,7 +9,7 @@ class HrEmployee(models.Model):
 
     type_block = fields.Selection(constraint.TYPE_BLOCK, string='Khối', required=True, default='BLOCK_COMMERCE_NAME')
 
-    employee_code = fields.Char(string='Mã nhân viên', readonly=True, store=True )
+    employee_code = fields.Char(string='Mã nhân viên')
 
     email = fields.Char('Email công việc', required=True, tracking=True)
     phone_num = fields.Char('Số điện thoại di động', required=True, tracking=True)

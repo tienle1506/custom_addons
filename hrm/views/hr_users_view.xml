@@ -10,13 +10,10 @@
                     <!-- Existing code -->
                     <group string="Quyền HRMS">
                         <field name="related" invisible="1"/>
-                        <field name="check_field_company" invisible="1"/>
                         <field name="block_id"/>
-                        <field name="department_id" widget="many2many_tags"
+                        <field name="department_id" string="Phòng ban" widget="many2many_tags"
                                attrs="{'invisible': ['|', ('related', '=', False), ('block_id', '=', 'full')]}"/>
-                        <field name="system_ids_custom" widget="many2many_tags"
-                               attrs="{'invisible': ['|', ('related', '=', True), ('block_id', '=', 'full')], 'readonly': [('check_field_company', '=', True)]}" />
-                        <field name="company_ids_custom" widget="many2many_tags"
+                        <field name="department_id" string="Hệ thống / Công ty" widget="many2many_tags"
                                attrs="{'invisible': ['|', ('related', '=', True), ('block_id', '=', 'full')]}"/>
                     </group>
                     <field name="groups_id"/>

@@ -17,7 +17,6 @@ class HrCompany(models.Model):
     active = fields.Boolean('Active', default=True)
     type_company = fields.Selection(selection=constraint.SELECT_TYPE_COMPANY, string="Loại hình công ty",
                                     tracking=True)
-    active = fields.Boolean('Active', default=True)
     phone_num = fields.Char(string='Số điện thoại', tracking=True)
     chairperson = fields.Many2one('res.users', string="Chủ tịch")
     vice_president = fields.Many2one('res.users', string='Phó chủ tịch')
@@ -92,6 +91,7 @@ class HrCompany(models.Model):
             self.readonly_sys = True
         elif self.env.user.block_id != 'BLOCK_OFFICE_NAME' and not self.env.user.company_ids_custom:
             self.readonly_sys = False
+        print(self.readonly_sys)
 
     @api.onchange('parent_id')
     def _onchange_parent_company(self):
@@ -106,44 +106,15 @@ class HrCompany(models.Model):
         else:
             self.system_id = False
 
-    @api.onchange('system_id')
-    def _onchange_system(self):
-        #     """decorator này  chọn lại hệ thống sẽ clear công ty cha"""
-        self.change_system_id = self.system_id
-        if not self.system_id.name_display:
-            self.parent_id = False
-        if self.system_id != self.parent_id.system_id:
-            self.parent_id = False
-            child_system = self.env['hr.system'].search([('id', 'child_of', self.system_id.ids)])
-            list_company_of_sys = self.env['hr.company'].search([('system_id', 'in', child_system.ids)])
-            return {'domain': {'parent_id': [('id', 'in', list_company_of_sys.ids)]}}
+    # @api.onchange('system_id')
+    # def _onchange_company(self):
+    #     """decorator này  chọn lại hệ thống sẽ clear công ty cha"""
+    #     self.change_system_id = self.system_id
+    #     if not self.system_id.name:
+    #         self.parent_company = False
+    #     if self.system_id != self.parent_company.system_id:
+    #         self.parent_company = False
+    #         func = self.env['hrm.utils']
+    #         list_systems_id = func._system_have_child_company(self.system_id.id)
+    #         return {'domain': {'parent_company': [('id', 'in', list_systems_id)]}}
 
-    @api.constrains('name_display', 'type_company')
-    def _check_name_block_combination(self):
-        # Kiểm tra sự trùng lặp dựa trên kết hợp của work_position và block
-        for record in self:
-            name = self.search([('id', '!=', record.id), ('active', 'in', (True, False))])
-            for n in name:
-                if n['name'].lower() == record.name_display.lower() and n.type_company == self.type_company:
-                    raise ValidationError(constraint.DUPLICATE_RECORD % "Công ty")
-
-
-    @api.constrains("phone_num")
-    def _check_phone_valid(self):
-        """
-        hàm kiểm tra số điện thoại: không âm, không có ký tự, có số 0 ở đầu
-        """
-        for rec in self:
-            if rec.phone_num:
-                if not re.match(r'^\d+$', rec.phone_num):
-                    raise ValidationError("Số điện thoại không hợp lệ")
-
-
-    @api.constrains("chairperson", "vice_president")
-    def _check_chairperson_and_vice_president(self):
-        """ Kiểm tra xem chairperson và vice_president có trùng id không """
-        for rec in self:
-            chairperson_id = rec.chairperson.id if rec.chairperson else False
-            vice_president_id = rec.vice_president.id if rec.vice_president else False
-            if chairperson_id and vice_president_id and chairperson_id == vice_president_id:
-                raise ValidationError("Chủ tịch và Phó chủ tịch không thể giống nhau.")
