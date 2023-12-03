@@ -11,12 +11,13 @@
                         </group>
                         <group col="2">
                             <group>
-                                <field name="employee_code"/>
+                                <field name="employee_code" readonly="1" force_save="1"/>
                                 <field name="name" required="1"/>
                                 <field name="birthday"/>
                                 <field name="gender"/>
-                                <field name="email"/>
-                                <field name="phone"/>
+                                <field name="personal_email" string="Email cá nhân"/>
+                                <field name="work_email" string="Email công việc" readonly="1" />
+                                <field name="mobile_phone" string="số điện thoại cá nhân"/>
                                 <field name="identifier"/>
                                 <field name="work_start_date"/>
                                 <field name="date_receipt"/>
@@ -24,10 +25,9 @@
                                 <field name="auto_create_acc"/>
                             </group>
                             <group>
-                                <field name="system_id"/>
-                                <field name="company_id2"/>
                                 <field name="company_id" required="0" invisible="1"/>
-                                <field name="department_id"/>
+                                <field name="department_id" string="Hệ thống / Công ty" required="1" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                                <field name="department_id" string="Phòng ban" required="1" attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
                             </group>
 
                         </group>
@@ -44,8 +44,6 @@
                     <field name="employee_code"/>
                     <field name="name"/>
                     <field name="type_block"/>
-                    <field name="system_id"/>
-                    <field name="company_id2"/>
                     <field name="department_id"/>
                 </tree>
             </field>

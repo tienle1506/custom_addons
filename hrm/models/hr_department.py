@@ -24,19 +24,27 @@ class HrDepartment(models.Model):
     vice_president = fields.Many2one('res.users', string='Phó chủ tịch')
     relate = fields.Integer()
     res_user_id = fields.Many2one('res.users')
-
-    def _check_readonly(self):
-        if self.env.user.block_id == 'full':
-            self.readonly_type_block = False
-        elif self.env.user.block_id == 'BLOCK_COMMERCE_NAME':
-            self.type_block = 'BLOCK_COMMERCE_NAME'
-            self.readonly_type_block = True
-        elif self.env.user.block_id == 'BLOCK_OFFICE_NAME':
-            self.readonly_type_block = True
-
+    has_change = fields.Boolean(default=True)
+    def default_type_block(self):
+        return 'BLOCK_OFFICE_NAME' if self.env.user.block_id == 'BLOCK_OFFICE_NAME' else 'BLOCK_COMMERCE_NAME'
     type_block = fields.Selection([('BLOCK_COMMERCE_NAME', 'Thương mại'),
-                                   ('BLOCK_OFFICE_NAME', 'Văn phòng')], string='Loại khối', default='BLOCK_COMMERCE_NAME')
-    readonly_type_block = fields.Boolean(compute='_check_readonly')
+                                   ('BLOCK_OFFICE_NAME', 'Văn phòng')], string='Loại khối',
+                                  default=default_type_block)
+    readonly_type_block = fields.Boolean(compute='_compute_readonly_type_block')
+
+    @api.depends('type_block')
+    def _compute_readonly_type_block(self):
+        for record in self:
+            if record.env.user.block_id == 'full':
+                record.readonly_type_block = False
+            elif record.env.user.block_id == 'BLOCK_COMMERCE_NAME':
+                record.type_block = 'BLOCK_COMMERCE_NAME'
+                record.readonly_type_block = True
+            elif record.env.user.block_id == 'BLOCK_OFFICE_NAME':
+                record.type_block = 'BLOCK_OFFICE_NAME'
+                record.readonly_type_block = True
+        print(self.readonly_type_block)
+
 
     @api.onchange('parent_id')
     def _set_department_level(self):
@@ -60,15 +68,13 @@ class HrDepartment(models.Model):
 
     @api.onchange('type_block', 'type_in_block_ecom')
     def _onchange_relate(self):
-        # if self.type_block == 'BLOCK_OFFICE_NAME':
-        #     self.relate = 1
+        if self.type_block == 'BLOCK_OFFICE_NAME':
+            self.relate = 1
         if self.type_block == 'BLOCK_COMMERCE_NAME':
             if self.type_in_block_ecom == 'system':
                 self.relate = 3
             else:
                 self.relate = 4
-        print(self.relate)
-
     @api.onchange('name_system', 'name_company')
     def _onchange_sys_com_name(self):
         if self.name_system:
@@ -99,3 +105,59 @@ class HrDepartment(models.Model):
                         raise ValidationError(constraint.DUPLICATE_RECORD % "Công ty")
 
 
+    def unlink(self, context=None):
+        """ Chặn không cho xoá khối 'Văn phòng' và 'Thương mại' """
+        for line in self:
+            if not line.has_change:
+                raise ValidationError(constraint.DO_NOT_DELETE)
+        return super(HrDepartment, self).unlink()
+
+    # def _default_department(self):
+    #     """Kiểm tra phòng ban mặc định của người dùng và xây dựng danh sách hệ thống con và cháu."""
+    #     if self.env.user.block_id == 'BLOCK_OFFICE_NAME' and self.env.user.department_id:
+    #         print('a')
+    #         list_department = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
+    #         return [('id', 'in', list_department.ids)]
+    #     elif self.env.user.block_id == 'BLOCK_OFFICE_NAME' and not self.env.user.department_id:
+    #         print('b')
+    #         list_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
+    #         return [('id', 'in', list_department.ids)]
+    #     elif self.env.user.block_id == 'BLOCK_COMMERCE_NAME' and self.env.user.department_id:
+    #         print('a')
+    #         list_department = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
+    #         print(list_department)
+    #         return [('id', 'in', list_department.ids)]
+    #     elif self.env.user.block_id == 'BLOCK_COMMERCE_NAME' and not self.env.user.department_id:
+    #         print('b')
+    #         list_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
+    #         return [('id', 'in', list_department.ids)]
+    #     elif self.env.user.block_id == 'full':
+    #         print('full')
+    #         list_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
+    #         return [('id', 'in', list_department.ids)]
+    #     return []
+
+    parent_id = fields.Many2one('hr.department', string='Parent Department', index=True)
+
+    @api.onchange('type_block', 'type_in_block_ecom')
+    def _onchange_type_block(self):
+        self.parent_id = False
+        for rec in self:
+            if rec.type_block == 'BLOCK_COMMERCE_NAME' and rec.type_in_block_ecom == 'system':
+                if self.env.user.department_id:
+                    list_sys_com = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids), ('type_in_block_ecom', '=', 'system')])
+                else:
+                    list_sys_com = self.env['hr.department'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME'), ('type_in_block_ecom', '=', 'system')])
+                return {'domain': {'parent_id':[('id', 'in', list_sys_com.ids)]}}
+            if rec.type_block == 'BLOCK_COMMERCE_NAME' and rec.type_in_block_ecom == 'company':
+                if self.env.user.department_id:
+                    list_sys_com = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
+                else:
+                    list_sys_com = self.env['hr.department'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
+                return {'domain': {'parent_id':[('id', 'in', list_sys_com.ids)]}}
+            if rec.type_block == 'BLOCK_OFFICE_NAME':
+                if self.env.user.department_id:
+                    list_sys_com = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
+                else:
+                    list_sys_com = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
+                return {'domain': {'parent_id':[('id', 'in', list_sys_com.ids)]}}
