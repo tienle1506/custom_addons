@@ -24,7 +24,7 @@ class HrDepartment(models.Model):
     vice_president = fields.Many2one('res.users', string='Phó chủ tịch')
     relate = fields.Integer()
     res_user_id = fields.Many2one('res.users')
-    has_change = fields.Boolean(default=True)
+    has_change = fields.Boolean(default=False)
     def default_type_block(self):
         return 'BLOCK_OFFICE_NAME' if self.env.user.block_id == 'BLOCK_OFFICE_NAME' else 'BLOCK_COMMERCE_NAME'
     type_block = fields.Selection([('BLOCK_COMMERCE_NAME', 'Thương mại'),
@@ -108,7 +108,7 @@ class HrDepartment(models.Model):
     def unlink(self, context=None):
         """ Chặn không cho xoá khối 'Văn phòng' và 'Thương mại' """
         for line in self:
-            if not line.has_change:
+            if line.has_change:
                 raise ValidationError(constraint.DO_NOT_DELETE)
         return super(HrDepartment, self).unlink()
 

@@ -15,13 +15,12 @@ class HrEmployee(models.Model):
     employee_code = fields.Char(string='Mã nhân viên', store=True)
 
     personal_email = fields.Char('Email cá nhân', tracking=True)
-    work_email = fields.Char('Work Email', compute='_compute_work_email', store=True)
+    email_work = fields.Char('Work Email', store=True)
     identifier = fields.Char('Số căn cước công dân', required=True, tracking=True)
     work_start_date = fields.Date(string='Ngày vào làm', tracking=True)
     date_receipt = fields.Date(string='Ngày được nhận chính thức', required=True)
     profile_status = fields.Selection(constraint.PROFILE_STATUS, string='Trạng thái hồ sơ')
     auto_create_acc = fields.Boolean(string='Tự động tạo tài khoản', default=True)
-    acc_id = fields.Many2one('res.users', string='Tài khoản đăng nhập')
 
     # Nhân viên khối văn phòng
     department_id = fields.Many2one('hr.department', string='Phòng ban', tracking=True)
@@ -32,13 +31,16 @@ class HrEmployee(models.Model):
             # Lấy giá trị tiếp theo từ sequence 'hr.employee.sequence'
             sequence = self.env['ir.sequence'].next_by_code('hr.employee.sequence') or '/'
             vals['employee_code'] = sequence
-        if  vals['employee_code']:
-            block_prefix = 'COM' if vals['type_block'] == 'BLOCK_COMMERCE_NAME' else 'OFF'
-            vals['work_email'] = f"{block_prefix}{vals['employee_code']}@huce.com"
-            # self.work_email = vals['work_email']
+
+        if vals.get('employee_code'):
+            block_prefix = 'COM' if vals.get('type_block') == 'BLOCK_COMMERCE_NAME' else 'OFF'
+            vals['email_work'] = f"{block_prefix}{vals.get('employee_code')}@huce.com"
+
+        # Set work_email value in vals before creating the record
         record = super(HrEmployee, self).create(vals)
+
         if record:
-        # Assuming you want to call the auto_create_account_employee function
+            # Assuming you want to call the auto_create_account_employee function
             record.auto_create_account_employee()
         return record
 
@@ -62,13 +64,13 @@ class HrEmployee(models.Model):
                     list_sys_com = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
                 return {'domain': {'department_id': [('id', 'in', list_sys_com.ids)]}}
 
-    @api.depends('employee_code')
-    def _compute_work_email(self):
-        for record in self:
-            if record.employee_code:
-               record.work_email
-            else:
-                record.work_email = False
+    # @api.depends('employee_code')
+    # def _compute_work_email(self):
+    #     for record in self:
+    #         if record.employee_code:
+    #            record.work_email
+    #         else:
+    #             record.work_email = False
 
 
     def auto_create_account_employee(self):
@@ -78,7 +80,7 @@ class HrEmployee(models.Model):
 
         values = {
             'name': self.name,
-            'login': self.work_email,
+            'login': self.email_work,
             'password': '1',
             'groups_id': [(6, 0, [user_group.id])],
         }
@@ -91,4 +93,3 @@ class HrEmployee(models.Model):
             'res_id': new_user.id,
             'view_mode': 'form',
         }
-
