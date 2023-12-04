@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_request_type_tree" model="ir.ui.view">
+            <field name="name">hr.request.type.tree</field>
+            <field name="model">hr.request.type</field>
+            <field name="arch" type="xml">
+                <tree string="" default_order="index ASC">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="index"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_request_type_kanban" model="ir.ui.view">
+            <field name="name">hr.request.type.kanban</field>
+            <field name="model">hr.request.type</field>
+            <field name="arch" type="xml">
+                <kanban class="o_approval_type_kanban" create="0" edit="0" delete="0" default_order="index ASC">
+                    <field name="id"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="image"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card request-kanban">
+                                <div class="o_kanban_image">
+                                    <img alt="Avatar" style="width: 64px !important;height: 64px !important;"
+                                         t-att-src="kanban_image('hr.request.type', 'image',record.id.raw_value)"/>
+                                </div>
+                                <div class="oe_module_desc">
+                                    <h4 class="o_kanban_record_title font-weight-bold" style="padding-left:10px">
+                                        <field name="name"/>
+                                    </h4>
+                                    <p class="oe_module_name" style="padding-left:10px">
+                                        <field name="code"/>
+                                    </p>
+                                    <div class="oe_module_action">
+<!--                                        <button type="object" name="create_new_request" class="btn btn-success">-->
+<!--                                            <i class="fa fa-plus"></i>-->
+<!--                                        </button>-->
+                                        <button type="object" name="open_my_request" class="btn btn-info">
+                                            <field name="my_request" invisible="1"/>
+                                            <t t-if="record.my_request.raw_value">
+                                                <span style="color: #ffc107; font-weight: bold;" t-esc="record.my_request.raw_value"/>
+                                            </t>
+                                            <t t-else="">
+                                                0
+                                            </t>
+                                            Y/c của tôi
+                                        </button>
+                                        <button type="object" class="btn btn-info" name="open_approve_request">
+                                            <field name="need_approve" invisible="1"/>
+                                            <t t-if="record.need_approve.raw_value">
+                                                <span style="color: #dc3545; font-weight: bold;" t-esc="record.need_approve.raw_value"/>
+                                            </t>
+                                            <t t-else="">
+                                                0
+                                            </t>
+                                            Cần phê duyệt
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="hr_request_type_action" model="ir.actions.act_window">
+            <field name="name">Bảng điều khiển</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.request.type</field>
+            <field name="view_mode">kanban</field>
+            <field name="domain">[('is_active', '=', True)]</field>
+        </record>
+
+        <record id="hr_request_type_form" model="ir.ui.view">
+            <field name="name">hr.request.type.form</field>
+            <field name="model">hr.request.type</field>
+            <field name="arch" type="xml">
+                <form string="Loại yêu cầu" delete="0" create="0" duplicate="0">
+                    <sheet>
+                        <field name="image" widget='image' class="oe_avatar"
+                               options='{"preview_image": "image"}'/>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="Tên"/>
+                            <h1>
+                                <field name="name" placeholder="Loại yêu cầu..."/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="code" required="1" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="index"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_request_type_config_action" model="ir.actions.act_window">
+            <field name="name">Loại yêu cầu</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.request.type</field>
+            <field name="context">{'view_from_action': 'hr_request_type', 'view_from': '1'}</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+    </data>
+</odoo>

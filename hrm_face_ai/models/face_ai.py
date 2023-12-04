@@ -1,7 +1,8 @@
 from odoo import models, fields, api, _
 from odoo.http import request
-from datetime import datetime,time
+from datetime import datetime,time, timedelta
 from dateutil.relativedelta import relativedelta
+
 #FACE AI
 import cv2, os
 import numpy as np
@@ -10,7 +11,7 @@ import shutil
 
 
 class EmployeeProfile(models.Model):
-    _inherit = 'hrm.employee.profile'
+    _inherit = 'hr.employee'
     _description = 'Bảng thông tin nhân viên'
 
     def loaf_face_ai_user_new(self):
@@ -161,7 +162,7 @@ class EmployeeProfile(models.Model):
 
     def getProfile(self, id):
         SQL = ''
-        SQL += '''SELECT * FROM hrm_employee_profile WHERE id=%s'''%(id)
+        SQL += '''SELECT * FROM hr_employee WHERE id=%s'''%(id)
         cr = self.env.cr
         cr.execute(SQL)
         datas = cr.dictfetchall()
@@ -253,16 +254,16 @@ class EmployeeProfile(models.Model):
 
             if check_thoat:
                 SQL = ''
-                SQL += '''SELECT emp.id AS employee_id, hrbl.id as block_id, hrbl.name as block_name
-                       FROM hrm_employee_profile emp INNER JOIN res_users lg ON lg.id = emp.acc_id 
-                       INNER JOIN hrm_blocks hrbl ON hrbl.id = emp.block_id
+                SQL += '''SELECT emp.id AS employee_id, hrbl.id as department_id, hrbl.name as department_name
+                       FROM hr_employee emp INNER JOIN res_users lg ON lg.id = emp.user_id 
+                       INNER JOIN hr_department hrbl ON hrbl.id = emp.department_id
                        WHERE lg.id = %s;'''%(self.env.user.id, )
                 cr = self.env.cr
                 cr.execute(SQL)
                 datas = cr.dictfetchall()
                 data = datas[0]
                 if data['employee_id'] == employee_id_login:
-                    self.create_or_write_checkin_checkout(data.get('employee_id'), data.get('block_id'), data.get('block_name'))
+                    self.create_or_write_checkin_checkout(data.get('employee_id'), data.get('department_id'), data.get('department_name'))
                     notification = {
                         'type': 'ir.actions.client',
                         'tag': 'display_notification',
@@ -299,7 +300,7 @@ class EmployeeProfile(models.Model):
             }
             return notification
 
-    def create_or_write_checkin_checkout(self, employee_id, block_id, block_name):
+    def create_or_write_checkin_checkout(self, employee_id, department_id, department_name):
         #Check xem có bản ghi đó chưa
         current_date = datetime.today().date()
         employee = self.env['datn.hr.checkin.checkout.line'].search([('day', '=', current_date),('employee_id', '=', employee_id)])
@@ -307,7 +308,7 @@ class EmployeeProfile(models.Model):
         start_month = now.replace(day=1).date()
         end_month = start_month + relativedelta(day=31)
         cr = self.env.cr
-        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' '''% (start_month)
+        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' and department_id = %s '''% (start_month, department_id)
         cr.execute(SQL1)
         datas = cr.dictfetchall()
         if len(datas) > 0:
@@ -315,9 +316,9 @@ class EmployeeProfile(models.Model):
         else:
             parent_checkin_checkout = []
         if not parent_checkin_checkout:
-            name = 'Bảng chấm công tháng %s của khối %s'%(start_month, block_name)
-            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, block_id, date_from, date_to) VALUES (%s, %s, %s,%s)'''
-            values = (name, block_id, start_month, end_month)
+            name = 'Bảng chấm công tháng %s của Đơn vị/ phòng ban %s'%(start_month, department_name)
+            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, department_id, date_from, date_to, state) VALUES (%s, %s, %s,%s, %s)'''
+            values = (name, department_id, start_month, end_month, 'draft')
             cr.execute(SQL2, values)
 
             cr.execute(SQL1)
@@ -327,25 +328,31 @@ class EmployeeProfile(models.Model):
             else:
                 parent_checkin_checkout = []
         if not employee:
-            target_time = time(hour=10)  # Giá trị thời gian muốn so sánh
+            target_time = time(hour=10)
+            checkin_time_io = datetime.now()
+            # Giá trị thời gian muốn so sánh
             checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
-
-            if target_time > checkin_time:
-                SQL3 ='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day) VALUES (%s, %s, %s, %s);'''
-            else:
-                SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day) VALUES (%s, %s, %s, %s);'''
-            values = (parent_checkin_checkout['id'], employee_id, datetime.now(), current_date)
-            cr.execute(SQL3, values)
+            SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note) VALUES (%s, %s, '%s', '%s', '%s');''' %(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
+            if target_time <= checkin_time:
+                SQL3 = ''
+                SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day, note) VALUES (%s, %s, '%s','%s','%s');'''%(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công vào')
+            cr.execute(SQL3)
         else:
             #nếu đã tồn tại thì sẽ đc update vào checkout
             line = self.env['datn.hr.checkin.checkout.line'].sudo().browse(employee.id)
-            time_difference = datetime.now() - line.checkin
-            timeofday = round(time_difference.total_seconds() / 3600, 2)
+            note = ''
+            if line.checkin:
+                time_difference = datetime.now() - line.checkin
+                timeofday = round(time_difference.total_seconds() / 3600, 2)
+            else:
+                timeofday = 0
+                note = 'Quên chấm công vào'
             values = {
                 'day': current_date,
                 'checkout': datetime.now(),
                 'checkin': line.checkin,
-                'timeofday': timeofday
+                'timeofday': timeofday,
+                'note': note
             }
             line.write(values)
             return line

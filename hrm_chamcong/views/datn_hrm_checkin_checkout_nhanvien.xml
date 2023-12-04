@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="datn_checkin_checkout_nhan_vien_calender" model="ir.ui.view">
+            <field name="name">Cấu hình giao diện phê duyệt</field>
+            <field name="model">datn.hr.checkin.checkout.line</field>
+            <field name="arch" type="xml">
+                <calendar date_start="day" string="Checkin checkout Calendar" event_open_popup="true" mode="month" color="color" quick_add="False">
+                    <field name="employee_id" readonly="1"/>
+                    <field name="day"/>
+                    <field name="checkin"/>
+                    <field name="checkout"/>
+                    <field name="timeofday"/>
+                    <field name="state"/>
+                    <field name="note"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="datn_checkin_checkout_nhan_vien_tree" model="ir.ui.view">
+            <field name="name">Bảng CheckIn CheckOut</field>
+            <field name="model">datn.hr.checkin.checkout.line</field>
+            <field name="arch" type="xml">
+                <tree class="widget-department-tree"
+                      decoration-info="state=='draft'"
+                      default_order="employee_id">
+                    <field name="employee_id" readonly="1"/>
+                    <field name="day"/>
+                    <field name="checkin"/>
+                    <field name="checkout"/>
+                    <field name="timeofday"/>
+                    <field name="state"/>
+                    <field name="note"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="datn_checkin_checkout_nhanvien_search" model="ir.ui.view">
+            <field name="name">Bảng checkin checkout nhân viên</field>
+            <field name="model">datn.hr.checkin.checkout.line</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="employee_id"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="datn_hrm_checkin_checkout_calendar_cnf1" model="ir.actions.act_window">
+            <field name="name">Quản lý công</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">datn.hr.checkin.checkout.line</field>
+            <field name="view_mode">calendar,tree</field>
+            <field name="context">{'view_from_action': 'datn_hr_checkin_checkout_line'}</field>
+            <field name="domain" eval="[]"/>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'calendar', 'view_id': ref('datn_checkin_checkout_nhan_vien_calender')}),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('datn_checkin_checkout_nhan_vien_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('datn_checkin_checkout_nhan_vien_form')})
+                ]"/>
+            <field name="search_view_id" ref="datn_checkin_checkout_nhanvien_search"/>
+        </record>
+
+
+    </data>
+</odoo>

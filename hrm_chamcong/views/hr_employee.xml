@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_hr_employee_inherit" model="ir.ui.view">
+            <field name="name">view.hr.employee.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hrm.view_employee_profile_form"/>
+            <field name="arch" type="xml">
+               <xpath expr="//field[@name='department_id']" position="after">
+                    <field name="so_ngay_duoc_phan_bo" readonly="1"/>
+                    <field name="so_ngay_da_nghi" readonly="1"/>
+               </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
