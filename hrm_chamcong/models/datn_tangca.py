@@ -73,8 +73,8 @@ class DATNTangCa(models.Model):
     def action_send_approve(self):
         nguoi_duyet = []
         for emp in self.nguoi_duyet:
-            if emp.mail_nhan_thong_bao:
-                nguoi_duyet.append(emp.mail_nhan_thong_bao.strip())
+            if emp.personal_mail:
+                nguoi_duyet.append(emp.personal_mail.strip())
         header = '''Thông báo phê duyệt đơn tăng ca của %s''' % (self.employee_id.name)
         content = u'Nhân viên %s tạo đơn tăng ca \nLý do: %s \nSố giờ tăng ca:%s\nTừ ngày: %s - đến ngày: %s \nTrang web: http://localhost:8088/web' % (
         str(self.employee_id.name), str(self.ly_do), str(self.so_gio_tang_ca),

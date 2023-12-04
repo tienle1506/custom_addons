@@ -114,8 +114,8 @@ class DATNDangKyNghi(models.Model):
     def action_send_approve(self):
         nguoi_duyet = []
         for emp in self.nguoi_duyet:
-            if emp.mail_nhan_thong_bao:
-                nguoi_duyet.append(emp.mail_nhan_thong_bao.strip())
+            if emp.personal_mail:
+                nguoi_duyet.append(emp.personal_mail.strip())
         header = '''Thông báo phê duyệt đơn đăng ký nghỉ của %s'''%(self.employee_id.name)
         content =u'Nhân viên %s tạo đơn xin nghỉ \nLý do: %s \nNghỉ số ngày:%s \nLoại nghỉ: %s \nTừ ngày: %s - đến ngày: %s \nTrang web: http://localhost:8088/web'%(str(self.employee_id.name), str(self.ly_do), str(self.so_ngay_nghi), str(self.loai_nghi.name), self.date_from.strftime('%d/%m/%Y'), self.date_to.strftime('%d/%m/%Y'))
         if nguoi_duyet and len(nguoi_duyet) > 0:
@@ -169,7 +169,6 @@ class HrEmplyee(models.Model):
     _inherit = "hr.employee"
     so_ngay_da_nghi = fields.Float(u"Số ngày phép đã nghỉ")
     so_ngay_duoc_phan_bo = fields.Float(u"Số ngày phép được phân bổ")
-    mail_nhan_thong_bao = fields.Text(u"Mail nhận thông báo")
 
     @api.constrains('so_ngay_duoc_phan_bo', 'so_ngay_da_nghi')
     def check_date_duong_td(self):

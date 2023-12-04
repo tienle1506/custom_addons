@@ -66,7 +66,7 @@ class HrEmployee(models.Model):
     def _compute_work_email(self):
         for record in self:
             if record.employee_code:
-                print(record.work_email)
+               record.work_email
             else:
                 record.work_email = False
 

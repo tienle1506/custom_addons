@@ -16,7 +16,7 @@
                                 <field name="birthday"/>
                                 <field name="gender"/>
                                 <field name="personal_email" string="Email cá nhân"/>
-                                <field name="work_email" string="Email công việc" readonly="1" />
+                                <field name="work_email" string="Email công việc"/>
                                 <field name="mobile_phone" string="số điện thoại cá nhân"/>
                                 <field name="identifier"/>
                                 <field name="work_start_date"/>

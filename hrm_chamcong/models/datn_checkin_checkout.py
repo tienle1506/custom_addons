@@ -421,8 +421,8 @@ class DATNHrCheckInCheckOutLine(models.Model):
     def action_send_approve(self):
         nguoi_duyet = []
         for emp in self.nguoi_duyet:
-            if emp.mail_nhan_thong_bao:
-                nguoi_duyet.append(emp.mail_nhan_thong_bao.strip())
+            if emp.personal_mail:
+                nguoi_duyet.append(emp.personal_mail.strip())
         header = '''Thông báo phê duyệt chấm công %s''' % (self.employee_id.name)
         ly_do_value = self.ly_do
         ly_do_label = dict(self._fields['ly_do'].selection).get(ly_do_value)
