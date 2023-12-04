@@ -63,14 +63,14 @@
     </menuitem>
 
      <menuitem id="menu_datn_loai_nghi_action" name="Cấu hình loại nghỉ"
-              parent="hrm.config_commerce"
+              parent="hrm.config_office"
               sequence="12"
               action='datn_loai_nghi_action'
               groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit">
     </menuitem>
 
     <menuitem id="menu_datn_view_pheduyet_action" name="Cấu hình giao diện phê duyệt"
-              parent="hrm.config_commerce"
+              parent="hrm.config_office"
               sequence="13"
               action='datn_phe_duyet_action'
               groups="hrm.hrm_group_config_access">

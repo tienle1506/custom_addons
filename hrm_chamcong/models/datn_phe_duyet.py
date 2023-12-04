@@ -29,7 +29,7 @@ class HrRequestType(models.Model):
         return self.env['ir.attachment'].search([('name', '=', 'change_shift.png')], limit=1).datas
 
     def _get_data_for_request_type(self):
-        emp = self.env['hr.employee'].search([('acc_id', '=', self._uid)])
+        emp = self.env['hr.employee'].search([('user_id', '=', self._uid)])
         for d in self:
             d.need_approve, d.my_request = d._count_data(d, emp)
 

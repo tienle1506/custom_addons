@@ -15,3 +15,4 @@ PROFILE_STATUS = [
     ('complete', 'Hoàn thiện')
 ]
 DUPLICATE_RECORD = '%s đã tồn tại!'
+DO_NOT_DELETE = "Không thể xoá bản ghi này!"

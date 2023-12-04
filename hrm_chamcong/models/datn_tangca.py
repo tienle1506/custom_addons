@@ -50,7 +50,7 @@ class DATNTangCa(models.Model):
         context = self.env.context or {}
         emp_domain = []
         user = self.env.user
-        employee_id = self.env['hr.employee'].search([('acc_id', '=', user.id)], limit=1)
+        employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):
@@ -60,7 +60,7 @@ class DATNTangCa(models.Model):
     @api.model
     def _default_employee(self):
         user = self.env.user
-        employee = self.env['hr.employee'].search([('acc_id', '=', user.id)], limit=1)
+        employee = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
         return employee
 
     @api.constrains('so_gio_tang_ca taw')

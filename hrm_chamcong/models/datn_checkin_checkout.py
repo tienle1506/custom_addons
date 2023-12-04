@@ -408,7 +408,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
         context = self.env.context or {}
         emp_domain = []
         user = self.env.user
-        employee_id = self.env['hr.employee'].search([('acc_id', '=', user.id)], limit=1)
+        employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):

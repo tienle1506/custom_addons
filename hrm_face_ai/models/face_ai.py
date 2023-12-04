@@ -255,7 +255,7 @@ class EmployeeProfile(models.Model):
             if check_thoat:
                 SQL = ''
                 SQL += '''SELECT emp.id AS employee_id, hrbl.id as department_id, hrbl.name as department_name
-                       FROM hr_employee emp INNER JOIN res_users lg ON lg.id = emp.acc_id 
+                       FROM hr_employee emp INNER JOIN res_users lg ON lg.id = emp.user_id 
                        INNER JOIN hr_department hrbl ON hrbl.id = emp.department_id
                        WHERE lg.id = %s;'''%(self.env.user.id, )
                 cr = self.env.cr

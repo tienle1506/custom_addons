@@ -26,7 +26,9 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'data/data_department.xml',
         'views/hr_department_view.xml',
+        'views/sequence_employee_code.xml',
         'views/hr_users_view.xml',
         'views/hr_employee_view.xml',
         'views/menu.xml'
