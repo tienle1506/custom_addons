@@ -20,7 +20,7 @@
     'application': True,
     'sequence': -100,
     # any module necessary for this one to work correctly
-    'depends': ['hrm'],
+    'depends': ['hrm', 'base', 'mail'],
 
     # always loaded
     'data': [
@@ -29,8 +29,15 @@
         'views/datn_chamcong.xml',
         'views/datn_checkin_checkout.xml',
         'views/datn_hrm_le_tet.xml',
+        'views/hr_employee.xml',
+        'views/datn_cong_tang_cuong.xml',
+        'views/datn_loai_nghi.xml',
+        'views/datn_dang_ky_nghi_nhanvien.xml',
+        'views/datn_phe_duyet.xml',
+        'views/datn_create_view_pheduyet.xml',
+        'views/datn_dangky_tangca_nhanvien.xml',
+        'views/datn_hrm_checkin_checkout_nhanvien.xml',
         'views/menu_item.xml',
-
     ],
     # only loaded in demonstration mode
     'demo': [

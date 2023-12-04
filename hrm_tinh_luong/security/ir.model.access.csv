@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_hr_payroll_structure,access_hr_payroll_structure,model_hr_payroll_structure,hrm.hrm_group_config_access,1,1,1,
+access_hr_contribution_register,access_hr_contribution_register,model_hr_contribution_register,hrm.hrm_group_config_access,1,1,1,1
+access_hr_salary_rule_category,access_hr_salary_rule_category,model_hr_salary_rule_category,hrm.hrm_group_config_access,1,1,1,1
+access_hr_salary_rule,access_hr_salary_rule,model_hr_salary_rule,hrm.hrm_group_config_access,1,1,1,1
+access_hr_rule_input,access_hr_rule_input,model_hr_rule_input,hrm.hrm_group_config_access,1,1,1,1

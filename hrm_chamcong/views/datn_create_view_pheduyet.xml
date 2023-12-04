@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="datn_phe_duyet_tree" model="ir.ui.view">
+            <field name="name">Cấu hình giao diện phê duyệt</field>
+            <field name="model">hr.request.type</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" create="true">
+                    <field name="name" required="1"/>
+                    <field name="code" required="1"/>
+                    <field name="image" required="1"/>
+                    <field name="is_active"/>
+                    <field name="index"/>
+                     <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+<!--        <record id="datn_hrm_le_tet_search" model="ir.ui.view">-->
+<!--            <field name="name">Quản lý lễ tết</field>-->
+<!--            <field name="model">datn.hrm.le.tet.line</field>-->
+<!--            <field name="arch" type="xml">-->
+<!--                <search>-->
+<!--                    <field name="employee_id"/>-->
+<!--                     <group expand="0" string="Group By">-->
+<!--                        <filter name="employee_id" string="Nhân viên" domain="[]" context="{'group_by':'employee_id'}"/>-->
+<!--                        <filter string="Khối" name="block_id" domain="[]" context="{'group_by':'block_id'}"/>-->
+<!--                    </group>-->
+<!--                </search>-->
+<!--            </field>-->
+<!--        </record>-->
+
+        <record id="datn_phe_duyet_action" model="ir.actions.act_window">
+            <field name="name">Cấu hình giao diện phê duyệt</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.request.type</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'view_from_action': 'hr_request_type'}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Chưa có cấu hình giao diện phê duyệt nào, Hãy tạo một cấu hình giao diện phê duyệt.
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="datn_phe_duyet_tree_action">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="datn_phe_duyet_tree"/>
+            <field name="act_window_id" ref="datn_phe_duyet_action"/>
+        </record>
+    </data>
+</odoo>

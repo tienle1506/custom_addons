@@ -5,7 +5,7 @@
             <field name="name">HUCE</field>
             <field name="department_level">1</field>
             <field name="active" eval="True"/>
-            <field name="has_change" eval="False"/>
+            <field name="has_change" eval="True"/>
         </record>
 
         <record id="hr_department_block_office" model="hr.department">
@@ -14,14 +14,14 @@
             <field name="department_level">2</field>
             <field name="parent_id" ref="hr_department_company"/>
             <field name="active" eval="True"/>
-            <field name="has_change" eval="False"/>
+            <field name="has_change" eval="True"/>
         </record>
         <record id="hr_department_block_commerce" model="hr.department">
             <field name="name">Khối Thương Mại</field>
             <field name="department_level">2</field>
             <field name="parent_id" ref="hr_department_company"/>
             <field name="active" eval="True"/>
-            <field name="has_change" eval="False"/>
+            <field name="has_change" eval="True"/>
         </record>
     </data>
 </odoo>

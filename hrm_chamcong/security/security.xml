@@ -4,8 +4,20 @@
         <field name="sequence">-110</field>
     </record>
 
-    <record id="hrm_user_demo" model="res.groups">
-        <field name="name">Full quyền</field>
+    <record id="hrm_quyen_hr" model="res.groups">
+        <field name="name">Quyền HR</field>
+        <field name="category_id" ref="module_hrm_chamcong"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="hrm_phe_duyet_dang_ky_nghi" model="res.groups">
+        <field name="name">Phê duyệt đăng ký nghỉ</field>
+        <field name="category_id" ref="module_hrm_chamcong"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="hrm_phe_duyet_tang_ca" model="res.groups">
+        <field name="name">Phê duyệt tăng ca</field>
         <field name="category_id" ref="module_hrm_chamcong"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
