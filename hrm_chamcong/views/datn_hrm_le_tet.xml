@@ -5,11 +5,11 @@
             <field name="name">Quản lý lễ tết</field>
             <field name="model">datn.hrm.le.tet</field>
             <field name="arch" type="xml">
-                <tree class="widget-khoi-tree"
+                <tree class="widget-department-tree"
                       decoration-info="state=='draft'"
-                      default_order="block_id">
+                      default_order="department_id">
                     <field name="name"/>
-                    <field name="block_id" widget="many2many_tags"/>
+                    <field name="department_id" widget="many2many_tags"/>
                     <field name="date_from"/>
                     <field name="date_to"/>
                     <field name="state"/>
@@ -35,7 +35,7 @@
                     </group>
                     <group>
                         <group>
-                            <field string="Khối" name="block_id" widget="many2many_tags" required="1"
+                            <field string="Đơn vị/ phòng ban" name="department_id" widget="many2many_tags" required="1"
                                options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
                         </group>
                         <group class="date_letet">
@@ -76,9 +76,9 @@
                                       class="color_tree_row"
                                       tableFixer="left" fixColumn="2"
                                       default_order="employee_id ASC" limit="100">
-                                    <field name="employee_id" required="1" widget="many2one" context="{'parent_block_id_le': parent.block_id}"
+                                    <field name="employee_id" required="1" widget="many2one" context="{'parent_department_id_le': parent.department_id}"
                                            options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
-                                    <field name="block_id" readonly="1" force_save="1"/>
+                                    <field name="department_id" readonly="1" force_save="1"/>
                                     <field name="date_from" readonly="1" force_save="1"/>
                                     <field name="date_to" readonly="1" force_save="1"/>
                                     <field name="note"/>

@@ -21,7 +21,7 @@
             <field name="name">Bảng CheckIn CheckOut</field>
             <field name="model">datn.hr.checkin.checkout.line</field>
             <field name="arch" type="xml">
-                <tree class="widget-khoi-tree"
+                <tree class="widget-department-tree"
                       decoration-info="state=='draft'"
                       default_order="employee_id">
                     <field name="employee_id" readonly="1"/>
@@ -32,6 +32,16 @@
                     <field name="state"/>
                     <field name="note"/>
                 </tree>
+            </field>
+        </record>
+
+        <record id="datn_checkin_checkout_nhanvien_search" model="ir.ui.view">
+            <field name="name">Bảng checkin checkout nhân viên</field>
+            <field name="model">datn.hr.checkin.checkout.line</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="employee_id"/>
+                </search>
             </field>
         </record>
 
@@ -50,56 +60,6 @@
             <field name="search_view_id" ref="datn_checkin_checkout_nhanvien_search"/>
         </record>
 
-        <record id="datn_checkin_checkout_nhanvien_search" model="ir.ui.view">
-            <field name="name">Bảng checkin checkout nhân viên</field>
-            <field name="model">datn.hr.checkin.checkout.line</field>
-            <field name="arch" type="xml">
-                <search>
-                    <field name="employee_id"/>
-                </search>
-            </field>
-        </record>
 
-         <record id="datn_checkin_checkout_nhan_vien_form" model="ir.ui.view">
-            <field name="name">Checkin checkout nhân viên</field>
-            <field name="model">datn.hr.checkin.checkout.line</field>
-            <field name="arch" type="xml">
-                <form>
-                    <header>
-                        <button string="Gửi phê duyệt" name="action_send_approve" type="object" attrs="{'invisible': [('state','!=','draft')]}"
-                                class="oe_highlight oe_edit_only"/>
-                        <button string="Phê duyệt" name="action_approve" type="object" attrs="{'invisible': ['|', ('state','=','draft'), ('state','=','approved')]}"
-                                groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"
-                                class="oe_highlight oe_edit_only"/>
-                        <button string="Từ chối" name="action_refuse" type="object" attrs="{'invisible': [('state','!=','approved')]}"
-                                class="oe_highlight oe_edit_only"
-                                groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"/>
-                        <button string="Soạn thảo" name="action_draft" type="object"
-                                attrs="{'invisible': [('state','in',('confirmed','approved'))]}"
-                                class="oe_edit_only"
-                        />
-                        <field name="state" widget="statusbar"/>
-                    </header>
-                    <sheet>
-                           <group>
-                                <field name="employee_id"  attrs="{'readonly': [('state','!=','draft')]}"
-                                       options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
-                                <field name="day" readonly="1"/>
-                                <field name="checkin" readonly="1"/>
-                                <field name="checkout" readonly="1"/>
-                                <field name="note" attrs="{'readonly': [('state','!=','draft')]}"/>
-                            </group>
-                            <group>
-                                <field name="nguoi_duyet" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
-                                       widget="many2many_tags"  attrs="{'readonly': [('state','!=','draft')]}"/>
-                                <field name="checkin_checkout_id" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
-                                       attrs="{'readonly': [('state','!=','draft')]}"/>
-                                <field name="timeofday" readonly="1"/>
-                                <field name="ly_do" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
-                            </group>
-                    </sheet>
-                </form>
-            </field>
-        </record>
     </data>
 </odoo>

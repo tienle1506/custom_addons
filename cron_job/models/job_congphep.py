@@ -17,7 +17,7 @@ class TestCronJob(models.Model):
         nam_hien_tai = ngay_hien_tai.year
 
         SQL = ''
-        SQL += '''SELECT*FROM hrm_employee_profile Where work_start_date < '%s' ORDER BY id ''' % (ngay_hien_tai.date())
+        SQL += '''SELECT*FROM hr_employee Where work_start_date < '%s' ORDER BY id ''' % (ngay_hien_tai.date())
         cr.execute(SQL)
         datas = cr.dictfetchall()
         if datas:
@@ -46,7 +46,7 @@ class TestCronJob(models.Model):
                 cong_phep += data_cong_them[0].get('cong_them') if data_cong_them[0].get('cong_them') else 0
 
             A = ''
-            A = '''UPDATE hrm_employee_profile
+            A = '''UPDATE hr_employee
                             SET so_ngay_duoc_phan_bo = %s
                             WHERE id = %s;''' % (cong_phep, datas[i].get('id'))
             self.env.cr.execute(A)

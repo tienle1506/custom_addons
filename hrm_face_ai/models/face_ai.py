@@ -11,7 +11,7 @@ import shutil
 
 
 class EmployeeProfile(models.Model):
-    _inherit = 'hrm.employee.profile'
+    _inherit = 'hr.employee'
     _description = 'Bảng thông tin nhân viên'
 
     def loaf_face_ai_user_new(self):
@@ -162,7 +162,7 @@ class EmployeeProfile(models.Model):
 
     def getProfile(self, id):
         SQL = ''
-        SQL += '''SELECT * FROM hrm_employee_profile WHERE id=%s'''%(id)
+        SQL += '''SELECT * FROM hr_employee WHERE id=%s'''%(id)
         cr = self.env.cr
         cr.execute(SQL)
         datas = cr.dictfetchall()
@@ -254,16 +254,16 @@ class EmployeeProfile(models.Model):
 
             if check_thoat:
                 SQL = ''
-                SQL += '''SELECT emp.id AS employee_id, hrbl.id as block_id, hrbl.name as block_name
-                       FROM hrm_employee_profile emp INNER JOIN res_users lg ON lg.id = emp.acc_id 
-                       INNER JOIN hrm_blocks hrbl ON hrbl.id = emp.block_id
+                SQL += '''SELECT emp.id AS employee_id, hrbl.id as department_id, hrbl.name as department_name
+                       FROM hr_employee emp INNER JOIN res_users lg ON lg.id = emp.acc_id 
+                       INNER JOIN hr_department hrbl ON hrbl.id = emp.department_id
                        WHERE lg.id = %s;'''%(self.env.user.id, )
                 cr = self.env.cr
                 cr.execute(SQL)
                 datas = cr.dictfetchall()
                 data = datas[0]
                 if data['employee_id'] == employee_id_login:
-                    self.create_or_write_checkin_checkout(data.get('employee_id'), data.get('block_id'), data.get('block_name'))
+                    self.create_or_write_checkin_checkout(data.get('employee_id'), data.get('department_id'), data.get('department_name'))
                     notification = {
                         'type': 'ir.actions.client',
                         'tag': 'display_notification',
@@ -300,7 +300,7 @@ class EmployeeProfile(models.Model):
             }
             return notification
 
-    def create_or_write_checkin_checkout(self, employee_id, block_id, block_name):
+    def create_or_write_checkin_checkout(self, employee_id, department_id, department_name):
         #Check xem có bản ghi đó chưa
         current_date = datetime.today().date()
         employee = self.env['datn.hr.checkin.checkout.line'].search([('day', '=', current_date),('employee_id', '=', employee_id)])
@@ -308,7 +308,7 @@ class EmployeeProfile(models.Model):
         start_month = now.replace(day=1).date()
         end_month = start_month + relativedelta(day=31)
         cr = self.env.cr
-        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' and block_id = %s '''% (start_month, block_id)
+        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' and department_id = %s '''% (start_month, department_id)
         cr.execute(SQL1)
         datas = cr.dictfetchall()
         if len(datas) > 0:
@@ -316,9 +316,9 @@ class EmployeeProfile(models.Model):
         else:
             parent_checkin_checkout = []
         if not parent_checkin_checkout:
-            name = 'Bảng chấm công tháng %s của khối %s'%(start_month, block_name)
-            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, block_id, date_from, date_to, state) VALUES (%s, %s, %s,%s, %s)'''
-            values = (name, block_id, start_month, end_month, 'draft')
+            name = 'Bảng chấm công tháng %s của Đơn vị/ phòng ban %s'%(start_month, department_name)
+            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, department_id, date_from, date_to, state) VALUES (%s, %s, %s,%s, %s)'''
+            values = (name, department_id, start_month, end_month, 'draft')
             cr.execute(SQL2, values)
 
             cr.execute(SQL1)

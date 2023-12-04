@@ -2,7 +2,7 @@
 
     <menuitem id="menu_chamcong" name="Quản lý chấm công"
                parent="hrm.menu_field" sequence="4"
-               groups="hrm_chamcong.hrm_phe_duyet_tang_ca,hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm.hrm_group_read_only,hrm_chamcong.hrm_quyen_hr">
+               groups="hrm_chamcong.hrm_phe_duyet_tang_ca,hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
     <menuitem id="menu_item_chamcong"
               name='Chấm công tháng'
@@ -63,14 +63,14 @@
     </menuitem>
 
      <menuitem id="menu_datn_loai_nghi_action" name="Cấu hình loại nghỉ"
-              parent="hrm.config"
+              parent="hrm.config_commerce"
               sequence="12"
               action='datn_loai_nghi_action'
-              groups="hrm.hrm_group_config_access,hrm.hrm_group_read_only">
+              groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit">
     </menuitem>
 
     <menuitem id="menu_datn_view_pheduyet_action" name="Cấu hình giao diện phê duyệt"
-              parent="hrm.config"
+              parent="hrm.config_commerce"
               sequence="13"
               action='datn_phe_duyet_action'
               groups="hrm.hrm_group_config_access">

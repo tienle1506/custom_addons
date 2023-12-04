@@ -19,8 +19,7 @@ class DATNHrCheckInCheckOut(models.Model):
 
     data = fields.Binary('File', readonly=True)
     name = fields.Char(string=u'Tên Bảng CheckIn CheckOut', size=128, track_visibility='always', )
-    block_id = fields.Many2one('hrm.blocks', string='Khối', required=True,
-                    default=lambda self: self.default_block_profile(),
+    department_id = fields.Many2one('hr.department', string='Đơn vị/Phòng ban', required=True,
                     tracking=True)
     date_from = fields.Date(u'Từ ngày', required=True, widget='date', format='%m-%d-%Y')
     date_to = fields.Date(u'Đến ngày', required=True, widget='date', format='%m-%d-%Y')
@@ -35,14 +34,8 @@ class DATNHrCheckInCheckOut(models.Model):
     is_import = fields.Boolean(u'Import dữ liệu')
 
     _sql_constraints = [
-        ('unique_block_day', 'unique(block_id, date_from)', u'Phòng ban đã được tạo để ghi checkin checkout')
+        ('unique_department_day', 'unique(department_id, date_from)', u'Phòng ban đã được tạo để ghi checkin checkout')
     ]
-    def default_block_profile(self):
-        """kiểm tra điều kiện giữa khối văn phòng và thương mại"""
-        if self.env.user.block_id == constraint.BLOCK_OFFICE_NAME:
-            return self.env['hrm.blocks'].search([('name', '=', constraint.BLOCK_OFFICE_NAME)])
-        else:
-            return self.env['hrm.blocks'].search([('name', '=', constraint.BLOCK_COMMERCE_NAME)])
 
     @api.onchange('date_from')
     def onchange_date_from(self):
@@ -70,7 +63,7 @@ class DATNHrCheckInCheckOut(models.Model):
 
         self.check_format_file_excel(self.file_name)
         self.item_ids.unlink()
-        if self.block_id.id:
+        if self.department_id.id:
             self.item_ids.unlink()
 
             # xử lý nếu import file
@@ -90,7 +83,7 @@ class DATNHrCheckInCheckOut(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hrm.employee.profile'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
@@ -206,7 +199,7 @@ class DATNHrCheckInCheckOut(models.Model):
             worksheet = workbook.add_worksheet('Danh sách checkin - checkout')
             worksheet.set_row(4, 30)
 
-            worksheet.merge_range(0, 0, 0, 2, 'Khối : %s'%(self.block_id.name), style_excel['style_12_bold_left'])
+            worksheet.merge_range(0, 0, 0, 2, 'Đơn vị/ phòng ban : %s'%(self.department_id.name), style_excel['style_12_bold_left'])
             worksheet.merge_range(2, 0, 2, 6, 'Danh Sách checkin - checkout', style_title)
 
             worksheet.merge_range(4, 0, 5, 0, 'STT', style_1)
@@ -222,7 +215,7 @@ class DATNHrCheckInCheckOut(models.Model):
             # Danh mục đơn vị đào tạo
             SQL = ''
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hrm_employee_profile where work_start_date <= '%s'::date and block_id = %s''' % (self.date_from, self.block_id.id)
+            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = %s''' % (self.date_from, self.department_id.id)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -282,7 +275,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
     _order = "employee_id, day desc"
     _res_name = 'employee_id'
 
-    employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân viên', ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string=u'Nhân viên', ondelete='cascade')
     checkin_checkout_id = fields.Many2one('datn.hr.checkin.checkout', string=u'Bảng CheckIn CheckOut', ondelete='cascade', required=True)
     note = fields.Text(string='Ghi chú', compute='_compute_date', store=True)
     checkout = fields.Datetime(string='Giờ ra', widget='date', format='%m-%d-%Y')
@@ -295,7 +288,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
     state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
                               ('refused', u'Từ chối')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
-    nguoi_duyet = fields.Many2many('hrm.employee.profile', 'employee_duyet_checkin_checkout_rel', 'checkin_checkout_id', 'employee_id',
+    nguoi_duyet = fields.Many2many('hr.employee', 'employee_duyet_checkin_checkout_rel', 'checkin_checkout_id', 'employee_id',
                                    string="Người duyệt")
     color = fields.Integer(string='Màu', compute='_compute_date', store=True, default=16711680)
 
@@ -415,7 +408,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
         context = self.env.context or {}
         emp_domain = []
         user = self.env.user
-        employee_id = self.env['hrm.employee.profile'].search([('acc_id', '=', user.id)], limit=1)
+        employee_id = self.env['hr.employee'].search([('acc_id', '=', user.id)], limit=1)
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):

@@ -18,7 +18,7 @@ class DATNCongTangCuong(models.Model):
 
     name = fields.Char(string=u'Tên công tăng cường', size=128, track_visibility='always', )
     year = fields.Selection(selection=[(str(year), str(year)) for year in range(1975, 2099)], string='Năm áp dụng', default=str(fields.Date.today().year))
-    block_id = fields.Many2many('hrm.blocks', 'block_cong_them_rel', 'block_id', 'cong_them_id', string="Khối")
+    department_id = fields.Many2many('hr.department', 'department_cong_them_rel', 'department_id', 'cong_them_id', string="Đơn vị/ phòng ban")
     data = fields.Binary('File', readonly=True)
     ngay_tao = fields.Date(u'Ngày tạo', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     cong_them = fields.Integer(string=u'Công phép bổ sung')
@@ -56,7 +56,7 @@ class DATNCongTangCuong(models.Model):
             raise ValidationError('Bạn phải chọn file nếu sử dụng import!')
         self.check_format_file_excel(self.file_name)
         self.item_ids.unlink()
-        if self.block_id:
+        if self.department_id:
             self.item_ids.unlink()
 
             # xử lý nếu import file
@@ -76,7 +76,7 @@ class DATNCongTangCuong(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hrm.employee.profile'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
@@ -168,12 +168,12 @@ class DATNCongTangCuong(models.Model):
             # Content
             worksheet = workbook.add_worksheet('Danh sách nhân sự hưởng oông tăng cường')
             worksheet.set_row(4, 30)
-            block_name = ''
-            list_block=[]
-            for bl in self.block_id:
-                list_block.append(bl.id)
-                block_name += bl.name
-            worksheet.merge_range(0, 0, 0, 2, 'Khối : %s'%(block_name), style_excel['style_12_bold_left'])
+            department_name = ''
+            list_department=[]
+            for bl in self.department_id:
+                list_department.append(bl.id)
+                department_name += bl.name
+            worksheet.merge_range(0, 0, 0, 2, 'Đơn vị/ phòng ban : %s'%(department_name), style_excel['style_12_bold_left'])
             worksheet.merge_range(2, 0, 2, 6, 'Danh sách nhân sự hưởng công thêm ', style_title)
 
             worksheet.merge_range(4, 0, 5, 0, 'STT', style_1)
@@ -188,7 +188,7 @@ class DATNCongTangCuong(models.Model):
             SQL = ''
 
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hrm_employee_profile where work_start_date <= '%s'::date and block_id = ANY (ARRAY %s)''' % (datetime.now(), list_block)
+            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY (ARRAY %s)''' % (datetime.now(), list_department)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -263,15 +263,15 @@ class DATNCongTangCuongLine(models.Model):
     _name = 'datn.cong.tang.cuong.line'
     _inherit = ['mail.thread']
     _description = u'Bảng chi tiết nhân sự hưởng công tăng cường'
-    _order = "block_id, employee_id"
+    _order = "department_id, employee_id"
 
-    employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân viên', ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string=u'Nhân viên', ondelete='cascade')
     cong_them_id = fields.Many2one('datn.cong.tang.cuong', string='Bảng công tăng cường', ondelete='cascade',
                                    required=True)
     note = fields.Text(string='Ghi chú')
     year = fields.Selection(string='Năm áp dụng', related='cong_them_id.year', store=True)
     cong_them = fields.Integer(u'Công tăng cuờng', default=0)
-    block_id = fields.Many2one('hrm.blocks', string='Khối', related='employee_id.block_id', store=True )
+    department_id = fields.Many2one('hr.department', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
 
 
 

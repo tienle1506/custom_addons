@@ -5,11 +5,11 @@
             <field name="name">Đăng ký tăng ca nhân viên</field>
             <field name="model">datn.tangca</field>
             <field name="arch" type="xml">
-                <tree class="widget-khoi-tree"
+                <tree class="widget-department-tree"
                       decoration-info="state=='draft'"
                       default_order="employee_id">
                     <field name="employee_id"/>
-                    <field name="block_id"/>
+                    <field name="department_id"/>
                     <field name="date_from"/>
                     <field name="date_to"/>
                     <field name="ly_do"/>
@@ -40,7 +40,7 @@
                     <group>
                         <group>
                             <field options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" name="employee_id" required="1" readonly="1" force_save="1"/>
-                            <field name="block_id"  required="1" readonly="1" force_save="1"/>
+                            <field name="department_id"  required="1" readonly="1" force_save="1"/>
                             <field name="date_from" class="date1 oe_inline" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
                             <field name="date_to" class="date1 oe_inline" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
                         </group>
@@ -70,7 +70,7 @@
                     <field name="employee_id"/>
                      <group expand="0" string="Group By">
                         <filter name="employee_id" string="Nhân viên" domain="[]" context="{'group_by':'employee_id'}"/>
-                        <filter string="Khối" name="block_id" domain="[]" context="{'group_by':'block_id'}"/>
+                        <filter string="Đơn vị/ phòng ban" name="department_id" domain="[]" context="{'group_by':'department_id'}"/>
                     </group>
                 </search>
             </field>

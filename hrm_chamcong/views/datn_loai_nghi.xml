@@ -25,7 +25,7 @@
 <!--                    <field name="employee_id"/>-->
 <!--                     <group expand="0" string="Group By">-->
 <!--                        <filter name="employee_id" string="Nhân viên" domain="[]" context="{'group_by':'employee_id'}"/>-->
-<!--                        <filter string="Khối" name="block_id" domain="[]" context="{'group_by':'block_id'}"/>-->
+<!--                        <filter string="Khối" name="\block_id" domain="[]" context="{'group_by':'block_id'}"/>-->
 <!--                    </group>-->
 <!--                </search>-->
 <!--            </field>-->

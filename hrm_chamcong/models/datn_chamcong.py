@@ -30,7 +30,7 @@ class DATNHrChamCong(models.Model):
     name = fields.Char(string=u'Bảng chấm công tháng', size=128, track_visibility='always', )
     date_from = fields.Date(u'Từ ngày', required=True, default=_default_date_from,)
     date_to = fields.Date(u'Đến ngày', required=True, default=_default_date_to, track_visibility='always', )
-    block_id = fields.Many2one('hrm.blocks', string=u'Khối', required=True)
+    department_id = fields.Many2one('hr.department', string=u'Đơn vị/ Phòng ban', required=True)
     item_ids = fields.One2many('datn.hr.chamcong.line', 'chamcong_id')
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
@@ -45,9 +45,9 @@ class DATNHrChamCong(models.Model):
     is_show_ngay30 = fields.Boolean(string=u"Có ngày 30", compute='_compute_date', store=True)
     is_show_ngay31 = fields.Boolean(string=u"Có ngày 31", compute='_compute_date', store=True)
 
-    @api.onchange('date_from', 'block_id')
+    @api.onchange('date_from', 'department_id')
     def onchange_name(self):
-        name = 'Bảng chấm công tháng %s năm %s khối %s'%(str(self.date_from.month), str(self.date_from.year), self.block_id.name)
+        name = 'Bảng chấm công tháng %s năm %s Đơn vị/ phòng ban %s'%(str(self.date_from.month), str(self.date_from.year), self.department_id.name)
         self.name = name
 
     @api.onchange('date_from')
@@ -96,15 +96,15 @@ class DATNHrChamCong(models.Model):
 
     def action_loaddata(self):
         self.item_ids.unlink()
-        if self.block_id:
+        if self.department_id:
             cr = self.env.cr
             SQL = ''
             SQL += '''SELECT ckl.* FROM datn_hr_checkin_checkout_line ckl
                     LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
-                    WHERE ck.block_id = %s AND ck.date_from = '%s'
+                    WHERE ck.department_id = %s AND ck.date_from = '%s'
                     AND  ck.date_to = '%s' AND ck.state = 'confirmed'
                     ORDER BY ckl.employee_id
-            '''%(self.block_id.id, self.date_from, self.date_to)
+            '''%(self.department_id.id, self.date_from, self.date_to)
             cr.execute(SQL)
             employees = cr.dictfetchall()
             if employees:
@@ -133,10 +133,10 @@ class DATNHrChamCong(models.Model):
             SQL = ''
             SQL += '''SELECT ckl.* FROM datn_hrm_le_tet_line ckl
                                 LEFT JOIN datn_hrm_le_tet ck ON ck.id = ckl.le_tet_id
-                                WHERE ckl.block_id = %s AND ckl.date_from >= '%s'
+                                WHERE ckl.department_id = %s AND ckl.date_from >= '%s'
                                 AND  ckl.date_to <= '%s' AND ck.state = 'confirmed'
                                 ORDER BY ckl.employee_id
-                        ''' % (self.block_id.id, self.date_from, self.date_to)
+                        ''' % (self.department_id.id, self.date_from, self.date_to)
             cr.execute(SQL)
             le_tet_employees = cr.dictfetchall()
 
@@ -163,7 +163,7 @@ class DATNHrChamCongLine(models.Model):
         # if department vp = cau hinh return x1 else default
         return result
 
-    employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân sự', ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string=u'Nhân sự', ondelete='cascade')
     chamcong_id = fields.Many2one('datn.hr.chamcong', string=u'Bảng chấm công', ondelete='cascade', required=True)
     # playslip_id = fields.Many2one('hr.payslip', string='Payslip', ondelete='cascade')
 
@@ -182,7 +182,7 @@ class DATNHrChamCongLine(models.Model):
     tong_cong = fields.Float(string=u'Tổng công', digits=_get_decimal_precision("Timesheets"))
 
     # end
-    block_id = fields.Many2one('hrm.blocks', string=u'khối')
+    department_id = fields.Many2one('hr.department', string=u'Đơn vị/ phòng ban')
 
     # Ngay cong trong thang
     ngay1 = fields.Float(string=u"01", range=True)

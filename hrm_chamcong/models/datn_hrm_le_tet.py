@@ -19,7 +19,7 @@ class DATNHrmLeTet(models.Model):
     _order = "date_from DESC, date_to DESC"
 
     name = fields.Char(string=u'Tên ngày lễ tết', size=128, track_visibility='always', )
-    block_id = fields.Many2many('hrm.blocks', 'block_le_tet_rel', 'block_id', 'le_tet_id', string="Khối")
+    department_id = fields.Many2many('hr.department', 'department_le_tet_rel', 'department_id', 'le_tet_id', string="Đơn vị/ phòng ban")
     data = fields.Binary('File', readonly=True)
     date_from = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', format='%Y-%m-%d')
@@ -48,9 +48,9 @@ class DATNHrmLeTet(models.Model):
     def action_loaddata(self):
         self.item_ids.unlink()
         lines = []
-        if self.block_id:
-            for block_id in self.block_id:
-                employees = self.env['hrm.employee.profile'].search([('block_id', '=', block_id.id), ('work_start_date', '<=', date.today())])
+        if self.department_id:
+            for department_id in self.department_id:
+                employees = self.env['hr.employee'].search([('department_id', '=', department_id.id), ('work_start_date', '<=', date.today())])
                 for employee in employees:
                     lines.append((0, 0, {'employee_id': employee.id}))
         self.item_ids = lines
@@ -62,7 +62,7 @@ class DATNHrmLeTet(models.Model):
             raise ValidationError('Bạn phải chọn file nếu sử dụng import!')
         self.check_format_file_excel(self.file_name)
         self.item_ids.unlink()
-        if self.block_id:
+        if self.department_id:
             self.item_ids.unlink()
 
             # xử lý nếu import file
@@ -82,7 +82,7 @@ class DATNHrmLeTet(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hrm.employee.profile'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
@@ -183,12 +183,12 @@ class DATNHrmLeTet(models.Model):
             # Content
             worksheet = workbook.add_worksheet('Danh sách nhân sự hưởng lễ tết')
             worksheet.set_row(4, 30)
-            block_name = ''
-            list_block=[]
-            for bl in self.block_id:
-                list_block.append(bl.id)
-                block_name += bl.name
-            worksheet.merge_range(0, 0, 0, 2, 'Khối : %s'%(block_name), style_excel['style_12_bold_left'])
+            department_name = ''
+            list_department=[]
+            for bl in self.department_id:
+                list_department.append(bl.id)
+                department_name += bl.name
+            worksheet.merge_range(0, 0, 0, 2, 'Đơn vị/ phòng ban : %s'%(department_name), style_excel['style_12_bold_left'])
             worksheet.merge_range(2, 0, 2, 6, 'Danh sách nhân sự hưởng lễ tết', style_title)
 
             worksheet.merge_range(4, 0, 5, 0, 'STT', style_1)
@@ -204,7 +204,7 @@ class DATNHrmLeTet(models.Model):
             SQL = ''
 
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hrm_employee_profile where work_start_date <= '%s'::date and block_id = ANY (ARRAY %s)''' % (self.date_from, list_block)
+            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY (ARRAY %s)''' % (self.date_from, list_department)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -270,14 +270,14 @@ class DATNHrmLeTetLine(models.Model):
     _name = 'datn.hrm.le.tet.line'
     _inherit = ['mail.thread']
     _description = u'Bảng chi tiết nhân sự hưởng lễ tết'
-    _order = "block_id, employee_id"
+    _order = "department_id, employee_id"
 
-    employee_id = fields.Many2one('hrm.employee.profile', string=u'Nhân viên', ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string=u'Nhân viên', ondelete='cascade')
     le_tet_id = fields.Many2one('datn.hrm.le.tet', string=u'Bảng lễ tết', ondelete='cascade', required=True)
     note = fields.Text(string='Ghi chú')
     date_from = fields.Date(u'Từ ngày', widget='date', related='le_tet_id.date_from', store=True, format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', related='le_tet_id.date_to', store=True, format='%Y-%m-%d')
-    block_id = fields.Many2one('hrm.blocks', string='Khối', related='employee_id.block_id', store=True )
+    department_id = fields.Many2one('hr.department', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
 
     _sql_constraints = [
         ('unique_employee_le_tet', 'unique(employee_id, le_tet_id)', u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')

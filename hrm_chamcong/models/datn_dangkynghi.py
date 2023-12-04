@@ -10,9 +10,9 @@ class DATNDangKyNghi(models.Model):
     _order = "date_from DESC, date_to DESC"
 
     name = fields.Char(string='Name', required=True, default='')
-    nguoi_duyet = fields.Many2many('hrm.employee.profile', 'employee_duyet_nghi_them_rel', 'nghi_id', 'employee_id', string="Người duyệt")
-    employee_id = fields.Many2one('hrm.employee.profile', string="Nhân viên", ondelete='cascade', default=lambda self: self._default_employee())
-    block_id = fields.Many2one('hrm.blocks', string="khối", ondelete='cascade', related='employee_id.block_id', store=True)
+    nguoi_duyet = fields.Many2many('hr.employee', 'employee_duyet_nghi_them_rel', 'nghi_id', 'employee_id', string="Người duyệt")
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên", ondelete='cascade', default=lambda self: self._default_employee())
+    department_id = fields.Many2one('hr.department', string="Đơn vị/ phòng ban", ondelete='cascade', related='employee_id.department_id', store=True)
     date_from = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', format='%Y-%m-%d', attrs={'readonly': ['|', ('state', '!=', 'draft'),('loai_nghi.loai_nghi', '=', 'nghicoluong')]})
     state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'), ('refused', u'Từ chối')],
@@ -86,7 +86,7 @@ class DATNDangKyNghi(models.Model):
         context = self.env.context or {}
         emp_domain = []
         user = self.env.user
-        employee_id = self.env['hrm.employee.profile'].search([('acc_id', '=', user.id)], limit=1)
+        employee_id = self.env['hr.employee'].search([('acc_id', '=', user.id)], limit=1)
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):
@@ -102,7 +102,7 @@ class DATNDangKyNghi(models.Model):
     @api.model
     def _default_employee(self):
         user = self.env.user
-        employee = self.env['hrm.employee.profile'].search([('acc_id', '=', user.id)], limit=1)
+        employee = self.env['hr.employee'].search([('acc_id', '=', user.id)], limit=1)
         return employee
     @api.constrains('so_ngay_nghi')
     def _check_date_duong(self):
@@ -131,7 +131,7 @@ class DATNDangKyNghi(models.Model):
 
     def action_approve(self):
         ngay_danghi = self.so_ngay_nghi + self.so_ngay_nghi
-        self.env['hrm.employee.profile'].search([('id', '=', self.employee_id.id)]).write(
+        self.env['hr.employee'].search([('id', '=', self.employee_id.id)]).write(
                 {
                     'so_ngay_da_nghi': ngay_danghi
                 }
@@ -166,7 +166,7 @@ class DATNLoaiNghi(models.Model):
 
 
 class HrEmplyee(models.Model):
-    _inherit = "hrm.employee.profile"
+    _inherit = "hr.employee"
     so_ngay_da_nghi = fields.Float(u"Số ngày phép đã nghỉ")
     so_ngay_duoc_phan_bo = fields.Float(u"Số ngày phép được phân bổ")
     mail_nhan_thong_bao = fields.Text(u"Mail nhận thông báo")
