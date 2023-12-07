@@ -19,9 +19,11 @@ class HrDepartment(models.Model):
     type_company = fields.Selection(selection=constraint.SELECT_TYPE_COMPANY, string="Loại hình công ty",
                                     tracking=True)
     type_system = fields.Selection(constraint.TYPE_SYSTEM, string="Loại hệ thống", tracking=True)
+    parent_id = fields.Many2one('hr.department', string='Parent Department', index=True)
     phone_num = fields.Char(string='Số điện thoại', tracking=True)
     chairperson = fields.Many2one('res.users', string="Chủ tịch")
     vice_president = fields.Many2one('res.users', string='Phó chủ tịch')
+    approval_id = fields.Many2one('hr.approval.flow.object', tracking=True)
     relate = fields.Integer()
     res_user_id = fields.Many2one('res.users')
     has_change = fields.Boolean(default=False)
@@ -112,32 +114,6 @@ class HrDepartment(models.Model):
                 raise ValidationError(constraint.DO_NOT_DELETE)
         return super(HrDepartment, self).unlink()
 
-    # def _default_department(self):
-    #     """Kiểm tra phòng ban mặc định của người dùng và xây dựng danh sách hệ thống con và cháu."""
-    #     if self.env.user.block_id == 'BLOCK_OFFICE_NAME' and self.env.user.department_id:
-    #         print('a')
-    #         list_department = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
-    #         return [('id', 'in', list_department.ids)]
-    #     elif self.env.user.block_id == 'BLOCK_OFFICE_NAME' and not self.env.user.department_id:
-    #         print('b')
-    #         list_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
-    #         return [('id', 'in', list_department.ids)]
-    #     elif self.env.user.block_id == 'BLOCK_COMMERCE_NAME' and self.env.user.department_id:
-    #         print('a')
-    #         list_department = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
-    #         print(list_department)
-    #         return [('id', 'in', list_department.ids)]
-    #     elif self.env.user.block_id == 'BLOCK_COMMERCE_NAME' and not self.env.user.department_id:
-    #         print('b')
-    #         list_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
-    #         return [('id', 'in', list_department.ids)]
-    #     elif self.env.user.block_id == 'full':
-    #         print('full')
-    #         list_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
-    #         return [('id', 'in', list_department.ids)]
-    #     return []
-
-    parent_id = fields.Many2one('hr.department', string='Parent Department', index=True)
 
     @api.onchange('type_block', 'type_in_block_ecom')
     def _onchange_type_block(self):

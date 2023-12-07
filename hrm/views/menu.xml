@@ -9,7 +9,7 @@
                 id="config_office"
                 name="Cấu hình"
                 parent="menu_field"
-                sequence="2"/>
+                sequence="1"/>
         <menuitem
                 id="create_department"
                 name="Cấu hình công ty"
@@ -17,15 +17,32 @@
                 action="departments_action"
                 sequence="10"/>
         <menuitem
+                id="create_position"
+                name="Cấu hình vị trí"
+                parent="config_office"
+                action="positions_action"
+                sequence="20"/>
+        <menuitem
                 id="employee"
                 name="Nhân sự"
                 parent="menu_field"
-                sequence="3"/>
+                sequence="2"/>
         <menuitem
                 id="create_profile"
                 name="Hồ sơ nhân sự"
                 parent="employee"
                 action="employees_action"
+                sequence="10"/>
+        <menuitem
+                id="flow_config"
+                name="Cấu hình luồng phê duyệt"
+                parent="menu_field"
+                sequence="3"/>
+        <menuitem
+                id="approval_flow_config"
+                name="Luồng phê duyệt hồ sơ"
+                parent="flow_config"
+                action="approval_flow_object_action"
                 sequence="10"/>
 
     </data>

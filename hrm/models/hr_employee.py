@@ -10,7 +10,9 @@ class HrEmployee(models.Model):
     _name = 'hr.employee'
     _inherit = ['hr.employee', 'mail.thread', 'mail.activity.mixin']
 
-    type_block = fields.Selection(constraint.TYPE_BLOCK, string='Khối', required=True, default='BLOCK_COMMERCE_NAME')
+    def default_type_block(self):
+        return 'BLOCK_OFFICE_NAME' if self.env.user.block_id == 'BLOCK_OFFICE_NAME' else 'BLOCK_COMMERCE_NAME'
+    type_block = fields.Selection(constraint.TYPE_BLOCK, string='Khối', required=True, default=default_type_block)
 
     employee_code = fields.Char(string='Mã nhân viên', store=True)
 
@@ -21,6 +23,7 @@ class HrEmployee(models.Model):
     date_receipt = fields.Date(string='Ngày được nhận chính thức', required=True)
     profile_status = fields.Selection(constraint.PROFILE_STATUS, string='Trạng thái hồ sơ')
     auto_create_acc = fields.Boolean(string='Tự động tạo tài khoản', default=True)
+    readonly_type_block = fields.Boolean(compute='_compute_readonly_type_block')
 
     # Nhân viên khối văn phòng
     department_id = fields.Many2one('hr.department', string='Phòng ban', tracking=True)
@@ -82,7 +85,7 @@ class HrEmployee(models.Model):
             'name': self.name,
             'login': self.email_work,
             'password': '1',
-            'groups_id': [(6, 0, [user_group.id])],
+            # 'groups_id': [(6, 0, [user_group.id])],
         }
         new_user = self.env['res.users'].sudo().create(values)
         self.user_id = new_user.id
@@ -93,3 +96,17 @@ class HrEmployee(models.Model):
             'res_id': new_user.id,
             'view_mode': 'form',
         }
+
+    @api.depends('type_block')
+    def _compute_readonly_type_block(self):
+        for record in self:
+            if record.env.user.block_id == 'full':
+                record.readonly_type_block = False
+            elif record.env.user.block_id == 'BLOCK_COMMERCE_NAME':
+                record.type_block = 'BLOCK_COMMERCE_NAME'
+                record.readonly_type_block = True
+            elif record.env.user.block_id == 'BLOCK_OFFICE_NAME':
+                record.type_block = 'BLOCK_OFFICE_NAME'
+                record.readonly_type_block = True
+
+

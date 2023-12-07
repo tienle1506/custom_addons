@@ -7,7 +7,8 @@
                 <form string="Tạo mới hồ sơ">
                     <sheet>
                         <group>
-                            <field name="type_block" string="Khối"/>
+                            <field name="type_block" string="Khối" attrs="{'readonly': [('readonly_type_block', '=', True)]}"/>
+                            <field name="readonly_type_block" invisible="1"/>
                         </group>
                         <group col="2">
                             <group>
@@ -17,7 +18,7 @@
                                 <field name="gender"/>
                                 <field name="personal_email" string="Email cá nhân"/>
                                 <field name="email_work" readonly="1" string="Email công việc"/>
-                                <field name="mobile_phone" string="số điện thoại cá nhân"/>
+                                <field name="mobile_phone" string="Số điện thoại cá nhân"/>
                                 <field name="identifier"/>
                                 <field name="work_start_date"/>
                                 <field name="date_receipt"/>
