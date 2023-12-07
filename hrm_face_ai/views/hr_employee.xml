@@ -4,12 +4,14 @@
         <record id="view_hr_employee_inherit" model="ir.ui.view">
             <field name="name">hr.face.ai.inherit</field>
             <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hrm.view_employee_profile_form"/>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
-               <xpath expr="//button[@name='action_send']" position="after">
-                    <button name="loaf_face_ai_user_new" string="Tạo dữ liệu FaceAi" type="object" class="oe_highlight"/>
-                    <button name="accept_face_ai" string="Xác nhận FaceAi" type="object" class="oe_highlight"/>
-                    <button name="chamcong_face_ai" string="Chấm công FaceAi" type="object" class="oe_highlight"/>
+               <xpath expr="//group[@name='identification_group']" position="replace">
+                   <group string="Attendance" name="identification_group">
+                       <button name="loaf_face_ai_user_new" string="Tạo dữ liệu FaceAi" type="object" class="oe_highlight"/>
+                       <button name="accept_face_ai" string="Xác nhận FaceAi" type="object" class="oe_highlight"/>
+                       <button name="chamcong_face_ai" string="Chấm công FaceAi" type="object" class="oe_highlight"/>
+                   </group>
                </xpath>
             </field>
         </record>

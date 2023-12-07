@@ -20,10 +20,10 @@ class EmployeeProfile(models.Model):
         context = self.env.context or {}
         emp_domain = []
         if context.get('parent_department_id', False):
-            emp_domain = [('department_id', '=', context.get('parent_department_id'))]
+            emp_domain = [('department_id', 'child_of', context.get('parent_department_id'))]
         if context.get('parent_department_id_le', False):
             department_id = context.get('parent_department_id_le', False)[0][2]
-            emp_domain = [('department_id', 'in', department_id)]
+            emp_domain = [('department_id', 'child_of', department_id)]
         return super(EmployeeProfile, self)._name_search(name, args=args + emp_domain, operator=operator,
                                                                   limit=limit)
 
@@ -33,7 +33,7 @@ class EmployeeProfile(models.Model):
         context = self.env.context or {}
         emp_domain = []
         if context.get('parent_department_id', False):
-            emp_domain = [('department_id', '=', context.get('parent_department_id'))]
+            emp_domain = [('department_id', 'child_of', context.get('parent_department_id'))]
         if context.get('parent_department_id_le', False):
             emp_domain = [('department_id', 'in', context.get('parent_department_id_le'))]
         return super(EmployeeProfile, self).search_read(domain=domain + emp_domain, fields=fields,
@@ -44,7 +44,7 @@ class EmployeeProfile(models.Model):
         context = self.env.context or {}
         emp_domain = []
         if context.get('parent_department_id', False):
-            emp_domain = [('department_id', '=', context.get('parent_department_id'))]
+            emp_domain = [('department_id', 'child_of', context.get('parent_department_id'))]
         if context.get('parent_department_id_le', False):
             emp_domain = [('department_id', 'in', [context.get('parent_department_id_le')])]
         return super(EmployeeProfile, self).read_group(domain + emp_domain, fields, groupby, offset=offset,

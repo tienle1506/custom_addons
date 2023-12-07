@@ -50,7 +50,7 @@ class DATNHrmLeTet(models.Model):
         lines = []
         if self.department_id:
             for department_id in self.department_id:
-                employees = self.env['hr.employee'].search([('department_id', '=', department_id.id), ('work_start_date', '<=', date.today())])
+                employees = self.env['hr.employee'].search([('department_id', 'child_of', department_id.id), ('work_start_date', '<=', date.today())])
                 for employee in employees:
                     lines.append((0, 0, {'employee_id': employee.id}))
         self.item_ids = lines
@@ -82,7 +82,7 @@ class DATNHrmLeTet(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
@@ -90,20 +90,20 @@ class DATNHrmLeTet(models.Model):
                 try:
                     date_from = sheet.cell_value(row, 3)
                     if date_from:
-                        date_from = datetime.strptime(date_from, '%Y-%m-%d %H:%M:%S')
+                        date_from = datetime.strptime(date_from, '%Y-%m-%d')
                     else:
                         date_from = None
                 except ValueError:
-                    raise ValidationError(f'Không đúng định dạng của DateTime %Y-%m-%d %H:%M:%S dòng {row}')
+                    raise ValidationError(f'Không đúng định dạng của DateTime %Y-%m-%d dòng {row}')
 
                 try:
                     date_to = sheet.cell_value(row, 4)
                     if date_to:
-                        date_to = datetime.strptime(date_to, '%Y-%m-%d %H:%M:%S')
+                        date_to = datetime.strptime(date_to, '%Y-%m-%d')
                     else:
                         date_to = None
                 except ValueError:
-                    raise ValidationError(f'Không đúng định dạng của DateTime %Y-%m-%d %H:%M:%S dòng {row}')
+                    raise ValidationError(f'Không đúng định dạng của DateTime %Y-%m-%d dòng {row}')
 
                 lines.append((0, 0, {
                     'employee_id': employee.id,
@@ -186,7 +186,10 @@ class DATNHrmLeTet(models.Model):
             department_name = ''
             list_department=[]
             for bl in self.department_id:
-                list_department.append(bl.id)
+                list = self.env['hr.department'].search([('id', 'child_of', bl.id)])
+                if list:
+                    for j in range(0, len(list)):
+                        list_department.append(list[j].id)
                 department_name += bl.name
             worksheet.merge_range(0, 0, 0, 2, 'Đơn vị/ phòng ban : %s'%(department_name), style_excel['style_12_bold_left'])
             worksheet.merge_range(2, 0, 2, 6, 'Danh sách nhân sự hưởng lễ tết', style_title)
@@ -204,7 +207,7 @@ class DATNHrmLeTet(models.Model):
             SQL = ''
 
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY (ARRAY %s)''' % (self.date_from, list_department)
+            SQL += '''SELECT id, employee_code, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY (ARRAY %s)''' % (self.date_from, list_department)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -220,9 +223,9 @@ class DATNHrmLeTet(models.Model):
             worksheet_object.write(0, 1, 'Mã nhân viên', style_1)
             worksheet_object.write(0, 2, 'Tên nhân viên', style_1)
             for item in employees:
-                lst_employees.append(item['employee_code_new'])
+                lst_employees.append(item['employee_code'])
                 worksheet_object.write(i, 0, i, style_1)
-                worksheet_object.write(i, 1, item['employee_code_new'], style_1_left)
+                worksheet_object.write(i, 1, item['employee_code'], style_1_left)
                 worksheet_object.write(i, 2, item['name'], style_1_left)
                 i = i + 1
 
@@ -231,16 +234,11 @@ class DATNHrmLeTet(models.Model):
             for item in employees:
                 stt += 1
                 worksheet.write(5 + stt, 0, stt, style_1_left)
-                worksheet.write(5 + stt, 1, item['employee_code_new'], style_1_left)
+                worksheet.write(5 + stt, 1, item['employee_code'], style_1_left)
                 worksheet.write(5 + stt, 2, item['name'], style_1_left)
                 worksheet.write(5 + stt, 3, '', style_1_left)
                 worksheet.write(5 + stt, 4, '', style_1_left)
                 worksheet.write(5 + stt, 5, '', style_1_left)
-
-
-
-
-
 
             namefile = 'Mau_import_mon_hoc'
             # Encode to file

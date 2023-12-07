@@ -79,7 +79,8 @@
                                       default_order="employee_id ASC" limit="100">
                                     <field name="employee_id" required="1" widget="many2one" context="{'parent_department_id_le': parent.department_id}"
                                            options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
-                                    <field name="department_id" readonly="1" force_save="1"/>
+                                    <field name="department_id" readonly="1" force_save="1" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
+                                    />
                                     <field name="cong_them"/>
                                     <field name="year" readonly="1" force_save="1" required="1"/>
                                     <field name="note"/>

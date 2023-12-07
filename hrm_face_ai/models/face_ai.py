@@ -329,7 +329,7 @@ class EmployeeProfile(models.Model):
                 parent_checkin_checkout = []
         if not employee:
             target_time = time(hour=10)
-            checkin_time_io = datetime.now()
+            checkin_time_io = datetime.now() - timedelta(hours=7)
             # Giá trị thời gian muốn so sánh
             checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
             SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note) VALUES (%s, %s, '%s', '%s', '%s');''' %(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
