@@ -17,10 +17,10 @@
                 action="departments_action"
                 sequence="10"/>
         <menuitem
-                id="create_position"
-                name="Cấu hình vị trí"
+                id="create_job"
+                name="Cấu hình vị trí công việc"
                 parent="config_office"
-                action="positions_action"
+                action="job_action"
                 sequence="20"/>
         <menuitem
                 id="employee"

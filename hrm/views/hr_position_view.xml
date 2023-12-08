@@ -1,8 +1,8 @@
 <odoo>
     <data>
-        <record id="views_hr_position_form" model="ir.ui.view">
-            <field name="name">views_hr_position_form</field>
-            <field name="model">hr.position</field>
+        <record id="views_hr_job_form" model="ir.ui.view">
+            <field name="name">views_hr_job_form</field>
+            <field name="model">hr.job</field>
             <field name="arch" type="xml">
                 <form>
                     <sheet style="max-width: 440px;">
@@ -10,8 +10,13 @@
 <!--                            <field name="related" invisible="1"/>-->
 <!--                            <field name="check_blocks" invisible="1"/>-->
                             <field name="name"/>
-                            <field name="type_block" />
+                            <field name="type_block"/>
                         </group>
+                        <group>
+                            <label for="description"/>
+                        </group>
+                        <field name="description"/>
+
                     </sheet>
 <!--                    <div class="oe_chatter">-->
 <!--                        <field name="message_follower_ids"/>-->
@@ -22,9 +27,9 @@
             </field>
         </record>
 
-        <record id="views_hr_position_tree" model="ir.ui.view">
-            <field name="name">views_hr_position_tree</field>
-            <field name="model">hr.position</field>
+        <record id="views_hr_job_tree" model="ir.ui.view">
+            <field name="name">views_hr_job_tree</field>
+            <field name="model">hr.job</field>
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
@@ -51,14 +56,14 @@
 <!--            </field>-->
 <!--        </record>-->
 
-        <record id="positions_action" model="ir.actions.act_window">
-            <field name="name">Vị trí</field>
-            <field name="res_model">hr.position</field>
+        <record id="job_action" model="ir.actions.act_window">
+            <field name="name">Vị trí công việc</field>
+            <field name="res_model">hr.job</field>
 <!--            <field name="search_view_id" ref="position_filter"/>-->
             <field name="view_mode">tree,form</field>
             <field name="view_ids" eval="[(5, 0, 0),
-                (0, 0, {'view_mode': 'tree', 'view_id': ref('views_hr_position_tree')}),
-                (0, 0, {'view_mode': 'form', 'view_id': ref('views_hr_position_form')})]"/>
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('views_hr_job_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('views_hr_job_form')})]"/>
         </record>
     </data>
 </odoo>
