@@ -117,6 +117,7 @@ class DATNHrChamCong(models.Model):
                         time = round(float(employees[i].get('timeofday')) / 8, 2)
                     else:
                         time = 0
+                    cr = self.env.cr
                     filtered_employees = self.item_ids.employee_id.filtered(lambda emp: emp.id == employees[i].get('employee_id'))
                     if not filtered_employees:
                         lines = []
@@ -129,16 +130,37 @@ class DATNHrChamCong(models.Model):
                         for item in self.item_ids:
                             if item['employee_id'].id == employees[i].get('employee_id'):
                                 item[ngayx] = time
-            cr = self.env.cr
             SQL = ''
-            SQL += '''SELECT ckl.* FROM datn_hrm_le_tet_line ckl
-                                LEFT JOIN datn_hrm_le_tet ck ON ck.id = ckl.le_tet_id
-                                WHERE ckl.department_id = %s AND ckl.date_from >= '%s'
-                                AND  ckl.date_to <= '%s' AND ck.state = 'confirmed'
-                                ORDER BY ckl.employee_id
-                        ''' % (self.department_id.id, self.date_from, self.date_to)
+            SQL += '''SELECT ckl.* FROM datn_tangca ckl
+                                              WHERE ckl.department_id in (select unnest(get_all_children_hr_department(%s))) 
+                                              AND ckl.date_from >= '%s'
+                                              AND  ckl.date_to <= '%s' AND ckl.state = 'approved'
+                                      ''' % (self.department_id.id, self.date_from, self.date_to)
             cr.execute(SQL)
-            le_tet_employees = cr.dictfetchall()
+            tangca = cr.dictfetchall()
+            if tangca:
+                tangca = tangca
+                for i in range(0, len(tangca)):
+                    delta = tangca[i].get('date_to') - tangca[i].get('date_from')
+                    num_days = delta.days
+                    for j in range(0,num_days):
+                        ngay = (self.date_from + timedelta(days=j)).day
+                        ngayx = 'ngay%s' % (ngay)
+                        filtered_employees = self.item_ids.employee_id.filtered(lambda emp: emp.id == tangca[i].get('employee_id'))
+                        if not filtered_employees:
+                            lines = []
+                            lines.append((0, 0, {
+                                'employee_id': tangca[i].get('employee_id'),
+                                ngayx: round(float(tangca[i].get('so_gio_tang_ca'))/8,2)
+                            }))
+                            self.item_ids = (lines)
+                        else:
+                            for item in self.item_ids:
+                                if item['employee_id'].id == tangca[i].get('employee_id'):
+                                    item[ngayx] = item[ngayx] + round(float(tangca[i].get('so_gio_tang_ca'))/8,2)
+
+
+
 
 
 
@@ -149,7 +171,7 @@ class DATNHrChamCong(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'darft':
+        if self.state == 'draft':
             # Thực hiện unlink chỉ khi điều kiện đúng
             super().unlink()  # Gọi phương thức unlink gốc
         else:

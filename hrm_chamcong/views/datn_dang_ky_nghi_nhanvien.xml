@@ -73,7 +73,7 @@
             <field name="model">datn.dangkynghi</field>
             <field name="arch" type="xml">
                 <search>
-                    <filter name="state_darft" string="Soạn thảo" domain="[('state', '=', 'darft')]"/>
+                    <filter name="state_draft" string="Soạn thảo" domain="[('state', '=', 'draft')]"/>
                     <filter name="state_confirmed" string="Chờ phê duyệt" domain="[('state', '=', 'confirmed')]"/>
                     <filter name="state_approved" string="Phê duyệt" domain="[('state', '=', 'approved')]"/>
                     <filter name="state_refused" string="Từ chối" domain="[('state', '=', 'refused')]"/>

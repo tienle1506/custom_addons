@@ -262,7 +262,7 @@ class DATNCongTangCuong(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'darft':
+        if self.state == 'draft':
             # Thực hiện unlink chỉ khi điều kiện đúng
             super().unlink()  # Gọi phương thức unlink gốc
         else:

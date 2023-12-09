@@ -42,6 +42,7 @@ class DATNHrmLeTet(models.Model):
     datn_file = fields.Binary(u'Đường dẫn tập tin', filters="*.xls,*.xlsx")
     file_name = fields.Char(u'Tên tệp tin')
     is_import = fields.Boolean(u'Import dữ liệu')
+
     def check_format_file_excel(self, file_name):
         if file_name.endswith('.xls') is False and file_name.endswith('.xlsx') is False and file_name.endswith(
                 '.xlsb') is False:
@@ -352,7 +353,7 @@ class DATNHrmLeTet(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'darft':
+        if self.state == 'draft':
             # Thực hiện unlink chỉ khi điều kiện đúng
             super().unlink()  # Gọi phương thức unlink gốc
         else:
@@ -376,6 +377,24 @@ class DATNHrmLeTetLine(models.Model):
     _sql_constraints = [
         ('unique_employee_le_tet', 'unique(employee_id, le_tet_id)', u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')
     ]
+
+    @api.constrains('date_from', 'date_to')
+    def checkdate(self):
+        if self.id:
+            SQL = ''
+            SQL += '''SELECT * FROM datn_hrm_le_tet_line WHERE id != %s and employee_id = %s AND ((date_from BETWEEN '%s' AND '%s') 
+            OR (date_to BETWEEN '%s' AND '%s')) '''%(self.id, self.employee_id.id, self.date_from, self.date_to,self.date_from, self.date_to)
+            self.env.cr.execute(SQL)
+            employees = self.env.cr.dictfetchall()
+        else:
+            SQL = ''
+            SQL += '''SELECT * FROM datn_hrm_le_tet_line WHERE employee_id = %s AND ((date_from BETWEEN '%s' AND '%s') 
+                        OR (date_to BETWEEN '%s' AND '%s')) ''' % (
+            self.employee_id.id, self.date_from, self.date_to, self.date_from, self.date_to)
+            self.env.cr.execute(SQL)
+            employees = self.env.cr.dictfetchall()
+        if employees:
+            raise ValidationError("Ngày lễ tết của bạn đang tạo có một ngày khác đã được tạo, năm trong khoảng này")
 
 
 

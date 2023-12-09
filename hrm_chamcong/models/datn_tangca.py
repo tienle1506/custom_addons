@@ -24,6 +24,21 @@ class DATNTangCa(models.Model):
     def check_date_from_date_to(self):
         if self.date_to.month != self.date_from.month:
             raise ValidationError("Ngày tăng ca phải nằm trong cùng một tháng")
+        if self.id:
+            SQL = ''
+            SQL += '''SELECT * FROM datn_tangca WHERE id != %s and employee_id = %s AND ((date_from BETWEEN '%s' AND '%s') 
+            OR (date_to BETWEEN '%s' AND '%s')) '''%(self.id, self.employee_id.id, self.date_from, self.date_to,self.date_from, self.date_to)
+            self.env.cr.execute(SQL)
+            employees = self.env.cr.dictfetchall()
+        else:
+            SQL = ''
+            SQL += '''SELECT * FROM datn_tangca WHERE employee_id = %s AND ((date_from BETWEEN '%s' AND '%s') 
+                        OR (date_to BETWEEN '%s' AND '%s')) ''' % (
+            self.employee_id.id, self.date_from, self.date_to, self.date_from, self.date_to)
+            self.env.cr.execute(SQL)
+            employees = self.env.cr.dictfetchall()
+        if employees:
+            raise ValidationError("Ngày tăng ca của bạn đang tạo có một ngày khác đã được tạo, năm trong khoảng này")
 
     def read(self, fields=None, load='_classic_read'):
         self.check_access_rule('read')
@@ -59,7 +74,7 @@ class DATNTangCa(models.Model):
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):
-            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('state', '!=', 'darft')]
+            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('state', '!=', 'draft')]
         return emp_domain
 
     @api.model
@@ -96,7 +111,7 @@ class DATNTangCa(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'darft':
+        if self.state == 'draft':
             # Thực hiện unlink chỉ khi điều kiện đúng
             super().unlink()  # Gọi phương thức unlink gốc
         else:

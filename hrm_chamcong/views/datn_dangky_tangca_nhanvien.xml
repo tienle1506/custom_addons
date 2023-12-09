@@ -6,7 +6,7 @@
             <field name="model">datn.tangca</field>
             <field name="arch" type="xml">
                 <tree class="widget-department-tree"
-                      decoration-info="state=='draft'"
+                      decoration-info="state=='draft' or state=='confirmed'"
                       default_order="employee_id">
                     <field name="employee_id"/>
                     <field name="department_id"/>

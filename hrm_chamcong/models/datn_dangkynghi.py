@@ -55,6 +55,21 @@ class DATNDangKyNghi(models.Model):
                     raise ValidationError(_(u"Bạn không thể tạo nghỉ phép cho các tháng trước đó."))
                 if record.date_from.year > record.date_from.year and record.loai_nghi == 'nghiphep':
                     raise ValidationError(_(u"Bạn không thể tạo nghỉ phép cho các năm sau."))
+        if self.id:
+            SQL = ''
+            SQL += '''SELECT * FROM datn_dangkynghi WHERE id != %s and employee_id = %s AND ((date_from BETWEEN '%s' AND '%s') 
+            OR (date_to BETWEEN '%s' AND '%s')) '''%(self.id, self.employee_id.id, self.date_from, self.date_to,self.date_from, self.date_to)
+            self.env.cr.execute(SQL)
+            employees = self.env.cr.dictfetchall()
+        else:
+            SQL = ''
+            SQL += '''SELECT * FROM datn_dangkynghi WHERE employee_id = %s AND ((date_from BETWEEN '%s' AND '%s') 
+                        OR (date_to BETWEEN '%s' AND '%s')) ''' % (
+            self.employee_id.id, self.date_from, self.date_to, self.date_from, self.date_to)
+            self.env.cr.execute(SQL)
+            employees = self.env.cr.dictfetchall()
+        if employees:
+            raise ValidationError("Ngày xin nghỉ của bạn đang tạo có một ngày khác đã được tạo, năm trong khoảng này")
 
     @api.onchange('date_from', 'date_to')
     def _check_date_from_To(self):
@@ -96,7 +111,7 @@ class DATNDangKyNghi(models.Model):
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):
-            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('state', '!=', 'darft')]
+            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('state', '!=', 'draft')]
         return emp_domain
     @api.model
     def _default_employee(self):
@@ -237,7 +252,7 @@ class DATNDangKyNghi(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'darft':
+        if self.state == 'draft':
             # Thực hiện unlink chỉ khi điều kiện đúng
             super().unlink()  # Gọi phương thức unlink gốc
         else:
@@ -245,15 +260,6 @@ class DATNDangKyNghi(models.Model):
             # ví dụ:
             raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
-    def unlink(self):
-        # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'darft':
-            # Thực hiện unlink chỉ khi điều kiện đúng
-            super().unlink()  # Gọi phương thức unlink gốc
-        else:
-            # Xử lý khi điều kiện không đúng
-            # ví dụ:
-            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 class DATNLoaiNghi(models.Model):
     _name = 'datn.loai.nghi'
     _description = 'Cấu hình loại nghỉ'
