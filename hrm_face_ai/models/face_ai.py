@@ -349,14 +349,14 @@ class EmployeeProfile(models.Model):
             results = cr.dictfetchone()
             first_result = results.get('id')
         if not employee:
-            target_time = time(hour=10)
+            target_time = time(hour=3)
             checkin_time_io = datetime.now()
             # Giá trị thời gian muốn so sánh
             checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
-            SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note) VALUES (%s, %s, '%s', '%s', '%s');''' %(first_result, employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
+            SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note, state) VALUES (%s, %s, '%s', '%s', '%s','draft');''' %(first_result, employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
             if target_time <= checkin_time:
                 SQL3 = ''
-                SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day, note) VALUES (%s, %s, '%s','%s','%s');'''%(first_result, employee_id, checkin_time_io, current_date, 'Quên chấm công vào')
+                SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day, note, state) VALUES (%s, %s, '%s','%s','%s','draft');'''%(first_result, employee_id, checkin_time_io, current_date, 'Quên chấm công vào')
             cr.execute(SQL3)
         else:
             #nếu đã tồn tại thì sẽ đc update vào checkout

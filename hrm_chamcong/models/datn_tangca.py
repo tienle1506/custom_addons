@@ -17,8 +17,13 @@ class DATNTangCa(models.Model):
     state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'), ('refused', u'Từ chối')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
     ly_do = fields.Text(u"Lý do")
-    so_gio_tang_ca = fields.Float(string='So giờ tăng ca', default=0)
+    so_gio_tang_ca = fields.Float(string='Số giờ tăng ca', default=0)
     create_date = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d', default=fields.Date.today)
+
+    @api.constrains('date_from', 'date_to')
+    def check_date_from_date_to(self):
+        if self.date_to.month != self.date_from.month:
+            raise ValidationError("Ngày tăng ca phải nằm trong cùng một tháng")
 
     def read(self, fields=None, load='_classic_read'):
         self.check_access_rule('read')
@@ -73,8 +78,8 @@ class DATNTangCa(models.Model):
     def action_send_approve(self):
         nguoi_duyet = []
         for emp in self.nguoi_duyet:
-            if emp.personal_mail:
-                nguoi_duyet.append(emp.personal_mail.strip())
+            if emp.personal_email:
+                nguoi_duyet.append(emp.personal_email.strip())
         header = '''Thông báo phê duyệt đơn tăng ca của %s''' % (self.employee_id.name)
         content = u'Nhân viên %s tạo đơn tăng ca \nLý do: %s \nSố giờ tăng ca:%s\nTừ ngày: %s - đến ngày: %s \nTrang web: http://localhost:8088/web' % (
         str(self.employee_id.name), str(self.ly_do), str(self.so_gio_tang_ca),

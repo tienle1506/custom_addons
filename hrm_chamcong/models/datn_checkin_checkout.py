@@ -120,10 +120,15 @@ class DATNHrCheckInCheckOut(models.Model):
                 except ValueError:
                     raise ValidationError(f'Không đúng định dạng của DateTime %d-%m-%Y %H:%M:%S dòng {row}')
                 if employee.id:
+                    if checkin and checkout:
+                        state = 'approved'
+                    else:
+                        state = 'draft'
                     lines.append((0, 0, {
                         'employee_id': employee.id,
                         'checkin': checkin,
                         'checkout': checkout,
+                        'state': state,
                         'note': sheet.cell_value(row, 5).strip()
                     }))
 
@@ -432,7 +437,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
     def action_send_approve(self):
         nguoi_duyet = []
         for emp in self.nguoi_duyet:
-            if emp.personal_mail:
+            if emp.personal_email:
                 nguoi_duyet.append(emp.personal_mail.strip())
         header = '''Thông báo phê duyệt chấm công %s''' % (self.employee_id.name)
         ly_do_value = self.ly_do
