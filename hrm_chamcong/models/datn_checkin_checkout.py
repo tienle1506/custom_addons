@@ -119,7 +119,7 @@ class DATNHrCheckInCheckOut(models.Model):
                         checkout = None
                 except ValueError:
                     raise ValidationError(f'Không đúng định dạng của DateTime %d-%m-%Y %H:%M:%S dòng {row}')
-                if checkin and checkout:
+                if employee.id:
                     lines.append((0, 0, {
                         'employee_id': employee.id,
                         'checkin': checkin,
@@ -267,6 +267,15 @@ class DATNHrCheckInCheckOut(models.Model):
     def action_confirmed(self):
         self.state = 'confirmed'
 
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
 class DATNHrCheckInCheckOutLine(models.Model):
     _name = 'datn.hr.checkin.checkout.line'

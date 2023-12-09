@@ -9,9 +9,19 @@ import base64
 import xlsxwriter
 from io import BytesIO
 from . import style_excel_wb
+from dateutil.relativedelta import relativedelta
 from ...hrm.models import constraint
 
+def get_weekend_days(start_date, end_date):
+    weekend_days = []
+    current_date = start_date
 
+    while current_date <= end_date:
+        if current_date.weekday() in [5, 6]:
+            weekend_days.append(current_date)
+        current_date += timedelta(days=1)
+
+    return weekend_days
 class DATNHrmLeTet(models.Model):
     _name = "datn.hrm.le.tet"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
@@ -258,11 +268,97 @@ class DATNHrmLeTet(models.Model):
             raise ValidationError(_(u'Lỗi: \n{}').format(e))
 
     def action_draft(self):
+        delta = self.date_to - self.date_from
+        num_days = delta.days
+        mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
+        for record in self.item_ids:
+            for i in range(0, num_days + 1):
+                day = record.date_from + timedelta(days=i)
+                if day not in mang_cuoi_tuan:
+                    employee_checkin = self.env['datn.hr.checkin.checkout.line'].search(
+                        [('employee_id', '=', record.employee_id.id), ('day', '=', day)]).id
+                    if employee_checkin:
+                        SQL = ''
+                        SQL += '''DELETE FROM datn_hr_checkin_checkout_line WHERE id = %s''' % (employee_checkin)
+                        self.env.cr.execute(SQL)
         self.state = 'draft'
 
     def action_confirmed(self):
+        cr = self.env.cr
+        # Thêm vào check in check out của nhân viên
+        date_format = '%Y-%m-%d'
+        # Tính số ngày giữa hai ngày
+        delta = self.date_to - self.date_from
+        num_days = delta.days
+        formatted_date = datetime(self.date_from.year, self.date_to.month, 1).date()
+        for record in self.item_ids:
+            SQL1 = ''
+            SQL1 += '''SELECT ck.id FROM datn_hr_checkin_checkout_line ckl
+                                LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
+                                WHERE ckl.employee_id = %s AND to_char(ck.date_from, 'mmYYYY') = to_char('%s'::date, 'mmYYYY')
+                                LIMIT 1
+                    ''' % (record.employee_id.id, record.date_from)
+            self.env.cr.execute(SQL1)
+            results = self.env.cr.dictfetchone()
+            if not results:
+                SQL = ''
+                SQL += '''SELECT datn_hr_checkin_checkout.id FROM datn_hr_checkin_checkout
+                                    LEFT JOIN hr_department ON hr_department.id = datn_hr_checkin_checkout.department_id
+                                    WHERE date_from = '%s' AND department_id in (select unnest(get_list_parent_department(%s)))
+                                    ORDER BY hr_department.department_level
+                                    LIMIT 1
+                        ''' % (formatted_date, record.department_id.id)
+                self.env.cr.execute(SQL)
+                results = self.env.cr.dictfetchone()
+            # Lấy giá trị đầu tiên thoả mãn
+            if results:
+                first_result = results.get('id')
+            else:
+                SQL3 = ''
+                SQL3 += '''SELECT id from hr_department WHERE department_level = 1 AND id in (select unnest(get_list_parent_department(%s)))'''%(record.department_id.id)
+                self.env.cr.execute(SQL3)
+                results = self.env.cr.dictfetchone()
+                first_result = results.get('id')
+                # Lấy ngày đầu tiên của tháng
+                first_day = record.date_from.replace(day=1)
+                # Lấy ngày cuối cùng của tháng
+                next_month = (datetime.strptime(str(record.date_from), "%Y-%m-%d") + relativedelta(months=1)).replace(day=1)
+                last_day = (next_month - timedelta(days=1)).date()
+                name = 'Bảng thanh check-in check-out từ ngày %s đến ngày %s'%(first_day,last_day)
+                SQL4 = ''
+                SQL4 += '''INSERT INTO datn_hr_checkin_checkout (department_id, date_from, date_to, name, state)
+                                                   VALUES(%s,'%s','%s', '%s', 'draft')''' % (first_result,first_day,last_day,name )
+                self.env.cr.execute(SQL4)
+
+                SQL5 = ''
+                SQL5 += '''SELECT id from datn_hr_checkin_checkout WHERE department_id = %s and date_from >= '%s'and date_to <= '%s' LIMIT 1''' % (first_result,first_day,last_day)
+                self.env.cr.execute(SQL5)
+                results = self.env.cr.dictfetchone()
+                first_result = results.get('id')
+            for i in range(0, num_days + 1):
+                date_from = record.date_from + timedelta(days=i)
+                day = date_from
+                time_of_day = 8
+                lydo = 'nghi_co_luong'
+                employee_checkin = self.env['datn.hr.checkin.checkout.line'].search(
+                    [('employee_id', '=', record.employee_id.id), ('day', '=', day)]).id
+                if not employee_checkin:
+                    SQL = ''
+                    SQL += '''INSERT INTO datn_hr_checkin_checkout_line (day,timeofday,state,ly_do,note,checkin_checkout_id,employee_id, color)
+                                    VALUES('%s',%s,'approved','%s','%s', %s, %s, %s)''' % (
+                    day, time_of_day, lydo, str(self.name), first_result, record.employee_id.id, 255)
+                    self.env.cr.execute(SQL)
         self.state = 'confirmed'
 
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
 class DATNHrmLeTetLine(models.Model):
     _name = 'datn.hrm.le.tet.line'

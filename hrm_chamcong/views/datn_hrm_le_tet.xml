@@ -36,7 +36,6 @@
                     <group>
                         <group>
                             <field string="Đơn vị/ phòng ban" name="department_id" widget="many2many_tags" required="1"
-                                   domain="[('id', 'child_of', parent.department_id)]"
                                options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
                         </group>
                         <group class="date_letet">

@@ -2,7 +2,18 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import Warning, ValidationError
 from datetime import timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
+def get_weekend_days(start_date, end_date):
+    weekend_days = []
+    current_date = start_date
+
+    while current_date <= end_date:
+        if current_date.weekday() in [5, 6]:
+            weekend_days.append(current_date)
+        current_date += timedelta(days=1)
+
+    return weekend_days
 class DATNDangKyNghi(models.Model):
     _name = "datn.dangkynghi"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
@@ -25,21 +36,25 @@ class DATNDangKyNghi(models.Model):
     create_date = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     @api.depends('loai_nghi', 'date_from', 'date_to')
     def _compute_so_ngay_nghi(self):
-
+        mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
+        if mang_cuoi_tuan:
+            ngay_ct = len(mang_cuoi_tuan)
         if self.loai_nghi and self.date_from and self.date_to:
             date_from = fields.Date.from_string(self.date_from)
             date_to = fields.Date.from_string(self.date_to)
             delta = date_to - date_from
             num_days = delta.days + 1
-            self.so_ngay_nghi = self.loai_nghi.ngay_ap_dung * num_days
+            self.so_ngay_nghi = self.loai_nghi.ngay_ap_dung * num_days - ngay_ct
 
     @api.constrains('date_from', 'date_to')
     def _check_date_hientai(self):
         current_date = fields.Date.today()
         for record in self:
             if record.date_from and record.date_to:
-                if record.date_from.month < current_date.month:
+                if record.date_from < current_date:
                     raise ValidationError(_(u"Bạn không thể tạo nghỉ phép cho các tháng trước đó."))
+                if record.date_from.year > record.date_from.year and record.loai_nghi == 'nghiphep':
+                    raise ValidationError(_(u"Bạn không thể tạo nghỉ phép cho các năm sau."))
 
     @api.onchange('date_from', 'date_to')
     def _check_date_from_To(self):
@@ -118,12 +133,14 @@ class DATNDangKyNghi(models.Model):
         num_days = delta.days
         for i in range(0, num_days + 1):
             day = self.date_from + timedelta(days=i)
-            employee_checkin = self.env['datn.hr.checkin.checkout.line'].search(
-                [('employee_id', '=', self.employee_id.id), ('day', '=', day)]).id
-            if employee_checkin:
-                SQL = ''
-                SQL += '''DELETE FROM datn_hr_checkin_checkout_line WHERE id = %s''' % (employee_checkin)
-                self.env.cr.execute(SQL)
+            mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
+            if day not in mang_cuoi_tuan:
+                employee_checkin = self.env['datn.hr.checkin.checkout.line'].search(
+                    [('employee_id', '=', self.employee_id.id), ('day', '=', day)]).id
+                if employee_checkin:
+                    SQL = ''
+                    SQL += '''DELETE FROM datn_hr_checkin_checkout_line WHERE id = %s''' % (employee_checkin)
+                    self.env.cr.execute(SQL)
         nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
         self.so_ngay_da_nghi = nghi.so_ngay_da_nghi - self.so_ngay_nghi
         nghi.write(
@@ -141,37 +158,73 @@ class DATNDangKyNghi(models.Model):
         delta = self.date_to - self.date_from
         num_days = delta.days
         formatted_date = datetime(self.date_from.year, self.date_to.month, 1).date()
-        SQL = ''
-        SQL += '''SELECT datn_hr_checkin_checkout.id FROM datn_hr_checkin_checkout
-                    LEFT JOIN hr_department ON hr_department.id = datn_hr_checkin_checkout.department_id
-                    WHERE date_from = '%s' AND department_id in (select unnest(get_list_parent_department(%s)))
-                    ORDER BY hr_department.department_level
-                    LIMIT 1
-        '''%(formatted_date, self.department_id.id)
-        self.env.cr.execute(SQL)
+        SQL1 = ''
+        SQL1 += '''SELECT ck.id FROM datn_hr_checkin_checkout_line ckl
+                                        LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
+                                        WHERE ckl.employee_id = %s AND to_char(ck.date_from, 'mmYYYY') = to_char('%s'::date, 'mmYYYY')
+                                        LIMIT 1
+                            ''' % (self.employee_id.id, self.date_from)
+        self.env.cr.execute(SQL1)
         results = self.env.cr.dictfetchone()
+        if not results:
+            SQL = ''
+            SQL += '''SELECT datn_hr_checkin_checkout.id FROM datn_hr_checkin_checkout
+                                            LEFT JOIN hr_department ON hr_department.id = datn_hr_checkin_checkout.department_id
+                                            WHERE date_from = '%s' AND department_id in (select unnest(get_list_parent_department(%s)))
+                                            ORDER BY hr_department.department_level
+                                            LIMIT 1
+                                ''' % (formatted_date, self.department_id.id)
+            self.env.cr.execute(SQL)
+            results = self.env.cr.dictfetchone()
         # Lấy giá trị đầu tiên thoả mãn
         if results:
             first_result = results.get('id')
+        else:
+            SQL3 = ''
+            SQL3 += '''SELECT id,name from hr_department WHERE department_level = 1 AND id in (select unnest(get_list_parent_department(%s)))''' % (self.department_id.id)
+            self.env.cr.execute(SQL3)
+            results = self.env.cr.dictfetchone()
+            first_result = results.get('id')
+            name_dp = results.get('name')
+            # Lấy ngày đầu tiên của tháng
+            first_day = self.date_from.replace(day=1)
+            # Lấy ngày cuối cùng của tháng
+            next_month = (datetime.strptime(str(self.date_from), "%Y-%m-%d") + relativedelta(months=1)).replace(day=1)
+            last_day = (next_month - timedelta(days=1)).date()
+            name = 'Bảng thanh check-in check-out của %s từ ngày %s đến ngày %s' % (name_dp,first_day, last_day)
+            SQL4 = ''
+            SQL4 += '''INSERT INTO datn_hr_checkin_checkout (department_id, date_from, date_to, name, state)
+                                                           VALUES(%s,'%s','%s', '%s', 'draft')''' % (
+            first_result, first_day, last_day, name)
+            self.env.cr.execute(SQL4)
+
+            SQL5 = ''
+            SQL5 += '''SELECT id from datn_hr_checkin_checkout WHERE department_id = %s and date_from >= '%s'and date_to <= '%s' LIMIT 1''' % (
+            first_result, first_day, last_day)
+            self.env.cr.execute(SQL5)
+            results = self.env.cr.dictfetchone()
+            first_result = results.get('id')
         for i in range(0, num_days+1):
-            date_from = self.date_from + timedelta(days=num_days)
-            if self.loai_nghi.loai_nghi == 'nghicoluong':
-                day = date_from
-                time_of_day = float(self.loai_nghi.ngay_ap_dung)*8
-                lydo = 'nghi_co_luong'
-            if self.loai_nghi.loai_nghi == 'nghiphep':
-                day = date_from
-                time_of_day = float(self.loai_nghi.ngay_ap_dung)*8
-                lydo = 'nghi_phep'
-            if self.loai_nghi.loai_nghi == 'nghikhongluong':
-                time_of_day = 0
-                lydo = 'nghi_khong_luong'
-            employee_checkin = self.env['datn.hr.checkin.checkout.line'].search([('employee_id','=', self.employee_id.id), ('day', '=', day)]).id
-            if not employee_checkin:
-                SQL = ''
-                SQL += '''INSERT INTO datn_hr_checkin_checkout_line (day,timeofday,state,ly_do,note,checkin_checkout_id,employee_id, color)
-                        VALUES('%s',%s,'approved','%s','%s', %s, %s, %s)'''%(day, time_of_day, lydo,'',first_result,self.employee_id.id,255)
-                self.env.cr.execute(SQL)
+            date_from = self.date_from + timedelta(days=i)
+            mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
+            if date_from not in mang_cuoi_tuan:
+                if self.loai_nghi.loai_nghi == 'nghicoluong':
+                    day = date_from
+                    time_of_day = float(self.loai_nghi.ngay_ap_dung)*8
+                    lydo = 'nghi_co_luong'
+                if self.loai_nghi.loai_nghi == 'nghiphep':
+                    day = date_from
+                    time_of_day = float(self.loai_nghi.ngay_ap_dung)*8
+                    lydo = 'nghi_phep'
+                if self.loai_nghi.loai_nghi == 'nghikhongluong':
+                    time_of_day = 0
+                    lydo = 'nghi_khong_luong'
+                employee_checkin = self.env['datn.hr.checkin.checkout.line'].search([('employee_id','=', self.employee_id.id), ('day', '=', day)]).id
+                if not employee_checkin:
+                    SQL = ''
+                    SQL += '''INSERT INTO datn_hr_checkin_checkout_line (day,timeofday,state,ly_do,note,checkin_checkout_id,employee_id, color)
+                            VALUES('%s',%s,'approved','%s','%s', %s, %s, %s)'''%(day, time_of_day, lydo,'',first_result,self.employee_id.id,255)
+                    self.env.cr.execute(SQL)
         nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
         ngaynghi = nghi.so_ngay_da_nghi + self.so_ngay_nghi
         nghi.write(
@@ -192,6 +245,15 @@ class DATNDangKyNghi(models.Model):
             # ví dụ:
             raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 class DATNLoaiNghi(models.Model):
     _name = 'datn.loai.nghi'
     _description = 'Cấu hình loại nghỉ'
