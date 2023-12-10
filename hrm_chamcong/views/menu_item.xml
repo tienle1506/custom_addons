@@ -19,6 +19,14 @@
               groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
     </menuitem>
 
+    <menuitem id="menu_item_congthucte"
+              name='Công thực tế'
+              parent="menu_chamcong"
+              sequence="2"
+              action="datn_congthucte_action"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr">
+    </menuitem>
+
     <menuitem id="menu_item_cong_tang_cuong"
               name='Công tăng cường'
               parent="menu_chamcong"

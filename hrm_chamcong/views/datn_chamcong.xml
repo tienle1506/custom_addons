@@ -147,7 +147,6 @@
                                            options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
                                     />
                                     <field name="department_id" invisible="1"/>
-                                    <field name="cong_chuan" invisible="1"/>
                                     <field name="ngay_cong" invisible="1"/>
                                     <field name="ngay1" />
                                     <field name="ngay2" />

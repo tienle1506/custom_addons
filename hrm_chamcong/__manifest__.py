@@ -26,6 +26,7 @@
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'views/datn_cong_thuc_te.xml',
         'views/datn_chamcong.xml',
         'views/datn_checkin_checkout.xml',
         'views/datn_hrm_le_tet.xml',

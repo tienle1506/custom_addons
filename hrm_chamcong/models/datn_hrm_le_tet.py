@@ -363,7 +363,7 @@ class DATNHrmLeTet(models.Model):
 
 class DATNHrmLeTetLine(models.Model):
     _name = 'datn.hrm.le.tet.line'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
     _description = u'Bảng chi tiết nhân sự hưởng lễ tết'
     _order = "department_id, employee_id"
 
@@ -372,7 +372,7 @@ class DATNHrmLeTetLine(models.Model):
     note = fields.Text(string='Ghi chú')
     date_from = fields.Date(u'Từ ngày', widget='date', related='le_tet_id.date_from', store=True, format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', related='le_tet_id.date_to', store=True, format='%Y-%m-%d')
-    department_id = fields.Many2one('hr.department', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
+    department_id = fields.Many2one('hr.department', ondelete='cascade', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
 
     _sql_constraints = [
         ('unique_employee_le_tet', 'unique(employee_id, le_tet_id)', u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')

@@ -8,3 +8,4 @@ from . import datn_cong_tang_cuong
 from . import datn_phe_duyet
 from . import datn_tangca
 from . import send_mail
+from . import datn_congthucte

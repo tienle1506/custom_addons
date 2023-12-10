@@ -30,15 +30,19 @@ class DATNDangKyNghi(models.Model):
                              string=u'Trạng thái', default='draft', track_visibility='always')
     ly_do = fields.Text(u"Lý do")
     so_ngay_nghi = fields.Float(u"Số ngày nghỉ", compute='_compute_so_ngay_nghi', store=True)
-    loai_nghi = fields.Many2one(u"datn.loai.nghi", 'Loại nghỉ')
+    loai_nghi = fields.Many2one(u"datn.loai.nghi", 'Loại nghỉ', ondelete='cascade')
     so_ngay_da_nghi = fields.Float(u"Số ngày phép đã nghỉ", related='employee_id.so_ngay_da_nghi', store=True)
     so_ngay_duoc_phan_bo = fields.Float(u"Số ngày phép được phân bổ", related='employee_id.so_ngay_duoc_phan_bo', store=True)
     create_date = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     @api.depends('loai_nghi', 'date_from', 'date_to')
     def _compute_so_ngay_nghi(self):
-        mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
+        mang_cuoi_tuan = []
+        if self.date_from and self.date_to:
+            mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
         if mang_cuoi_tuan:
             ngay_ct = len(mang_cuoi_tuan)
+        else:
+            ngay_ct = 0
         if self.loai_nghi and self.date_from and self.date_to:
             date_from = fields.Date.from_string(self.date_from)
             date_to = fields.Date.from_string(self.date_to)

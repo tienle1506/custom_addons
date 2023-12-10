@@ -19,7 +19,7 @@ class DATNHrCheckInCheckOut(models.Model):
 
     data = fields.Binary('File', readonly=True)
     name = fields.Char(string=u'Tên Bảng CheckIn CheckOut', size=128, track_visibility='always', )
-    department_id = fields.Many2one('hr.department', string='Đơn vị/Phòng ban', required=True,
+    department_id = fields.Many2one('hr.department',ondelete='cascade', string='Đơn vị/Phòng ban', required=True,
                     tracking=True)
     date_from = fields.Date(u'Từ ngày', required=True, widget='date', format='%m-%d-%Y')
     date_to = fields.Date(u'Đến ngày', required=True, widget='date', format='%m-%d-%Y')

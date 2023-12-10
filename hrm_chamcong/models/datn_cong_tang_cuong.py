@@ -281,7 +281,7 @@ class DATNCongTangCuongLine(models.Model):
     note = fields.Text(string='Ghi chú')
     year = fields.Selection(string='Năm áp dụng', related='cong_them_id.year', store=True)
     cong_them = fields.Integer(u'Công tăng cuờng', default=0)
-    department_id = fields.Many2one('hr.department', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
+    department_id = fields.Many2one('hr.department',ondelete='cascade', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
 
 
 

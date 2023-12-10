@@ -14,11 +14,24 @@ from odoo import api, fields, models, _
 from odoo.exceptions import Warning, ValidationError
 
 
+def get_weekend_days(start_date, end_date):
+    weekend_days = []
+    current_date = start_date
+    total_days = 0
+
+    while current_date <= end_date:
+        if current_date.weekday() in [5, 6]:
+            weekend_days.append(current_date)
+        current_date += timedelta(days=1)
+        total_days += 1
+
+    return weekend_days, total_days
+
 class DATNHrChamCong(models.Model):
     _name = 'datn.hr.chamcong'
     _inherit = ['mail.thread']
-    _description = u'Chấm công theo ca'
-    _order = "month_year_chuky DESC"
+    _description = u'Chấm công theo tháng'
+    _order = "date_from DESC"
 
     def _default_date_from(self):
         return datetime.today().strftime('%Y-%m-01')
@@ -30,7 +43,7 @@ class DATNHrChamCong(models.Model):
     name = fields.Char(string=u'Bảng chấm công tháng', size=128, track_visibility='always', )
     date_from = fields.Date(u'Từ ngày', required=True, default=_default_date_from,)
     date_to = fields.Date(u'Đến ngày', required=True, default=_default_date_to, track_visibility='always', )
-    department_id = fields.Many2one('hr.department', string=u'Đơn vị/ Phòng ban', required=True)
+    department_id = fields.Many2one('hr.department',ondelete='cascade', string=u'Đơn vị/ Phòng ban', required=True)
     item_ids = fields.One2many('datn.hr.chamcong.line', 'chamcong_id')
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
@@ -101,15 +114,25 @@ class DATNHrChamCong(models.Model):
             SQL = ''
             SQL += '''SELECT ckl.* FROM datn_hr_checkin_checkout_line ckl
                     LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
-                    WHERE ck.department_id = %s AND ck.date_from = '%s'
-                    AND  ck.date_to = '%s' AND ck.state = 'confirmed'
+                    WHERE ck.department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND ck.date_from = '%s'
+                    AND  ck.date_to = '%s' AND ck.state = 'confirmed' AND clk.state='approved'
+                    AND ckl.employee_id not in (SELECT ccl.employee_id FROM datn_hr_chamcong cc INNER JOIN datn_hr_chamcong_line ccl ON ccl.chamcong_id = cc.id 
+            where date_from >= '%s' and date_to <= '%s')
                     ORDER BY ckl.employee_id
-            '''%(self.department_id.id, self.date_from, self.date_to)
+            '''%(self.department_id.id, self.date_from, self.date_to, self.date_from, self.date_to)
             cr.execute(SQL)
             employees = cr.dictfetchall()
+            SQL = ''
+            SQL += '''SELECT ckl.* FROM datn_tangca ckl WHERE ckl.department_id = ANY
+                      (ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s))
+                       AND ckl.date_from >= '%s' AND  ckl.date_to <= '%s' AND ckl.state = 'approved'
+                       AND ckl.employee_id not in (SELECT ccl.employee_id FROM datn_hr_chamcong cc INNER JOIN datn_hr_chamcong_line ccl ON ccl.chamcong_id = cc.id 
+                        where date_from >= '%s' and date_to <= '%s')''' % (self.department_id.id, self.date_from, self.date_to,self.date_from,self.date_to)
+            cr.execute(SQL)
+            tangca = cr.dictfetchall()
             if employees:
                 for i in range(0, len(employees)):
-                    ngay = employees[i].get('checkin').day
+                    ngay = employees[i].get('day').day
                     ngayx = 'ngay%s'%(ngay)
                     if employees[i].get('timeofday') and float(employees[i].get('timeofday')) >= 8:
                         time = 1
@@ -130,20 +153,13 @@ class DATNHrChamCong(models.Model):
                         for item in self.item_ids:
                             if item['employee_id'].id == employees[i].get('employee_id'):
                                 item[ngayx] = time
-            SQL = ''
-            SQL += '''SELECT ckl.* FROM datn_tangca ckl
-                                              WHERE ckl.department_id in (select unnest(get_all_children_hr_department(%s))) 
-                                              AND ckl.date_from >= '%s'
-                                              AND  ckl.date_to <= '%s' AND ckl.state = 'approved'
-                                      ''' % (self.department_id.id, self.date_from, self.date_to)
-            cr.execute(SQL)
-            tangca = cr.dictfetchall()
+
             if tangca:
                 tangca = tangca
                 for i in range(0, len(tangca)):
                     delta = tangca[i].get('date_to') - tangca[i].get('date_from')
                     num_days = delta.days
-                    for j in range(0,num_days):
+                    for j in range(0,num_days+1):
                         ngay = (self.date_from + timedelta(days=j)).day
                         ngayx = 'ngay%s' % (ngay)
                         filtered_employees = self.item_ids.employee_id.filtered(lambda emp: emp.id == tangca[i].get('employee_id'))
@@ -159,7 +175,102 @@ class DATNHrChamCong(models.Model):
                                 if item['employee_id'].id == tangca[i].get('employee_id'):
                                     item[ngayx] = item[ngayx] + round(float(tangca[i].get('so_gio_tang_ca'))/8,2)
 
+            #Đồng bộ dữ liệu quan site công thực tê
+            weekend_days, total_days = get_weekend_days(self.date_from, self.date_to)
 
+            cong_chuan = total_days - len(weekend_days) if weekend_days else 0
+
+            list_ccs = self.env['datn.hr.chamcong.line'].search([('chamcong_id.date_from', '>=', self.date_from), ('chamcong_id.date_to', '>=', self.date_to),
+                                                      ('chamcong_id.id', '=', self.id)])
+
+            cc_id = self.id if self.id else 0
+            SQL = ''
+            SQL += ''' SELECT emp.* FROM hr_employee emp WHERE emp.department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND emp.work_start_date <= '%s'
+                                                        AND emp.id not in (SELECT ccl.employee_id FROM datn_hr_chamcong cc INNER JOIN datn_hr_chamcong_line ccl ON ccl.chamcong_id = cc.id 
+                                                        where date_from >= '%s' and date_to <= '%s' and cc.id != %s) '''%(self.department_id.id,self.date_to, self.date_from, self.date_to, cc_id)
+            cr.execute(SQL)
+            employees = cr.dictfetchall()
+
+            self.env['datn.congthucte'].sudo().search([('chamcong_id', '=', self.id)]).unlink()
+            new_record = self.env['datn.congthucte'].sudo().create({
+                'department_id': self.department_id.id,
+                'name': 'Bảng công thực tế đơn vị/ phòng ban %s từ ngày %s đến ngày %s'%(self.department_id.name, self.date_from, self.date_to),
+                'date_from': self.date_from,
+                'date_to': self.date_to,
+                'chamcong_id': self.id,
+                'state': 'confirmed'
+            })
+
+            if employees:
+                for i in range(0, len(employees)):
+                    cong_thuc_te = 0
+                    for item in list_ccs:
+                        if item.employee_id.id == employees[i].get('id'):
+                            cong_thuc_te = 0
+                            for k in range(1, 32):
+                                ngayx = 'ngay%s'%(k)
+                                cong_thuc_te += round(float(getattr(item, ngayx)),2) if getattr(item, ngayx) else 0
+                    dk_nghis = self.env['datn.dangkynghi'].search([('date_from', '>=', self.date_from),
+                                                        ('date_to', '<=', self.date_to),
+                                                        ('employee_id', '=', employees[i].get('id')),
+                                                                   ('state', '=', 'approved')])
+                    cong_phep = 0
+                    cong_khong_luong = 0
+                    cong_co_luong = 0
+                    #Công lễ tết - > cong_co_luong
+                    SQL = ''
+                    SQL += ''' SELECT ltl.* from datn_hrm_le_tet lt INNER JOIN datn_hrm_le_tet_line ltl ON ltl.le_tet_id = lt.id
+                                WHERE lt.date_from >= '%s' AND lt.date_to <= '%s' AND ltl.employee_id = %s AND lt.state = 'confirmed' '''%(self.date_from,self.date_to,employees[i].get('id'))
+                    cr.execute(SQL)
+                    le_tets = cr.dictfetchall()
+                    if le_tets:
+                        for h in range(0, len(le_tets)):
+                            delta = le_tets[h].get('date_to') - le_tets[h].get('date_from')
+                            num_days = delta.days
+                            cong_co_luong += num_days + 1
+                    if dk_nghis:
+                        for h in range(0, len(dk_nghis)):
+                            if dk_nghis[h].loai_nghi.loai_nghi == 'nghiphep':
+                                cong_phep += round(dk_nghis[h].so_ngay_nghi, 2)
+                            elif dk_nghis[h].loai_nghi.loai_nghi == 'nghicoluong':
+                                cong_co_luong += round(dk_nghis[h].so_ngay_nghi, 2)
+                            elif dk_nghis[h].loai_nghi.loai_nghi == 'nghikhongluong':
+                                cong_khong_luong += round(dk_nghis[h].so_ngay_nghi, 2)
+                        #Công tăng ca
+                        tang_cas = self.env['datn.tangca'].search([('date_from', '>=', self.date_from),
+                                                                       ('date_to', '<=', self.date_to),
+                                                                       ('employee_id', '=', employees[i].get('id')),
+                                                                       ('state', '=', 'approved')])
+                        cong_tang_ca = 0
+                        if tang_cas:
+                            for h in range(0, len(tang_cas)):
+                                delta = tang_cas[h].date_to - tang_cas[h].date_from
+                                num_days = delta.days
+                                cong_tang_ca += round((float(tang_cas[h].so_gio_tang_ca)* float(num_days + 1)) / 8, 2)
+                        #Nghỉ không lý do
+                        SQL = ''
+                        SQL += ''' select count(*) as nghi_khong_ly_do from datn_hr_checkin_checkout_line where day BETWEEN '%s' AND '%s' AND employee_id = %s'''%(self.date_from,self.date_to,employees[i].get('id'))
+                        cr.execute(SQL)
+                        nghi_khong_ly_do = cr.dictfetchall()
+                        if nghi_khong_ly_do:
+                            nghi_khong_ly_do = cong_chuan - nghi_khong_ly_do[0].get('nghi_khong_ly_do')
+
+                        self.env['datn.congthucte.line'].sudo().create(
+                            {
+                                'congthucte_id': new_record.id,
+                                'employee_id': employees[i].get('id'),
+                                'date_from': self.date_from,
+                                'date_to': self.date_to,
+                                'cong_chuan': cong_chuan,
+                                'cong_thuc_te': cong_thuc_te,
+                                'cong_phep': cong_phep,
+                                'cong_co_luong': cong_co_luong,
+                                'cong_khong_luong': cong_khong_luong,
+                                'cong_tang_ca': cong_tang_ca,
+                                'cong_nghi_khong_ly_do': nghi_khong_ly_do,
+                                'department_id': employees[i].get('department_id')
+                            }
+                        )
 
 
 
@@ -198,23 +309,10 @@ class DATNHrChamCongLine(models.Model):
     employee_id = fields.Many2one('hr.employee', string=u'Nhân sự', ondelete='cascade')
     chamcong_id = fields.Many2one('datn.hr.chamcong', string=u'Bảng chấm công', ondelete='cascade', required=True)
     # playslip_id = fields.Many2one('hr.payslip', string='Payslip', ondelete='cascade')
-
     ngay_cong = fields.Float(string=u'Ngày công', digits=_get_decimal_precision("Timesheets"))
-    cong_phep = fields.Float(string=u'Công phép', digits=_get_decimal_precision("Timesheets"))
-
-    cong_bhxh = fields.Float(string=u'Công BHXH', digits=_get_decimal_precision("Timesheets"))
-    cong_ngay_le = fields.Float(string=u'Công ngày lễ', digits=_get_decimal_precision("Timesheets"))
-    cong_ngay_nghi = fields.Float(string=u'Công ngày nghỉ', digits=_get_decimal_precision("Timesheets"))
-    cong_nghi_bu = fields.Float(string=u'Công nghỉ bù', digits=_get_decimal_precision("Timesheets"))
-    nghi_khong_luong = fields.Float(string=u'Nghỉ không lương', digits=_get_decimal_precision("Timesheets"))
-    nghi_khong_phep = fields.Float(string=u'Nghỉ vô kỷ luật', digits=_get_decimal_precision("Timesheets"))
-    cong_chuan = fields.Float(string=u'Công chuẩn', digits=_get_decimal_precision("Timesheets"))
-    cong_thuc_te = fields.Float(string=u'Công thực tế', digits=_get_decimal_precision("Timesheets"))
-    cong_che_do = fields.Float(string=u'Công chế độ', digits=_get_decimal_precision("Timesheets"))
-    tong_cong = fields.Float(string=u'Tổng công', digits=_get_decimal_precision("Timesheets"))
 
     # end
-    department_id = fields.Many2one('hr.department', string=u'Đơn vị/ phòng ban')
+    department_id = fields.Many2one('hr.department',ondelete='cascade', string=u'Đơn vị/ phòng ban')
 
     # Ngay cong trong thang
     ngay1 = fields.Float(string=u"01", range=True)
