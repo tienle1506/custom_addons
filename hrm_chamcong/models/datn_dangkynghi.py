@@ -26,7 +26,7 @@ class DATNDangKyNghi(models.Model):
     department_id = fields.Many2one('hr.department', string="Đơn vị/ phòng ban", ondelete='cascade', related='employee_id.department_id', store=True)
     date_from = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', format='%Y-%m-%d', attrs={'readonly': ['|', ('state', '!=', 'draft'),('loai_nghi.loai_nghi', '=', 'nghicoluong')]})
-    state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'), ('refused', u'Từ chối')],
+    state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'), ('refused', u'Từ chối')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
     ly_do = fields.Text(u"Lý do")
     so_ngay_nghi = fields.Float(u"Số ngày nghỉ", compute='_compute_so_ngay_nghi', store=True)
@@ -55,7 +55,7 @@ class DATNDangKyNghi(models.Model):
         current_date = fields.Date.today()
         for record in self:
             if record.date_from and record.date_to:
-                if record.date_from < current_date:
+                if record.date_from.month < current_date.month:
                     raise ValidationError(_(u"Bạn không thể tạo nghỉ phép cho các tháng trước đó."))
                 if record.date_from.year > record.date_from.year and record.loai_nghi == 'nghiphep':
                     raise ValidationError(_(u"Bạn không thể tạo nghỉ phép cho các năm sau."))
@@ -160,13 +160,14 @@ class DATNDangKyNghi(models.Model):
                     SQL = ''
                     SQL += '''DELETE FROM datn_hr_checkin_checkout_line WHERE id = %s''' % (employee_checkin)
                     self.env.cr.execute(SQL)
-        nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
-        self.so_ngay_da_nghi = nghi.so_ngay_da_nghi - self.so_ngay_nghi
-        nghi.write(
-            {
-                'so_ngay_da_nghi': nghi.so_ngay_da_nghi - self.so_ngay_nghi
-            }
-        )
+        if self.loai_nghi.loai_nghi == 'nghiphep':
+            nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
+            self.so_ngay_da_nghi = nghi.so_ngay_da_nghi - self.so_ngay_nghi
+            nghi.write(
+                {
+                    'so_ngay_da_nghi': nghi.so_ngay_da_nghi - self.so_ngay_nghi
+                }
+            )
         self.state = 'refused'
 
     def action_approve(self):
@@ -235,7 +236,8 @@ class DATNDangKyNghi(models.Model):
                     day = date_from
                     time_of_day = float(self.loai_nghi.ngay_ap_dung)*8
                     lydo = 'nghi_phep'
-                if self.loai_nghi.loai_nghi == 'nghikhongluong':
+                if self.loai_nghi.loai_nghi == 'khongluong':
+                    day = date_from
                     time_of_day = 0
                     lydo = 'nghi_khong_luong'
                 employee_checkin = self.env['datn.hr.checkin.checkout.line'].search([('employee_id','=', self.employee_id.id), ('day', '=', day)]).id
@@ -244,14 +246,16 @@ class DATNDangKyNghi(models.Model):
                     SQL += '''INSERT INTO datn_hr_checkin_checkout_line (day,timeofday,state,ly_do,note,checkin_checkout_id,employee_id, color)
                             VALUES('%s',%s,'approved','%s','%s', %s, %s, %s)'''%(day, time_of_day, lydo,'',first_result,self.employee_id.id,255)
                     self.env.cr.execute(SQL)
-        nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
-        ngaynghi = nghi.so_ngay_da_nghi + self.so_ngay_nghi
-        nghi.write(
-                {
-                    'so_ngay_da_nghi': ngaynghi
-                }
-        )
-        self.so_ngay_da_nghi = ngaynghi
+
+        if self.loai_nghi.loai_nghi == 'nghiphep':
+            nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
+            ngaynghi = nghi.so_ngay_da_nghi + self.so_ngay_nghi
+            nghi.write(
+                    {
+                        'so_ngay_da_nghi': ngaynghi
+                    }
+            )
+            self.so_ngay_da_nghi = ngaynghi
         self.state = 'approved'
 
     def unlink(self):

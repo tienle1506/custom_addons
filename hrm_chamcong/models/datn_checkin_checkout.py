@@ -301,7 +301,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
                              ('nghi_khong_luong', u'Nghỉ không lương'), ('nghi_khong_phep', u'Tự ý nghỉ không xin phép'), ('nghi_phep', u'Nghỉ có phép'),
                               ('nghi_co_luong', u'Nghỉ có lương')],
                              string=u'Lý do xác nhận chấm công', default='quen', track_visibility='always')
-    state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
+    state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
                               ('refused', u'Từ chối')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
     nguoi_duyet = fields.Many2many('hr.employee', 'employee_duyet_checkin_checkout_rel', 'checkin_checkout_id', 'employee_id',

@@ -22,7 +22,7 @@ class DATNCongThucTe(models.Model):
     date_to = fields.Date(u'Đến ngày', required=True, default=_default_date_to, track_visibility='always', )
     department_id = fields.Many2one('hr.department',ondelete='cascade', string=u'Đơn vị/ Phòng ban', required=True)
     item_ids = fields.One2many('datn.congthucte.line', 'congthucte_id')
-    state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
+    state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
                               ('refused', u'Từ chối')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
     chamcong_id = fields.Integer(string='Bảng chấm công tháng', required=True)

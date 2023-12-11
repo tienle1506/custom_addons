@@ -14,7 +14,7 @@ class DATNTangCa(models.Model):
     department_id = fields.Many2one('hr.department', string="Đơn vị/Phòng ban", ondelete='cascade', related='employee_id.department_id', store=True)
     date_from = fields.Date(u'Từ ngày', widget='date', format='%Y-%m-%d')
     date_to = fields.Date(u'Đến ngày', widget='date', format='%Y-%m-%d', compute='_compute_dateto', store=True)
-    state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'), ('refused', u'Từ chối')],
+    state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'), ('refused', u'Từ chối')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
     ly_do = fields.Text(u"Lý do")
     so_gio_tang_ca = fields.Float(string='Số giờ tăng ca', default=0)

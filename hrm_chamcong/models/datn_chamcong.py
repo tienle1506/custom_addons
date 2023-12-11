@@ -115,7 +115,7 @@ class DATNHrChamCong(models.Model):
             SQL += '''SELECT ckl.* FROM datn_hr_checkin_checkout_line ckl
                     LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
                     WHERE ck.department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND ck.date_from = '%s'
-                    AND  ck.date_to = '%s' AND ck.state = 'confirmed' AND clk.state='approved'
+                    AND  ck.date_to = '%s' AND ck.state = 'confirmed' AND ckl.state='approved'
                     AND ckl.employee_id not in (SELECT ccl.employee_id FROM datn_hr_chamcong cc INNER JOIN datn_hr_chamcong_line ccl ON ccl.chamcong_id = cc.id 
             where date_from >= '%s' and date_to <= '%s')
                     ORDER BY ckl.employee_id
@@ -234,7 +234,7 @@ class DATNHrChamCong(models.Model):
                                 cong_phep += round(dk_nghis[h].so_ngay_nghi, 2)
                             elif dk_nghis[h].loai_nghi.loai_nghi == 'nghicoluong':
                                 cong_co_luong += round(dk_nghis[h].so_ngay_nghi, 2)
-                            elif dk_nghis[h].loai_nghi.loai_nghi == 'nghikhongluong':
+                            elif dk_nghis[h].loai_nghi.loai_nghi == 'khongluong':
                                 cong_khong_luong += round(dk_nghis[h].so_ngay_nghi, 2)
                         #Công tăng ca
                         tang_cas = self.env['datn.tangca'].search([('date_from', '>=', self.date_from),

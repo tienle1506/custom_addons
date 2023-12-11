@@ -33,7 +33,7 @@
                                 class="oe_highlight"
                                 groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
-                                attrs="{'invisible': [('state', 'in', ['confirmed', 'approved'])]}"/>
+                                attrs="{'invisible': [('state', 'in', ['draft','confirmed', 'approved'])]}"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>

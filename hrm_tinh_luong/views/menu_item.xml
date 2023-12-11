@@ -1,0 +1,23 @@
+<odoo>
+
+    <menuitem id="menu_datn_quytacluong_action" name="Quy tắc lương"
+              parent="hrm.config_office"
+              sequence="12"
+              action='datn_quytacluong_action'
+              groups="hrm.hrm_group_config_access">
+    </menuitem>
+
+
+    <menuitem id="menu_tinhluong" name="Quản lý tính lương"
+               parent="hrm.menu_field" sequence="4"
+               groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm_chamcong.hrm_quyen_hr">
+    </menuitem>
+    <menuitem id="menu_item_luongthang"
+              name='Bảng lương'
+              parent="menu_tinhluong"
+              sequence="1"
+              action="datn_luongthang_action"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr,hrm.hrm_group_own_edit" >
+    </menuitem>
+
+</odoo>

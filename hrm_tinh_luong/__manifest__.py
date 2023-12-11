@@ -25,7 +25,9 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'views/hr_salary_rule_views.xml',
+        'views/datn_quytacluong.xml',
+        'views/datn_luongthang.xml',
+        'views/menu_item.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
