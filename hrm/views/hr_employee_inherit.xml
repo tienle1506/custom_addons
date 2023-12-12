@@ -1,0 +1,101 @@
+<odoo>
+    <data>
+        <record id="view_hr_employee_form_inherit" model="ir.ui.view">
+            <field name="name">view.hr.employee.form.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="replace">
+                    <header attrs="{'invisible': [('id', '=', False)]}">
+                        <button name="action_send" string="Gửi duyệt" type="object" class="btn-primary"/>
+                        <button name="action_cancel" string="Hủy" type="object"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"/>
+                    </header>
+                </xpath>
+                <xpath expr="//div[@id='o_work_employee_main']" position="replace">
+                    <div id="o_work_employee_main">
+                        <group string="Phòng ban làm việc">
+                            <field name="company_id" required="0" invisible="1"/>
+                            <field name="department_id" string="Hệ thống / Công ty" required="1"
+                                   attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                            <field name="department_id" string="Phòng ban" required="1"
+                                   attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
+                            <field name="job_id" string="Vị trí công việc"/>
+                            <field name="parent_id" string="Quản lý trực tiếp"/>
+                        </group>
+                        <group>
+                            <field name="work_start_date"/>
+                            <field name="date_receipt"/>
+                            <field name="profile_status"/>
+                            <field name="auto_create_acc"/>
+                            <field name="id"/>
+                            <field name="create_uid"/>
+                        </group>
+                    </div>
+                </xpath>
+                <xpath expr="//div[@class='oe_title']/h1" position="after">
+                    <h2>
+                        <field name="employee_code" string="Mã nhân viên" readonly="1" force_save="1"/>
+                    </h2>
+                </xpath>
+                <xpath expr="//field[@name='category_ids']" position="replace">
+                    <group id="block" string="Khối">
+                        <field name="type_block" string="Khối"
+                               attrs="{'readonly': [('readonly_type_block', '=', True)]}"/>
+                        <field name="readonly_type_block" invisible="1"/>
+                        <field name="type_in_block_ecom"
+                               attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')], 'required': [('type_block', '=', 'BLOCK_COMMERCE_NAME')]}"/>
+                    </group>
+                </xpath>
+                <xpath expr="//div[@class='oe_title']" position="after">
+                    <!-- Thêm group vào sau div có class="oe_title" -->
+                    <group string="Liên hệ">
+                        <field name="personal_email" string="Email cá nhân"/>
+                        <field name="email_work" readonly="1" string="Email công việc"/>
+                        <field name="mobile_phone" string="Số điện thoại cá nhân"/>
+                    </group>
+                </xpath>
+                <xpath expr="//page[@name='personal_information']" position="replace">
+                    <!-- Bạn có thể để trống nếu muốn xóa toàn bộ page này -->
+                </xpath>
+                <xpath expr="//field[@name='department_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='parent_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='coach_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='mobile_phone']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='work_phone']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='work_email']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='hr_settings']" position="after">
+                    <page name="approval_status" string="Trạng thái phê duyệt"
+                          attrs="{'invisible': [('approved_name', '=', False)]}">
+                        <field name="approved_name" readonly="1"/>
+                        <field name="approved_link" readonly="1">
+                            <tree default_order="step ASC" class="hrm_custom_tree_notebook">
+                                <field name="step"/>
+                                <field name="approve"/>
+                                <field name="obligatory"/>
+                                <field name="excess_level"/>
+                                <field name="approve_status"/>
+                                <field name="time"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

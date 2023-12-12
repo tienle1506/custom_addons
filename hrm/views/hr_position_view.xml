@@ -1,0 +1,69 @@
+<odoo>
+    <data>
+        <record id="views_hr_job_form" model="ir.ui.view">
+            <field name="name">views_hr_job_form</field>
+            <field name="model">hr.job</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet style="max-width: 440px;">
+                        <group>
+<!--                            <field name="related" invisible="1"/>-->
+<!--                            <field name="check_blocks" invisible="1"/>-->
+                            <field name="name"/>
+                            <field name="type_block"/>
+                        </group>
+                        <group>
+                            <label for="description"/>
+                        </group>
+                        <field name="description"/>
+
+                    </sheet>
+<!--                    <div class="oe_chatter">-->
+<!--                        <field name="message_follower_ids"/>-->
+<!--                        <field name="activity_ids"/>-->
+<!--                        <field name="message_ids"/>-->
+<!--                    </div>-->
+                </form>
+            </field>
+        </record>
+
+        <record id="views_hr_job_tree" model="ir.ui.view">
+            <field name="name">views_hr_job_tree</field>
+            <field name="model">hr.job</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="type_block"/>
+                </tree>
+            </field>
+        </record>
+
+<!--        <record id="position_filter" model="ir.ui.view">-->
+<!--            <field name="name">hrm.position.filter</field>-->
+<!--            <field name="model">hrm.position</field>-->
+<!--            <field name="arch" type="xml">-->
+<!--                <search string="Tìm kiếm">-->
+<!--                    <field name="work_position"/>-->
+<!--                    <field name="block"/>-->
+<!--                    <field name="department"/>-->
+<!--                    <separator/>-->
+<!--                    <filter string="Lưu trữ" name="inactive" domain="[('active', '=', False)]"/>-->
+<!--                    <separator/>-->
+<!--                    <group expand="1" name="group_by" string="Nhóm bởi">-->
+<!--                        <filter name="block" string="Khối" context="{'group_by': 'block'}"/>-->
+<!--                    </group>-->
+<!--                </search>-->
+<!--            </field>-->
+<!--        </record>-->
+
+        <record id="job_action" model="ir.actions.act_window">
+            <field name="name">Vị trí công việc</field>
+            <field name="res_model">hr.job</field>
+<!--            <field name="search_view_id" ref="position_filter"/>-->
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('views_hr_job_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('views_hr_job_form')})]"/>
+        </record>
+    </data>
+</odoo>

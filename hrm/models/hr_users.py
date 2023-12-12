@@ -28,12 +28,14 @@ class Users(models.Model):
         for record in self:
             record.related = record.block_id == 'BLOCK_OFFICE_NAME'
 
-    @api.onchange('block_id')
-    def _onchange_block_id(self):
-        self.department_id = False
+    # @api.onchange('block_id')
+    # def _onchange_block_id(self):
+    #     self.department_id = False
 
     @api.onchange('block_id')
     def _filter_department(self):
+        self.department_id = False
+
         if self.block_id == 'BLOCK_OFFICE_NAME':
             search_department = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
             department_domain = [('id', 'in', search_department.ids)]

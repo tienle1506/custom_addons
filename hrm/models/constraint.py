@@ -16,3 +16,17 @@ PROFILE_STATUS = [
 ]
 DUPLICATE_RECORD = '%s đã tồn tại!'
 DO_NOT_DELETE = "Không thể xoá bản ghi này!"
+BLOCK_OFFICE_NAME = "Văn phòng"
+BLOCK_COMMERCE_NAME = "Thương mại"
+
+APPROVE_STATUS = [
+    ('pending', 'Chờ duyệt'),
+    ('confirm', 'Đã duyệt'),
+    ('refuse', 'Từ chối'),
+    ('confirm_excess_level', 'Duyệt vượt cấp')
+]
+STATE = [
+    ('draft', 'Nháp'),
+    ('pending', 'Chờ duyệt'),
+    ('approved', 'Đã duyệt')
+]
