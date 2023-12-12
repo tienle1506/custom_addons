@@ -83,7 +83,7 @@ class DATNHrCheckInCheckOut(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
@@ -119,7 +119,7 @@ class DATNHrCheckInCheckOut(models.Model):
                         checkout = None
                 except ValueError:
                     raise ValidationError(f'Không đúng định dạng của DateTime %d-%m-%Y %H:%M:%S dòng {row}')
-                if checkin and checkout:
+                if employee.id:
                     lines.append((0, 0, {
                         'employee_id': employee.id,
                         'checkin': checkin,
@@ -205,8 +205,8 @@ class DATNHrCheckInCheckOut(models.Model):
             worksheet.merge_range(4, 0, 5, 0, 'STT', style_1)
             worksheet.merge_range(4, 1, 5, 1, 'Mã Nhân Viên', style_1_require)
             worksheet.merge_range(4, 2, 5, 2, 'Tên Nhân Viên', style_1_require)
-            worksheet.merge_range(4, 3, 5, 3, 'Checkin', style_1)
-            worksheet.merge_range(4, 4, 5, 4, 'Checkout', style_1)
+            worksheet.merge_range(4, 3, 5, 3, 'Checkin \ndd-mm-YYYY HH:MM:SS', style_1)
+            worksheet.merge_range(4, 4, 5, 4, 'Checkout \ndd-mm-YYYY HH:MM:SS', style_1)
             worksheet.merge_range(4, 5, 5, 5, 'Note', style_1)
 
             for i in range(1, 6):
@@ -215,7 +215,7 @@ class DATNHrCheckInCheckOut(models.Model):
             # Danh mục đơn vị đào tạo
             SQL = ''
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = %s''' % (self.date_from, self.department_id.id)
+            SQL += '''SELECT id, employee_code, name  FROM hr_employee where work_start_date <= '%s'::date and department_id in (SELECT UNNEST(child_ids) FROM child_department WHERE parent_id in (%s))''' % (self.date_from, self.department_id.id)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -229,9 +229,9 @@ class DATNHrCheckInCheckOut(models.Model):
             worksheet_object.write(0, 1, 'Mã nhân viên', style_1)
             worksheet_object.write(0, 2, 'Tên nhân viên', style_1)
             for item in employees:
-                lst_employees.append(item['employee_code_new'])
+                lst_employees.append(item['employee_code'])
                 worksheet_object.write(i, 0, i, style_1)
-                worksheet_object.write(i, 1, item['employee_code_new'], style_1_left)
+                worksheet_object.write(i, 1, item['employee_code'], style_1_left)
                 worksheet_object.write(i, 2, item['name'], style_1_left)
                 i = i + 1
 
@@ -240,7 +240,7 @@ class DATNHrCheckInCheckOut(models.Model):
             for item in employees:
                 stt += 1
                 worksheet.write(5 + stt, 0, stt, style_1_left)
-                worksheet.write(5 + stt, 1, item['employee_code_new'], style_1_left)
+                worksheet.write(5 + stt, 1, item['employee_code'], style_1_left)
                 worksheet.write(5 + stt, 2, item['name'], style_1_left)
                 worksheet.write(5 + stt, 3, '', style_1_left)
                 worksheet.write(5 + stt, 4, '', style_1_left)
@@ -267,6 +267,15 @@ class DATNHrCheckInCheckOut(models.Model):
     def action_confirmed(self):
         self.state = 'confirmed'
 
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
 class DATNHrCheckInCheckOutLine(models.Model):
     _name = 'datn.hr.checkin.checkout.line'
@@ -283,7 +292,9 @@ class DATNHrCheckInCheckOutLine(models.Model):
     day = fields.Date(string='Ngày', compute='_compute_date', store=True)
     timeofday = fields.Float(string="Số giờ trong ngày", compute='_compute_date', store=True)
     ly_do = fields.Selection([('quen_checkin', u'Quên chấm công vào'), ('quen_checkout', u'Quên chấm công ra'), ('quen',u'Quên chấm công vào và chấm công ra'),
-                              ('lam_sang',u'Đi làm nửa ngày sáng, nghỉ chiều'),('lam_chieu',u'Đi làm nửa ngày chiều, nghỉ sáng'),('khac', u'Khác')],
+                              ('lam_sang',u'Đi làm nửa ngày sáng, nghỉ chiều'),('lam_chieu',u'Đi làm nửa ngày chiều, nghỉ sáng'),('khac', u'Khác'),
+                             ('nghi_khong_luong', u'Nghỉ không lương'), ('nghi_khong_phep', u'Tự ý nghỉ không xin phép'), ('nghi_phep', u'Nghỉ có phép'),
+                              ('nghi_co_luong', u'Nghỉ có lương')],
                              string=u'Lý do xác nhận chấm công', default='quen', track_visibility='always')
     state = fields.Selection([('draft', u'Gửi phê duyệt'), ('confirmed', u'Chờ phê duệt'), ('approved', u'Phê duyệt'),
                               ('refused', u'Từ chối')],

@@ -308,34 +308,55 @@ class EmployeeProfile(models.Model):
         start_month = now.replace(day=1).date()
         end_month = start_month + relativedelta(day=31)
         cr = self.env.cr
-        SQL1 = '''select*from datn_hr_checkin_checkout where date_from = '%s' and department_id = %s '''% (start_month, department_id)
+        SQL1 = ''
+        SQL1 += '''SELECT ck.id FROM datn_hr_checkin_checkout_line ckl
+                                                LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
+                                                WHERE ckl.employee_id = %s AND to_char(ck.date_from, 'mmYYYY') = to_char('%s'::date, 'mmYYYY')
+                                                LIMIT 1
+                                    ''' % (employee_id, start_month)
         cr.execute(SQL1)
-        datas = cr.dictfetchall()
-        if len(datas) > 0:
-            parent_checkin_checkout = datas[0]
+        results = cr.dictfetchone()
+        if not results:
+            SQL = ''
+            SQL += '''SELECT datn_hr_checkin_checkout.id FROM datn_hr_checkin_checkout
+                                                    LEFT JOIN hr_department ON hr_department.id = datn_hr_checkin_checkout.department_id
+                                                    WHERE date_from = '%s' AND department_id in (select unnest(get_list_parent_department(%s)))
+                                                    ORDER BY hr_department.department_level
+                                                    LIMIT 1
+                                        ''' % (start_month, department_id)
+            cr.execute(SQL)
+            results = cr.dictfetchone()
+        # Lấy giá trị đầu tiên thoả mãn
+        if results:
+            first_result = results.get('id')
         else:
-            parent_checkin_checkout = []
-        if not parent_checkin_checkout:
-            name = 'Bảng chấm công tháng %s của Đơn vị/ phòng ban %s'%(start_month, department_name)
-            SQL2 = '''INSERT INTO datn_hr_checkin_checkout (name, department_id, date_from, date_to, state) VALUES (%s, %s, %s,%s, %s)'''
-            values = (name, department_id, start_month, end_month, 'draft')
-            cr.execute(SQL2, values)
+            SQL3 = ''
+            SQL3 += '''SELECT id from hr_department WHERE department_level = 1 AND id in (select unnest(get_list_parent_department(%s)))''' % (department_id)
+            cr.execute(SQL3)
+            results = cr.dictfetchone()
+            first_result = results.get('id')
+            name = 'Bảng thanh check-in check-out của %s từ ngày %s đến ngày %s' % (department_name,start_month, end_month)
+            SQL4 = ''
+            SQL4 += '''INSERT INTO datn_hr_checkin_checkout (department_id, date_from, date_to, name, state)
+                                                                   VALUES(%s,'%s','%s', '%s', 'draft')''' % (
+                first_result, start_month, end_month, name)
+            cr.execute(SQL4)
 
-            cr.execute(SQL1)
-            datas = cr.dictfetchall()
-            if len(datas) > 0:
-                parent_checkin_checkout = datas[0]
-            else:
-                parent_checkin_checkout = []
+            SQL5 = ''
+            SQL5 += '''SELECT id from datn_hr_checkin_checkout WHERE department_id = %s and date_from >= '%s'and date_to <= '%s' LIMIT 1''' % (
+                first_result, start_month, end_month)
+            cr.execute(SQL5)
+            results = cr.dictfetchone()
+            first_result = results.get('id')
         if not employee:
             target_time = time(hour=10)
             checkin_time_io = datetime.now()
             # Giá trị thời gian muốn so sánh
             checkin_time = datetime.now().time() # Trích xuất giá trị thời gian hiện tại
-            SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note) VALUES (%s, %s, '%s', '%s', '%s');''' %(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
+            SQL3 = '''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkin, day, note) VALUES (%s, %s, '%s', '%s', '%s');''' %(first_result, employee_id, checkin_time_io, current_date, 'Quên chấm công ra')
             if target_time <= checkin_time:
                 SQL3 = ''
-                SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day, note) VALUES (%s, %s, '%s','%s','%s');'''%(parent_checkin_checkout['id'], employee_id, checkin_time_io, current_date, 'Quên chấm công vào')
+                SQL3 +='''INSERT INTO datn_hr_checkin_checkout_line (checkin_checkout_id, employee_id, checkout, day, note) VALUES (%s, %s, '%s','%s','%s');'''%(first_result, employee_id, checkin_time_io, current_date, 'Quên chấm công vào')
             cr.execute(SQL3)
         else:
             #nếu đã tồn tại thì sẽ đc update vào checkout

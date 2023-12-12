@@ -88,3 +88,13 @@ class DATNTangCa(models.Model):
 
     def action_approve(self):
         self.state = 'approved'
+
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")

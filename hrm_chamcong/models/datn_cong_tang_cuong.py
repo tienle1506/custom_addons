@@ -259,6 +259,16 @@ class DATNCongTangCuong(models.Model):
 
     def _after_commit(self):
         self.env['cron.job.cong.phep'].run()
+
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 class DATNCongTangCuongLine(models.Model):
     _name = 'datn.cong.tang.cuong.line'
     _inherit = ['mail.thread']

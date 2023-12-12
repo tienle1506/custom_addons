@@ -146,6 +146,16 @@ class DATNHrChamCong(models.Model):
         self.state = 'draft'
     def action_confirmed(self):
         self.state = 'confirmed'
+
+    def unlink(self):
+        # Kiểm tra điều kiện trước khi thực hiện unlink
+        if self.state == 'darft':
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            super().unlink()  # Gọi phương thức unlink gốc
+        else:
+            # Xử lý khi điều kiện không đúng
+            # ví dụ:
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 class DATNHrChamCongLine(models.Model):
     _name = 'datn.hr.chamcong.line'
     _description = u'Chấm công nhân sự'
