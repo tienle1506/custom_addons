@@ -18,6 +18,7 @@
         </record>
         <record id="hr_department_block_commerce" model="hr.department">
             <field name="name">Khối Thương Mại</field>
+            <field name="type_block" eval="'BLOCK_COMMERCE_NAME'"/>
             <field name="department_level">2</field>
             <field name="parent_id" ref="hr_department_company"/>
             <field name="active" eval="True"/>

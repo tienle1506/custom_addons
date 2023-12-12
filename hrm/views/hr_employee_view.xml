@@ -5,10 +5,18 @@
             <field name="model">hr.employee</field>
             <field name="arch" type="xml">
                 <form string="Tạo mới hồ sơ">
+                    <header attrs="{'invisible': [('id', '=', False)]}">
+                        <button name="action_send" string="Gửi duyệt" type="object" class="btn-primary"/>
+                        <button name="action_cancel" string="Hủy" type="object"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"/>
+                    </header>
                     <sheet>
                         <group>
-                            <field name="type_block" string="Khối" attrs="{'readonly': [('readonly_type_block', '=', True)]}"/>
+                            <field name="type_block" string="Khối"
+                                   attrs="{'readonly': [('readonly_type_block', '=', True)]}"/>
                             <field name="readonly_type_block" invisible="1"/>
+                            <field name="type_in_block_ecom"
+                                   attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')], 'required': [('type_block', '=', 'BLOCK_COMMERCE_NAME')]}"/>
                         </group>
                         <group col="2">
                             <group>
@@ -27,15 +35,35 @@
                             </group>
                             <group>
                                 <field name="company_id" required="0" invisible="1"/>
-                                <field name="department_id" string="Hệ thống / Công ty" required="1" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
-                                <field name="department_id" string="Phòng ban" required="1" attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
+                                <field name="department_id" string="Hệ thống / Công ty" required="1"
+                                       attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                                <field name="department_id" string="Phòng ban" required="1"
+                                       attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
+                                <field name="job_id" string="Vị trí công việc"/>
                             </group>
+                            <notebook>
+                                <page name="approval_status" string="Trạng thái phê duyệt"
+                                      attrs="{'invisible': [('approved_name', '=', False)]}">
+                                    <field name="approved_name" readonly="1"/>
+                                    <field name="approved_link" readonly="1">
+                                        <tree default_order="step ASC" class="hrm_custom_tree_notebook">
+                                            <field name="step"/>
+                                            <field name="approve"/>
+                                            <field name="obligatory"/>
+                                            <field name="excess_level"/>
+                                            <field name="approve_status"/>
+                                            <field name="time"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                            </notebook>
 
                         </group>
                     </sheet>
                 </form>
             </field>
         </record>
+
 
         <record id="view_employee_profile_tree" model="ir.ui.view">
             <field name="name">hr.employee.profile.tree</field>
@@ -55,11 +83,11 @@
             <field name="name">Hồ sơ nhân sự</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">hr.employee</field>
-<!--            <field name="search_view_id" ref="view_hrm_system_search"/>-->
+            <!--            <field name="search_view_id" ref="view_hrm_system_search"/>-->
             <field name="view_mode">tree,form</field>
             <field name="view_ids" eval="[(5, 0, 0),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_employee_profile_tree')}),
-                (0, 0, {'view_mode': 'form', 'view_id': ref('view_employee_profile_form')})]"/>
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_hr_employee_form_inherit')})]"/>
         </record>
     </data>
 </odoo>

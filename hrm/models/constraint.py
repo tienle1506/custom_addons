@@ -25,3 +25,8 @@ APPROVE_STATUS = [
     ('refuse', 'Từ chối'),
     ('confirm_excess_level', 'Duyệt vượt cấp')
 ]
+STATE = [
+    ('draft', 'Nháp'),
+    ('pending', 'Chờ duyệt'),
+    ('approved', 'Đã duyệt')
+]

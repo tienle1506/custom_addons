@@ -29,6 +29,7 @@
         'data/data_department.xml',
         'views/hr_department_view.xml',
         'views/hr_position_view.xml',
+        'views/hr_employee_inherit.xml',
         'views/hr_approval_flow_config_view.xml',
         'views/sequence_employee_code.xml',
         'views/hr_users_view.xml',
