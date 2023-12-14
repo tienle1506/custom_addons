@@ -1,5 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_datn_quytacluong_user,access_datn_quytacluong_user,model_datn_quytacluong,hrm.hrm_group_config_access,1,1,1,1
+access_datn_quytacluong_user_hr,access_datn_quytacluong_user_hr,model_datn_quytacluong,hrm_chamcong.hrm_quyen_hr,1,1,1,1
 
 access_see_datn_luongthang,see_datn_luongthang,model_datn_luongthang,hrm.hrm_group_own_edit,1,0,0,0
 access_datn_luongthang_user,access_datn_luongthang_user,model_datn_luongthang,hrm.hrm_group_config_access,1,1,1,1
@@ -29,3 +30,6 @@ access_datn_trocap_phucap_create_edit,datn_trocap_phucap_create_edit,model_datn_
 access_see_datn_trocap_phucap_line,see_datn_trocap_phucap_line,model_datn_trocap_phucap_line,hrm.hrm_group_own_edit,1,0,0,0
 access_datn_trocap_phucap_line_user,access_datn_trocap_phucap_line_user,model_datn_trocap_phucap_line,hrm.hrm_group_config_access,1,1,1,1
 access_datn_trocap_phucap_line_create_edit,datn_trocap_phucap_line_create_edit,model_datn_trocap_phucap_line,hrm_chamcong.hrm_quyen_hr,1,1,1,1
+
+access_report_luong_user,access_report_luong_user,model_report_luong,hrm.hrm_group_config_access,1,1,1,1
+access_report_luong_create_edit,report_luong_create_edit,model_report_luong,hrm_chamcong.hrm_quyen_hr,1,1,1,1

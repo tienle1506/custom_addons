@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="report_luong_view">
+            <field name="name">Dang sách lương</field>
+            <field name="model">report.luong</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <style>
+                        body {font-family: Arial, Helvetica, sans-serif;}
+
+                        /* Modal Content */
+                        .modal-content {
+                            background-color: #fefefe;
+                            margin: auto;
+                            padding: 20px;
+                            border: 1px solid #888;
+                            width: 80%;
+                        }
+                    </style>
+                <form>
+                    <field name="state" invisible="1" readonly="1"/>
+                    <field name="name" invisible="1"/>
+                    <group>
+                        <field name="department_id" required="1" string="Đơn vị/ Phòng ban"
+                       options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
+                    </group>
+                    <group class="date_cc">
+                        <label for="date_from" string="Chu kỳ chấm công"/>
+                        <div>
+                            <field name="date_from" class="date1 oe_inline"/>
+                            -
+                            <field name="date_to" class="date2 oe_inline"/>
+                        </div>
+                    </group>
+
+                    <div states="get">
+                        <h2>Đã xuất dữ liệu</h2>
+                        <field name="data" readonly="1" filename="name"/>
+                    </div>
+                    <footer>
+                        <button name="export_excel" string="Xuất báo cáo" type="object" class="oe_highlight"/>
+                        <button special="cancel" string="Hủy" type="object"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_report_luong">
+            <field name="name">Danh sách lương</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">report.luong</field>
+            <field name="view_id" ref="report_luong_view"></field>
+            <field name="binding_view_types">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

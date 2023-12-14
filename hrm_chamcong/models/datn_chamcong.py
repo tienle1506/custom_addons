@@ -237,41 +237,41 @@ class DATNHrChamCong(models.Model):
                                 cong_co_luong += round(dk_nghis[h].so_ngay_nghi, 2)
                             elif dk_nghis[h].loai_nghi.loai_nghi == 'khongluong':
                                 cong_khong_luong += round(dk_nghis[h].so_ngay_nghi, 2)
-                        #Công tăng ca
-                        tang_cas = self.env['datn.tangca'].search([('date_from', '>=', self.date_from),
-                                                                       ('date_to', '<=', self.date_to),
-                                                                       ('employee_id', '=', employees[i].get('id')),
-                                                                       ('state', '=', 'approved')])
-                        cong_tang_ca = 0
-                        if tang_cas:
-                            for h in range(0, len(tang_cas)):
-                                delta = tang_cas[h].date_to - tang_cas[h].date_from
-                                num_days = delta.days
-                                cong_tang_ca += round((float(tang_cas[h].so_gio_tang_ca)* float(num_days + 1)) / 8, 2)
-                        #Nghỉ không lý do
-                        SQL = ''
-                        SQL += ''' select count(*) as nghi_khong_ly_do from datn_hr_checkin_checkout_line where day BETWEEN '%s' AND '%s' AND employee_id = %s'''%(self.date_from,self.date_to,employees[i].get('id'))
-                        cr.execute(SQL)
-                        nghi_khong_ly_do = cr.dictfetchall()
-                        if nghi_khong_ly_do:
-                            nghi_khong_ly_do = cong_chuan - nghi_khong_ly_do[0].get('nghi_khong_ly_do')
+                    #Công tăng ca
+                    tang_cas = self.env['datn.tangca'].search([('date_from', '>=', self.date_from),
+                                                                   ('date_to', '<=', self.date_to),
+                                                                   ('employee_id', '=', employees[i].get('id')),
+                                                                   ('state', '=', 'approved')])
+                    cong_tang_ca = 0
+                    if tang_cas:
+                        for h in range(0, len(tang_cas)):
+                            delta = tang_cas[h].date_to - tang_cas[h].date_from
+                            num_days = delta.days
+                            cong_tang_ca += round((float(tang_cas[h].so_gio_tang_ca)* float(num_days + 1)) / 8, 2)
+                    #Nghỉ không lý do
+                    SQL = ''
+                    SQL += ''' select count(*) as nghi_khong_ly_do from datn_hr_checkin_checkout_line where day BETWEEN '%s' AND '%s' AND employee_id = %s'''%(self.date_from,self.date_to,employees[i].get('id'))
+                    cr.execute(SQL)
+                    nghi_khong_ly_do = cr.dictfetchall()
+                    if nghi_khong_ly_do:
+                        nghi_khong_ly_do = cong_chuan - nghi_khong_ly_do[0].get('nghi_khong_ly_do')
 
-                        self.env['datn.congthucte.line'].sudo().create(
-                            {
-                                'congthucte_id': new_record.id,
-                                'employee_id': employees[i].get('id'),
-                                'date_from': self.date_from,
-                                'date_to': self.date_to,
-                                'cong_chuan': cong_chuan,
-                                'cong_thuc_te': cong_thuc_te,
-                                'cong_phep': cong_phep,
-                                'cong_co_luong': cong_co_luong,
-                                'cong_khong_luong': cong_khong_luong,
-                                'cong_tang_ca': cong_tang_ca,
-                                'cong_nghi_khong_ly_do': nghi_khong_ly_do,
-                                'department_id': employees[i].get('department_id')
-                            }
-                        )
+                    self.env['datn.congthucte.line'].sudo().create(
+                        {
+                            'congthucte_id': new_record.id,
+                            'employee_id': employees[i].get('id'),
+                            'date_from': self.date_from,
+                            'date_to': self.date_to,
+                            'cong_chuan': cong_chuan,
+                            'cong_thuc_te': cong_thuc_te,
+                            'cong_phep': cong_phep,
+                            'cong_co_luong': cong_co_luong,
+                            'cong_khong_luong': cong_khong_luong,
+                            'cong_tang_ca': cong_tang_ca,
+                            'cong_nghi_khong_ly_do': nghi_khong_ly_do,
+                            'department_id': employees[i].get('department_id')
+                        }
+                    )
 
 
 
@@ -279,6 +279,7 @@ class DATNHrChamCong(models.Model):
     def action_draft(self):
         self.state = 'draft'
     def action_confirmed(self):
+        self.env['datn.congthucte'].search([('chamcong_id', '=', self.id)]).write({'state': 'confirmed'})
         self.state = 'confirmed'
 
     def unlink(self):

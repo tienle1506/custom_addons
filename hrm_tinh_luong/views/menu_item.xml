@@ -52,4 +52,16 @@
               groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
     </menuitem>
 
+    <menuitem id="menu_report" name="Báo cáo"
+               parent="hrm.menu_field" sequence="5"
+               groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit,hrm_chamcong.hrm_quyen_hr">
+    </menuitem>
+    <menuitem id="menu_item_report_luong"
+              name='Báo cáo lương'
+              parent="menu_report"
+              sequence="1"
+              action="action_report_luong"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
+    </menuitem>
+
 </odoo>

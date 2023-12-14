@@ -6,7 +6,7 @@
             <field name="model">datn.dieuchinh</field>
             <field name="arch" type="xml">
                 <tree class="widget-department-tree"
-                      default_order="ngay_tao">
+                      default_order="ngay_tao desc">
                     <field name="department_id"/>
                     <field name="type"/>
                     <field name="ngay_tao"/>

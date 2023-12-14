@@ -31,6 +31,7 @@
         'views/datn_dieuchinh_nhanvien.xml',
         'views/datn_danhsach_bangluong.xml',
         'views/datn_trocap_phucap.xml',
+        'reports/report_luong.xml',
         'views/menu_item.xml',
     ],
     # only loaded in demonstration mode

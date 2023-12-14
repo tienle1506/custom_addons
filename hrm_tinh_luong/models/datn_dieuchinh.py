@@ -9,6 +9,7 @@ import base64
 import xlsxwriter
 from io import BytesIO
 from ...hrm_chamcong.models import style_excel_wb
+from dateutil.relativedelta import relativedelta
 from ...hrm.models import constraint
 
 class DATNDieuChinh(models.Model):
@@ -224,7 +225,7 @@ class DATNHrDieuChinhLine(models.Model):
     _name = 'datn.dieuchinh.line'
     _inherit = ['mail.thread']
     _description = u'Danh sách nhân sự hưởng điều chỉnh'
-    _order = "ngay_huong DESC"
+    _order = "ngay_huong desc"
     _res_name = 'employee_id'
 
     employee_id = fields.Many2one('hr.employee', string=u'Nhân viên', ondelete='cascade')
@@ -238,6 +239,27 @@ class DATNHrDieuChinhLine(models.Model):
                             string=u'Loại điều chỉnh', default='luong', track_visibility='always')
 
     _sql_constraints = [('unique_employee_dieuchinh', 'unique(employee_id, dieuchinh_id)',u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')]
+
+    @api.constrains('ngay_huong')
+    def check_ngay_huong(self):
+        for record in self:
+            check = self.env['datn.dieuchinh.line'].search([('employee_id', '=' , record.employee_id.id), ('ngay_huong', '>=', record.ngay_huong)])
+            if check:
+                if len(check) > 1:
+                    raise ValidationError('Bạn không thể điều chỉnh trong khoảng thời gian này vì đã có điều chỉnh khác')
+                else:
+                    employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)],order="ngay_huong DESC")
+                    current_month = self.ngay_hieu_luc.month
+                    current_year = self.ngay_hieu_luc.year
+
+                    previous_month = current_month - 1 if current_month > 1 else 12
+                    previous_year = current_year if current_month > 1 else current_year - 1
+
+                    last_day_of_previous_month = datetime(previous_year, previous_month, 1) + relativedelta(day=31)
+                    employees.write({'ngay_ket_thuc': last_day_of_previous_month})
+
+
+
     def read(self, fields=None, load='_classic_read'):
         self.check_access_rule('read')
         return super(DATNHrDieuChinhLine, self).read(fields, load=load)
@@ -277,14 +299,10 @@ class DATNHrDieuChinhLine(models.Model):
     def _compute_dieuchinh_ngayhieuluc(self):
         for record in self:
             if record.ngay_huong:
-                employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=' , record.employee_id.id)], order="ngay_huong DESC")
+                employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)], order="ngay_huong DESC")
                 if employees and len(employees) > 1:
                     if record.ngay_huong > datetime.now().date():
                         record.ngay_hieu_luc = record.ngay_huong.replace(day=1)
-                        ngay_cuoi_cung_thang_truoc = record.ngay_huong.replace(day=1) - timedelta(days=1)
-                        employees[1].write({
-                            'ngay_ket_thuc': ngay_cuoi_cung_thang_truoc
-                        })
                     else:
                         if record.ngay_huong.day > 15:
                             thang_sau = record.ngay_huong.month + 1
@@ -293,18 +311,10 @@ class DATNHrDieuChinhLine(models.Model):
                             if thang_sau > 12:
                                 thang_sau = 1
                                 nam_sau = record.ngay_huong.year + 1
-
                             record.ngay_hieu_luc = datetime(nam_sau, thang_sau, 1).date()
-                            ngay_cuoi_cung_thang_truoc = record.ngay_hieu_luc - timedelta(days=1)
-                            employees[1].write({
-                                'ngay_ket_thuc': ngay_cuoi_cung_thang_truoc
-                            })
+
                         else:
                             record.ngay_hieu_luc = record.ngay_huong.replace(day=1)
-                            ngay_cuoi_cung_thang_truoc = record.ngay_hieu_luc - timedelta(days=1)
-                            employees[1].write({
-                                'ngay_ket_thuc': ngay_cuoi_cung_thang_truoc
-                            })
                 else:
                     record.ngay_hieu_luc = record.ngay_huong.replace(day=1)
 

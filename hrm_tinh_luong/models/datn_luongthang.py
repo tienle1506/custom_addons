@@ -83,7 +83,7 @@ class DATNHrLuongThang(models.Model):
                 cr.execute(SQL)
                 muc_luong = cr.dictfetchall()
                 if muc_luong:
-                    LCB = int(muc_luong.get('muc_huong'))
+                    LCB = int(muc_luong[0].get('muc_huong'))
                 else:
                     LCB = 0
                 lines = {
