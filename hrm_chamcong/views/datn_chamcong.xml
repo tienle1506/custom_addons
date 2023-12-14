@@ -28,7 +28,7 @@
                                 class="oe_highlight" groups="hrm_chamcong.hrm_quyen_hr"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
                                 states="confirmed" groups="hrm_chamcong.hrm_quyen_hr"/>
-                        <button string="Tải dữ liệu" groups="hrm_chamcong.hrm_quyen_hr" name="action_loaddata" type="object" class="oe_edit_only oe_highlight"/>
+                        <button string="Tải dữ liệu" groups="hrm_chamcong.hrm_quyen_hr" name="action_loaddata" type="object" class="oe_edit_only oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                      <style>
@@ -107,7 +107,7 @@
                         <field name="name" string="Tên bảng chấm công" readonly="1" force_save="1"/>
                     </group>
                     <group>
-                        <field name="department_id"
+                        <field name="department_id" attrs="{'readonly': [('state', '!=', 'draft')]}"
                                options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
                                 class="donvi_chamcong"/>
                     </group>
@@ -117,7 +117,7 @@
                             <label for="date_from" string="Chu kỳ chấm công"/>
                             <div>
                                 <field name="date_from"
-                                       class="date1 oe_inline"/>
+                                       class="date1 oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                 -
                                 <field name="date_to" readonly="1" force_save="1"
                                        class="date2 oe_inline"/>
@@ -137,8 +137,7 @@
                     </group>
                     <notebook>
                         <page string="Bảng chấm công tháng" name="data_timesheet">
-                            <field name="item_ids"
-                                   widget="one2many_list">
+                            <field name="item_ids" widget="one2many_list" attrs="{'readonly': [('state', '!=', 'draft')]}">
                                 <tree editable="bottom" create="true" open="false"
                                       class="color_tree_row tbl_bangchamcong"
                                       datn_fixheader="true" tableFixer="left" fixColumn="2"

@@ -236,6 +236,8 @@ class DATNHrDieuChinhLine(models.Model):
     ngay_ket_thuc = fields.Date(string='Ngày kết thúc', widget='date', format='%m-%d-%Y', compute='_compute_dieuchinh_ngayhieuluc', store=True)
     type = fields.Selection([('luong', u'Điều chỉnh lương')],
                             string=u'Loại điều chỉnh', default='luong', track_visibility='always')
+
+    _sql_constraints = [('unique_employee_dieuchinh', 'unique(employee_id, dieuchinh_id)',u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')]
     def read(self, fields=None, load='_classic_read'):
         self.check_access_rule('read')
         return super(DATNHrDieuChinhLine, self).read(fields, load=load)

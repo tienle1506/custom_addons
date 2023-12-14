@@ -35,34 +35,34 @@
                                 groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
                                 attrs="{'invisible': [('state', 'in', ['draft','confirmed', 'approved'])]}"/>
-                        <button string="Tải dữ liệu" name="action_loaddata" type="object" class="oe_highlight oe_edit_only"/>
+                        <button string="Tải dữ liệu" name="action_loaddata" type="object" class="oe_highlight oe_edit_only" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
                         <field name="nguoi_duyet" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
                                        widget="many2many_tags"  attrs="{'readonly': [('state','!=','draft')]}"/>
-                        <field name="name" required="1"/>
-                        <field name="department_id" required="1" widget="many2one" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
+                        <field name="name" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="department_id" required="1" widget="many2one" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                     <group>
                         <group class="date_cc">
                             <label for="date_from" string="Chu kỳ tính lương"/>
                             <div>
                                 <field name="date_from"
-                                       class="date1 oe_inline"/>
+                                       class="date1 oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                 -
                                 <field name="date_to" readonly="1" force_save="1"
                                        class="date2 oe_inline"/>
                             </div>
                         </group>
                         <group>
-                            <field name="ngay_chi_tra" required="1"/>
+                            <field name="ngay_chi_tra" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
 
                     </group>
                     <notebook>
                            <page string="Danh sách nhân sự nhận lương" name="data_timesheet">
-                            <field name="item_ids" widget="one2many_list">
+                            <field name="item_ids" attrs="{'readonly': [('state', '!=', 'draft')]}" widget="one2many_list">
                                 <tree open="1" class="color_tree_row" tableFixer="left" fixColumn="2" default_order="employee_id ASC" limit="100">
                                     <field name="employee_id" required="1" widget="many2one"
                                            options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>

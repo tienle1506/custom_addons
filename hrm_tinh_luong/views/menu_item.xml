@@ -44,4 +44,12 @@
               groups="hrm.hrm_group_own_edit" >
     </menuitem>
 
+    <menuitem id="menu_datn_trocap_phucap"
+              name='Trợ cấp, phụ cấp'
+              parent="menu_tinhluong"
+              sequence="5"
+              action="datn_trocap_phucap_action"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
+    </menuitem>
+
 </odoo>

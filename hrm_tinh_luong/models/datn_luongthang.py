@@ -37,10 +37,8 @@ class DATNHrLuongThang(models.Model):
         for emp in self.nguoi_duyet:
             if emp.personal_email:
                 nguoi_duyet.append(emp.personal_email.strip())
-        header = '''Thông báo phê duyệt đơn tăng ca của %s''' % (self.employee_id.name)
-        content = u'Nhân viên %s tạo đơn tăng ca \nLý do: %s \nSố giờ tăng ca:%s\nTừ ngày: %s - đến ngày: %s \nTrang web: http://localhost:8088/web' % (
-        str(self.employee_id.name), str(self.ly_do), str(self.so_gio_tang_ca),
-        self.date_from.strftime('%d/%m/%Y'), self.date_to.strftime('%d/%m/%Y'))
+        header = '''Thông báo phê duyệt bảng lương của đơn vị/ phòng ban %s''' % (self.department_id.name)
+        content = u'Đề nghị nhân sự được nhận mail vào phê duyệt bảng lương tính từ ngày %s đến ngày %s \nTrang web: http://localhost:8088/web' % (self.date_from.strftime('%d/%m/%Y'), self.date_to.strftime('%d/%m/%Y'))
         if nguoi_duyet and len(nguoi_duyet) > 0:
             self.env['my.mail.sender'].send_mail_to_customer(nguoi_duyet, header, content)
         self.state = 'confirmed'

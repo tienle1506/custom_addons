@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from odoo import api, fields, models, _
 from odoo.exceptions import Warning, ValidationError
 import xlrd
@@ -8,22 +8,23 @@ import tempfile
 import base64
 import xlsxwriter
 from io import BytesIO
-from . import style_excel_wb
-from ...hrm.models import constraint
-class DATNCongTangCuong(models.Model):
-    _name = "datn.cong.tang.cuong"
-    _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
-    _description = u'Quản lý công phép tăng cường'
-    _order = "ngay_tao DESC"
+from ...hrm_chamcong.models import style_excel_wb
+from dateutil.relativedelta import relativedelta
 
-    name = fields.Char(string=u'Tên công tăng cường', size=128, track_visibility='always', )
-    year = fields.Selection(selection=[(str(year), str(year)) for year in range(1975, 2099)], string='Năm áp dụng', default=str(fields.Date.today().year))
-    department_id = fields.Many2many('hr.department', 'department_cong_them_rel', 'department_id', 'cong_them_id', string="Đơn vị/ phòng ban")
+class DATNHrmLeTet(models.Model):
+    _name = "datn.trocap.phucap"
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
+    _description = u'Quản lý trợ cấp phụ cấp'
+    _order = "ngay_chi_tra desc"
+
+    name = fields.Char(string=u'Tên trợ cấp, phụ cấp', size=128, track_visibility='always', )
+    department_id = fields.Many2many('hr.department', 'department_trocap_phucap_rel', 'department_id', 'trocap_phucap_id', string="Đơn vị/ phòng ban")
     data = fields.Binary('File', readonly=True)
-    ngay_tao = fields.Date(u'Ngày tạo', widget='date', format='%Y-%m-%d', default=fields.Date.today)
-    cong_them = fields.Integer(string=u'Công phép bổ sung')
-    item_ids = fields.One2many('datn.cong.tang.cuong.line', string='Items', inverse_name='cong_them_id',
+    muc_huong_chung = fields.Integer('Mức hưởng chung')
+    item_ids = fields.One2many('datn.trocap.phucap.line', string='Items', inverse_name='trocap_phucap_id',
                                track_visibility='always')
+    ngay_chi_tra = fields.Date(u'Ngày chi trả', required=True, default=fields.Date.today)
+    ngay_tao = fields.Date(u'Ngày tạo', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
 
@@ -31,6 +32,7 @@ class DATNCongTangCuong(models.Model):
     datn_file = fields.Binary(u'Đường dẫn tập tin', filters="*.xls,*.xlsx")
     file_name = fields.Char(u'Tên tệp tin')
     is_import = fields.Boolean(u'Import dữ liệu')
+
     def check_format_file_excel(self, file_name):
         if file_name.endswith('.xls') is False and file_name.endswith('.xlsx') is False and file_name.endswith(
                 '.xlsb') is False:
@@ -38,16 +40,15 @@ class DATNCongTangCuong(models.Model):
             self.file_name = None
             raise ValidationError(_("File phải là định dạng 'xlsx' hoặc 'xlsb' hoặc 'xls'"))
 
-    def import_data(self):
-        if not self.is_import:
-            return
-        if not self.datn_file and self.is_import:
-            raise ValidationError('Bạn phải chọn file nếu sử dụng import!')
-
     def action_loaddata(self):
-        for item in self.item_ids:
-            if item['employee_id'].id:
-                item['cong_them'] = self.cong_them
+        self.item_ids.unlink()
+        lines = []
+        if self.department_id:
+            for department_id in self.department_id:
+                employees = self.env['hr.employee'].search([('department_id', 'child_of', department_id.id), ('work_start_date', '<=', date.today())])
+                for employee in employees:
+                    lines.append((0, 0, {'employee_id': employee.id, 'muc_huong': self.muc_huong_chung}))
+        self.item_ids = lines
 
     def import_data(self):
         if not self.is_import:
@@ -76,25 +77,20 @@ class DATNCongTangCuong(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
 
-                try:
-                    cong_them = sheet.cell_value(row, 3)
-                    if cong_them and int(cong_them):
-                        cong_them = float(cong_them)
-                    else:
-                        cong_them = 0
-                except ValueError:
-                    raise ValidationError(f'Công thêm phải có dạng số nguyên')
 
+                muc_huong = sheet.cell_value(row, 3)
+                if not muc_huong:
+                    raise ValidationError(f'Mức hưởng không thể để trống, háy thêm dữ liệu dòng {row}')
 
                 lines.append((0, 0, {
                     'employee_id': employee.id,
-                    'cong_them': cong_them,
-                    'note': sheet.cell_value(row, 4).strip()
+                    'muc_huong': muc_huong,
+                    'note': sheet.cell_value(row, 5).strip()
                 }))
 
                 # cập nhật item_ids
@@ -166,29 +162,32 @@ class DATNCongTangCuong(models.Model):
             })
 
             # Content
-            worksheet = workbook.add_worksheet('Danh sách nhân sự hưởng oông tăng cường')
+            worksheet = workbook.add_worksheet('Danh sách nhân sự hưởng phụ cấp, trợ cấp')
             worksheet.set_row(4, 30)
             department_name = ''
             list_department=[]
             for bl in self.department_id:
-                list_department.append(bl.id)
+                list = self.env['hr.department'].search([('id', 'child_of', bl.id)])
+                if list:
+                    for j in range(0, len(list)):
+                        list_department.append(list[j].id)
                 department_name += bl.name
             worksheet.merge_range(0, 0, 0, 2, 'Đơn vị/ phòng ban : %s'%(department_name), style_excel['style_12_bold_left'])
-            worksheet.merge_range(2, 0, 2, 6, 'Danh sách nhân sự hưởng công thêm ', style_title)
+            worksheet.merge_range(2, 0, 2, 6, 'Danh sách nhân sự hưởng phụ cấp, trợ cấp', style_title)
 
             worksheet.merge_range(4, 0, 5, 0, 'STT', style_1)
             worksheet.merge_range(4, 1, 5, 1, 'Mã Nhân Viên', style_1_require)
             worksheet.merge_range(4, 2, 5, 2, 'Tên Nhân Viên', style_1_require)
-            worksheet.merge_range(4, 3, 5, 3, 'Công phát sinh', style_1)
-            worksheet.merge_range(4, 4, 5, 4, 'Note', style_1)
+            worksheet.merge_range(4, 3, 5, 3, 'Mức hưởng', style_1)
+            worksheet.merge_range(4, 4, 5, 4, 'Ghi chú', style_1)
 
-            for i in range(1, 6):
+            for i in range(1, 7):
                 worksheet.set_column(i, 4, 20)
 
             SQL = ''
 
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY (ARRAY %s)''' % (datetime.now(), list_department)
+            SQL += '''SELECT id, employee_code, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = ANY (ARRAY %s))) ''' % (self.ngay_chi_tra, list_department)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -204,9 +203,9 @@ class DATNCongTangCuong(models.Model):
             worksheet_object.write(0, 1, 'Mã nhân viên', style_1)
             worksheet_object.write(0, 2, 'Tên nhân viên', style_1)
             for item in employees:
-                lst_employees.append(item['employee_code_new'])
+                lst_employees.append(item['employee_code'])
                 worksheet_object.write(i, 0, i, style_1)
-                worksheet_object.write(i, 1, item['employee_code_new'], style_1_left)
+                worksheet_object.write(i, 1, item['employee_code'], style_1_left)
                 worksheet_object.write(i, 2, item['name'], style_1_left)
                 i = i + 1
 
@@ -215,11 +214,12 @@ class DATNCongTangCuong(models.Model):
             for item in employees:
                 stt += 1
                 worksheet.write(5 + stt, 0, stt, style_1_left)
-                worksheet.write(5 + stt, 1, item['employee_code_new'], style_1_left)
+                worksheet.write(5 + stt, 1, item['employee_code'], style_1_left)
                 worksheet.write(5 + stt, 2, item['name'], style_1_left)
-                worksheet.write(5 + stt, 3, 0, style_1_left)
+                worksheet.write(5 + stt, 3, '', style_1_left)
                 worksheet.write(5 + stt, 4, '', style_1_left)
-            namefile = 'Mau_import_mon_hoc'
+
+            namefile = 'Mau_import_tro_cap_phucap'
             # Encode to file
             workbook.close()
             buf.seek(0)
@@ -238,27 +238,9 @@ class DATNCongTangCuong(models.Model):
 
     def action_draft(self):
         self.state = 'draft'
+
     def action_confirmed(self):
         self.state = 'confirmed'
-
-    @api.model_create_single
-    def create(self, vals):
-        record = super().create(vals)
-        self.env.cr.after('commit', self._after_commit)
-        return record
-
-    def write(self, vals):
-        result = super().write(vals)
-        self.env.cr.after('commit', self._after_commit)
-        return result
-
-    def unlink(self):
-        result = super().unlink()
-        self.env.cr.after('commit', self._after_commit)
-        return result
-
-    def _after_commit(self):
-        self.env['cron.job.cong.phep'].run()
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
@@ -269,23 +251,21 @@ class DATNCongTangCuong(models.Model):
             # Xử lý khi điều kiện không đúng
             # ví dụ:
             raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
-class DATNCongTangCuongLine(models.Model):
-    _name = 'datn.cong.tang.cuong.line'
-    _inherit = ['mail.thread']
-    _description = u'Bảng chi tiết nhân sự hưởng công tăng cường'
+
+class DATNHrmLeTetLine(models.Model):
+    _name = 'datn.trocap.phucap.line'
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
+    _description = u'Bảng chi tiết nhân sự hưởng trợ cấp, phụ cấp'
     _order = "department_id, employee_id"
 
     employee_id = fields.Many2one('hr.employee', string=u'Nhân viên', ondelete='cascade')
-    cong_them_id = fields.Many2one('datn.cong.tang.cuong', string='Bảng công tăng cường', ondelete='cascade',
-                                   required=True)
+    trocap_phucap_id = fields.Many2one('datn.trocap.phucap', string=u'Bảng trợ cấp, phụ cấp', ondelete='cascade', required=True)
     note = fields.Text(string='Ghi chú')
-    year = fields.Selection(string='Năm áp dụng', related='cong_them_id.year', store=True)
-    cong_them = fields.Integer(u'Công tăng cuờng', default=0)
-    department_id = fields.Many2one('hr.department',ondelete='cascade', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
+    muc_huong = fields.Integer('Mức hưởng')
+    department_id = fields.Many2one('hr.department', ondelete='cascade', string='Đơn vị/ phòng ban', related='employee_id.department_id', store=True )
 
     _sql_constraints = [
-        ('unique_employee_congthem', 'unique(employee_id, cong_them_id)',
-         u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')
+        ('unique_employee_phucap_trocap', 'unique(employee_id, phucap_trocap_id)', u'Nhân viên chỉ được tạo 1 lần trong bản ghi này.')
     ]
 
 

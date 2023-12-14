@@ -18,7 +18,7 @@
             </field>
         </record>
 
-                 <record id="datn_checkin_checkout_nhan_vien_form" model="ir.ui.view">
+        <record id="datn_checkin_checkout_nhan_vien_form" model="ir.ui.view">
             <field name="name">Checkin checkout nhân viên</field>
             <field name="model">datn.hr.checkin.checkout.line</field>
             <field name="arch" type="xml">
@@ -71,19 +71,19 @@
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
-                        <field name="name" required="1"></field>
+                        <field name="name" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"></field>
                     </group>
                     <group>
                         <group>
                             <field name="department_id"
                                    options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
-                                    class="donvi_chamcong"/>
+                                    class="donvi_chamcong" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group class="date_cc">
                             <label for="date_from" string="Chu kỳ chấm công"/>
                             <div>
                                 <field name="date_from"
-                                       class="date1 oe_inline"/>
+                                       class="date1 oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                 -
                                 <field name="date_to" readonly="1" force_save="1"
                                        class="date2 oe_inline"/>
@@ -117,8 +117,7 @@
                     </group>
                     <notebook>
                         <page string="Bảng chi tiết CheckIn CheckOut" name="data_timesheet">
-                            <field name="item_ids"
-                                   widget="one2many_list">
+                            <field name="item_ids" widget="one2many_list" attrs="{'readonly': [('state', '!=', 'draft')]}">
                                 <tree editable="bottom" create="true" open="false"
                                       class="color_tree_row"
                                       tableFixer="left" fixColumn="2"
