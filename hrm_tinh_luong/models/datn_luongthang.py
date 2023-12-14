@@ -1,13 +1,6 @@
-# -*- coding:utf-8 -*-
-import base64
-import tempfile
-import xlrd
-import xlsxwriter
-import time
+
 import calendar
-import json
-from odoo.addons import decimal_precision as dp
-from io import BytesIO
+from odoo.tools.safe_eval import safe_eval
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
@@ -68,9 +61,73 @@ class DATNHrLuongThang(models.Model):
             # ví dụ:
             raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
     def action_loaddata(self):
-        a=b
+        self.item_ids.unlink()
+        self.item_ids.item_ids.unlink()
+        cr = self.env.cr
+        SQL = ''
+        SQL += '''SELECT ckl.* FROM datn_congthucte_line ckl
+                            LEFT JOIN datn_congthucte ck ON ck.id = ckl.congthucte_id
+                            WHERE ckl.department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND ck.date_from = '%s'
+                            AND  ck.date_to = '%s'
+                            AND ckl.employee_id not in (SELECT ccl.employee_id FROM datn_luongthang cc INNER JOIN datn_luongthang_line ccl ON ccl.luongthang_id = cc.id 
+                    where cc.date_from >= '%s' and cc.date_to <= '%s')
+                            ORDER BY ckl.employee_id
+                    ''' % (self.department_id.id, self.date_from, self.date_to, self.date_from, self.date_to)
+        cr.execute(SQL)
+        employees = cr.dictfetchall()
+        mang_quy_tacs = self.env['datn.quytacluong'].search([('hieuluc', '=', True)], order='index')
+        LCB = 0
 
+        if employees:
+            for i in range(0, len(employees)):
+                SQL = ''
+                SQL += '''SELECT*FROM datn_dieuchinh_line WHERE type='luong' and ngay_hieu_luc <= '%s' and (ngay_ket_thuc >= '%s' OR ngay_ket_thuc ISNULL) AND employee_id = %s '''%(self.date_from, self.date_to, employees[i].get('employee_id'))
+                cr.execute(SQL)
+                muc_luong = cr.dictfetchall()
+                if muc_luong:
+                    LCB = int(muc_luong.get('muc_huong'))
+                else:
+                    LCB = 0
+                lines = {
+                    'employee_id': employees[i].get('employee_id'),
+                    'department_id': employees[i].get('department_id'),
+                    'date_from': self.date_from,
+                    'date_to': self.date_to,
+                    'tong_tien': 0,
+                    'luongthang_id': self.id
+                }
+                new_luong_line = self.env['datn.luongthang.line'].create(lines)
+                namespace = {
 
+                }
+                if mang_quy_tacs:
+                    for j in range(0, len(mang_quy_tacs)):
+                        mang_quy_tac = {}
+                        namespace['luong_co_ban'] = LCB
+                        namespace['cong_chuan'] = employees[i].get('cong_chuan')
+                        namespace['cong_thuc_te'] = employees[i].get('cong_thuc_te')
+                        mang_quy_tac['bangluong_id'] = new_luong_line.id
+                        # Thực thi chuỗi mã bằng hàm exec() trong namespace
+                        exec(mang_quy_tacs[j].mapython, namespace)
+                        mang_quy_tac['code'] = mang_quy_tacs[j].code
+                        mang_quy_tac['tong_tien'] = namespace.get('result')
+                        # Xóa phần tử thứ hai từ dưới lên
+                        index2 = len(namespace) - 1
+                        namespace.pop(list(namespace.keys())[index2])
+
+                        # Xóa phần tử thứ ba từ dưới lên
+                        index3 = len(namespace) - 1
+                        namespace.pop(list(namespace.keys())[index3])
+                        namespace[mang_quy_tacs[j].code] = mang_quy_tac['tong_tien']
+                        mang_quy_tac['name'] = mang_quy_tacs[j].name
+                        mang_quy_tac['index'] = mang_quy_tacs[j].index
+
+                        if mang_quy_tac['code'] == 'TTNTN':
+                            new_luong_line.write({
+                                'tong_tien': mang_quy_tac['tong_tien']
+                            })
+
+                        self.env['datn.bangluong'].create(mang_quy_tac)
 
     @api.onchange('date_from', 'department_id')
     def onchange_name(self):
@@ -104,6 +161,41 @@ class DATNHrLuongThangLine(models.Model):
     tong_tien = fields.Integer(u'Tổng tiền',)
     item_ids = fields.One2many('datn.bangluong', string='Chi tiết bảng lương', inverse_name='bangluong_id',track_visibility='always')
 
+    def read(self, fields=None, load='_classic_read'):
+        self.check_access_rule('read')
+        return super(DATNHrLuongThangLine, self).read(fields, load=load)
+
+    def search(self, args, offset=0, limit=None, order=None, count=False):
+        domain = []
+        return super(DATNHrLuongThangLine, self).search(domain + args, offset, limit, order, count=count)
+
+    @api.model
+    def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrLuongThangLine, self)._name_search(name, args=args + emp_domain, operator=operator,
+                                                                  limit=limit)
+
+
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrLuongThangLine, self).search_read(domain=domain + emp_domain, fields=fields,
+                                                                  offset=offset, limit=limit, order=order)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrLuongThangLine, self).read_group(domain + emp_domain, fields, groupby, offset=offset,
+                                                                 limit=limit, orderby=orderby, lazy=lazy)
+    def check_employee_view(self):
+        context = self.env.context or {}
+        emp_domain = []
+        user = self.env.user
+        employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
+        if context.get('view_from_action', False):
+            emp_domain = [('employee_id', '=', employee_id.id)]
+        return emp_domain
+
 
 class DATNHrBangLuong(models.Model):
     _name = 'datn.bangluong'
@@ -118,5 +210,5 @@ class DATNHrBangLuong(models.Model):
     tong_tien = fields.Integer('Tổng tiền')
 
     _sql_constraints = [
-        ('unique_code', 'unique(code)', u'Mã quy tắc đã được tạo')
+        ('unique_code', 'unique(bangluong_id,code)', u'Mã quy tắc đã được tạo')
     ]

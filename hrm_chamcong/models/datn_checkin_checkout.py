@@ -270,6 +270,8 @@ class DATNHrCheckInCheckOut(models.Model):
     def action_draft(self):
         self.state = 'draft'
     def action_confirmed(self):
+        if datetime.now().month <= self.date_from.month:
+            raise ValidationError('Bạn không thể xác nhận bảng check in check out chưa hoàn thiện')
         self.state = 'confirmed'
 
     def unlink(self):

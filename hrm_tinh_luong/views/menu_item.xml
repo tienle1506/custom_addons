@@ -17,7 +17,31 @@
               parent="menu_tinhluong"
               sequence="1"
               action="datn_luongthang_action"
-              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr,hrm.hrm_group_own_edit" >
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
+    </menuitem>
+
+    <menuitem id="menu_datn_dieuchinh"
+              name='Phiếu điều chỉnh'
+              parent="menu_tinhluong"
+              sequence="2"
+              action="datn_dieuchinh_action"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
+    </menuitem>
+
+    <menuitem id="menu_datn_dieuchinh_line"
+              name='Phiếu điều chỉnh nhân viên'
+              parent="menu_tinhluong"
+              sequence="3"
+              action="datn_dieuchinh_line_action"
+              groups="hrm.hrm_group_own_edit" >
+    </menuitem>
+
+    <menuitem id="menu_datn_luonthang_line"
+              name='Danh sách phiếu lương'
+              parent="menu_tinhluong"
+              sequence="4"
+              action="datn_luongthang_line_action"
+              groups="hrm.hrm_group_own_edit" >
     </menuitem>
 
 </odoo>

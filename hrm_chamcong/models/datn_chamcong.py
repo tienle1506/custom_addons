@@ -114,7 +114,8 @@ class DATNHrChamCong(models.Model):
             SQL = ''
             SQL += '''SELECT ckl.* FROM datn_hr_checkin_checkout_line ckl
                     LEFT JOIN datn_hr_checkin_checkout ck ON ck.id = ckl.checkin_checkout_id
-                    WHERE ck.department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND ck.date_from = '%s'
+                    LEFT JOIN hr_employee emp ON emp.id = ckl.employee_id
+                    WHERE emp.department_id = ANY(ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND ck.date_from = '%s'
                     AND  ck.date_to = '%s' AND ck.state = 'confirmed' AND ckl.state='approved'
                     AND ckl.employee_id not in (SELECT ccl.employee_id FROM datn_hr_chamcong cc INNER JOIN datn_hr_chamcong_line ccl ON ccl.chamcong_id = cc.id 
             where date_from >= '%s' and date_to <= '%s')
@@ -198,7 +199,7 @@ class DATNHrChamCong(models.Model):
                 'date_from': self.date_from,
                 'date_to': self.date_to,
                 'chamcong_id': self.id,
-                'state': 'confirmed'
+                'state': 'draft'
             })
 
             if employees:

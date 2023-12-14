@@ -83,7 +83,7 @@
             </field>
         </record>
 
-        <record id="datn_luongthang_line_from" model="ir.ui.view">
+        <record id="datn_luongthang_line_form" model="ir.ui.view">
             <field name="name">Bảng lương</field>
             <field name="model">datn.luongthang.line</field>
             <field name="arch" type="xml">
@@ -109,7 +109,7 @@
                         <page string="Bảng chi tiết các khoản" name="data_timesheet">
                             <field name="item_ids"
                                    widget="one2many_list">
-                                <tree open="false" class="color_tree_row" tableFixer="left" fixColumn="2" default_order="employee_id ASC" limit="100">
+                                <tree create="0" edit="0" open="false" class="color_tree_row" tableFixer="left" fixColumn="2" default_order="index ASC" limit="100">
                                     <field name="code" readonly="1" force_save="1"/>
                                     <field name="name" readonly="1" force_save="1"/>
                                     <field name="index" readonly="1" force_save="1"/>

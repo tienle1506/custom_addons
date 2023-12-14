@@ -27,6 +27,9 @@
         'security/ir.model.access.csv',
         'views/datn_quytacluong.xml',
         'views/datn_luongthang.xml',
+        'views/datn_dieuchinh.xml',
+        'views/datn_dieuchinh_nhanvien.xml',
+        'views/datn_danhsach_bangluong.xml',
         'views/menu_item.xml',
     ],
     # only loaded in demonstration mode
