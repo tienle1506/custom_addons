@@ -30,7 +30,7 @@ class HrDepartment(models.Model):
     type_block = fields.Selection([('BLOCK_COMMERCE_NAME', 'Thương mại'),
                                    ('BLOCK_OFFICE_NAME', 'Văn phòng')], string='Loại khối',
                                   default=default_type_block)
-    readonly_type_block = fields.Boolean(compute='_compute_readonly_type_block')
+    readonly_type_block = fields.Boolean(compute='_compute_readonly_type_block', stored=True)
 
     @api.depends('type_block')
     def _compute_readonly_type_block(self):
@@ -43,7 +43,6 @@ class HrDepartment(models.Model):
             elif record.env.user.block_id == 'BLOCK_OFFICE_NAME':
                 record.type_block = 'BLOCK_OFFICE_NAME'
                 record.readonly_type_block = True
-        print(self.readonly_type_block)
 
 
     @api.onchange('parent_id')

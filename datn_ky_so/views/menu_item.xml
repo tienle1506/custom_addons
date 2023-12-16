@@ -1,0 +1,15 @@
+<odoo>
+
+    <menuitem id="menu_kyso" name="Quản lý ký số"
+               parent="hrm.menu_field"
+               sequence="6"
+               groups="hrm_quyen_dongdau_coquan,hrm_quyen_kyso_coquan,hrm_quyen_kyso_canhan,hrm_quyen_kyso_kynhay">
+    </menuitem>
+
+    <menuitem id="menu_kyso_file" name="Ký số file"
+              parent="menu_kyso"
+              sequence="1"
+              action='datn_kyso_file_action'
+              groups="hrm_quyen_dongdau_coquan,hrm_quyen_kyso_coquan,hrm_quyen_kyso_canhan,hrm_quyen_kyso_kynhay">
+    </menuitem>
+</odoo>

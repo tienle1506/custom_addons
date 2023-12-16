@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="datn_kyso_file_tree" model="ir.ui.view">
+            <field name="name">Ký số file</field>
+            <field name="model">datn.kyso.file</field>
+            <field name="arch" type="xml">
+                <tree class="widget-department-tree"
+                      default_order="ngay_ky">
+                    <field name="name"/>
+                    <field name="file_kyso" filename="file_name" widget="binary"/>
+                    <field name="file_name" invisible="1"/>
+                    <field name="ngay_ky"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="datn_kyso_file_form" model="ir.ui.view">
+            <field name="name">Ký số file</field>
+            <field name="model">datn.kyso.file</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button string="Ký số cá nhân" name="action_kyso_canhan"
+                                groups="hrm_quyen_kyso_canhan"
+                                class="oe_stat_button oe_highlight" attrs="{'readonly': [('is_ky_ca_nhan','==',True)]}"/>
+                        <button string="Ký số cơ quan" name="action_kyso_coquan"
+                                groups="hrm_quyen_kyso_coquan"
+                                class="oe_stat_button oe_highlight" attrs="{'readonly': [('is_ky_co_quan','==',True)]}"/>
+                        <button string="Ký số dấu cơ quan" name="action_kyso_dau_coquan"
+                                groups="hrm_quyen_dongdau_coquan"
+                                class="oe_stat_button oe_highlight" attrs="{'readonly': [('is_ky_dau_co_quan','==',True)]}"/>
+                        <button string="Ký số nháy" name="action_kyso_kynhay" class="oe_stat_button oe_highlight"
+                                groups="hrm_quyen_kyso_kynhay"/>
+                    </header>
+                    <group>
+                        <field name="name"/>
+                        <field name="file_kyso" filename="file_name" widget="binary"/>
+                        <field name="file_name" invisible="1"/>
+                        <field name="ngay_ky"/>
+                        <field name="is_ky_dau_co_quan" invisible="1"/>
+                        <field name="is_ky_co_quan" invisible="1"/>
+                        <field name="is_ky_ca_nhan" invisible="1"/>
+                        <field name="so_lan_ky_nhay" invisible="1"/>
+                    </group>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                    <div id="pdf-advanced"></div>
+                </form>
+            </field>
+        </record>
+
+        <record id="complete_kyso_view" model="ir.ui.view">
+            <field name="name">complete_kyso_view</field>
+            <field name="model">temp_model_kyso</field>
+            <field name="arch" type="xml">
+                <form class="complete_kyso_view">
+                    <div id="preview_kyso"></div>
+                    <footer class="canhbao_cauhinh_kyso">
+                        <button string="Hủy" class="btn-secondary" special="cancel"/>
+                        <button name="action_send_to_approve" string="Gửi duyệt" class="btn-primary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="datn_kyso_file_action" model="ir.actions.act_window">
+            <field name="name">Ký số file</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">datn.kyso.file</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'view_from_action': 'datn_kyso_file'}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Tạo mới một bản ghi ký số file.
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="datn_kyso_file_tree_action">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="datn_kyso_file_tree"/>
+            <field name="act_window_id" ref="datn_kyso_file_action"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="datn_kyso_file_form_action">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="datn_kyso_file_form"/>
+            <field name="act_window_id" ref="datn_kyso_file_action"/>
+        </record>
+    </data>
+</odoo>

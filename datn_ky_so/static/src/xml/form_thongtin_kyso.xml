@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template id="add_warning_buttons" xml:space="preserve">
+
+    <t t-name="vnpt_ky_so.form_thongtin_kyso">
+        <div class="modal show" id="thongtin_kyso_dialog" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel" aria-hidden="false" style="display:block">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content" style="max-width: 140%;
+                      width: 140%;
+                      margin-left: -20%;">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="departmentModalLabel">Thông tin xác nhận ký số thông điệp</h4>
+                        <button type="button" class="close"
+                                aria-label="Close">
+                            <span>x</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div id="form_thongtin_kyso" style="margin-right: 15px;
+                                                                      margin-left: 15px;">
+                                <div class="row">
+                                    <button type="button" class="btn kyso_hople_btn" disabled="disabled" data-original-title="" title="">Dữ liệu hợp lệ</button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="o_form_label" for="o_field_input_3067" data-original-title=""
+                                               title="">CMT/CCCD/Mã cơ quan</label>
+                                        <div>
+                                            <input class="o_field_char o_field_widget o_input o_readonly_modifier"
+                                                   name="kyso_taikhoan" placeholder="" type="text" disabled=""/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="o_form_label" for="o_field_input_3068" data-original-title=""
+                                               title="">Chủ chứng thư
+                                        </label>
+                                        <div>
+                                            <input class="o_field_char o_field_widget o_input o_readonly_modifier"
+                                                   name="kyso_chuchungthu" placeholder="" type="text" disabled=""/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="o_form_label" for="o_field_input_3069" data-original-title="" title="">Số điện thoại</label>
+                                        <div>
+                                            <input class="o_field_char o_field_widget o_input o_readonly_modifier"
+                                                   name="kyso_sdt" placeholder="" type="text" disabled=""/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="o_form_label" for="o_field_input_3070" data-original-title=""
+                                               title="">Serial
+                                        </label>
+                                        <div>
+                                            <input class="o_field_char o_field_widget o_input o_readonly_modifier"
+                                                   name="kyso_serial" placeholder="" type="text" disabled=""/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="o_form_label" for="o_field_input_3071" data-original-title=""
+                                               title="">Nhà cung cấp chứng thư
+                                        </label>
+                                        <div>
+                                            <input class="o_field_char o_field_widget o_input o_readonly_modifier"
+                                                   name="kyso_nhacungcap" placeholder="" type="text" disabled=""/>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="o_form_label" for="o_field_input_3072" data-original-title=""
+                                               title="">Ngày hiệu lực
+                                        </label>
+                                        <div>
+                                            <div aria-atomic="true"
+                                                 class="o_datepicker o_field_date o_field_widget o_readonly_modifier"
+                                                 data-target-input="nearest" id="datepicker3073"
+                                                 name="kyso_ngayhieuluc">
+                                                <input autocomplete="off"
+                                                       class="o_datepicker_input o_input datetimepicker-input"
+                                                       name="kyso_ngayhieuluc" data-target="#datepicker3073"
+                                                       type="text" placeholder="" disabled=""/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="o_form_label" for="o_field_input_3074" data-original-title=""
+                                               title="">Ngày hết hạn
+                                        </label>
+                                        <div>
+                                            <div aria-atomic="true"
+                                                 class="o_datepicker o_field_date o_field_widget o_readonly_modifier"
+                                                 data-target-input="nearest" id="datepicker3075"
+                                                 name="kyso_ngayhethan">
+                                                <input autocomplete="off"
+                                                       class="o_datepicker_input o_input datetimepicker-input"
+                                                       name="kyso_ngayhethan" data-target="#datepicker3075"
+                                                       type="text" placeholder="" disabled=""/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="o_form_label" for="o_field_input_3076" data-original-title=""
+                                               title="">Thời gian ký
+                                        </label>
+                                        <div>
+                                            <div aria-atomic="true"
+                                                 class="o_datepicker o_field_date o_field_widget o_readonly_modifier"
+                                                 data-target-input="nearest" id="datepicker3077"
+                                                 name="kyso_thoigianky">
+                                                <input autocomplete="off"
+                                                       class="o_datepicker_input o_input datetimepicker-input"
+                                                       name="kyso_thoigianky" data-target="#datepicker3077"
+                                                       type="text" placeholder="" disabled=""/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer" style="display:block; text-align:center">
+                        <button type="button" class="btn_close_kyso btn btn-primary kyso_info_cancel">
+                            X  Đóng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</template>

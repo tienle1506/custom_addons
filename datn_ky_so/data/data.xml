@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="hinhthuc_kyso_token" model="hinhthuc_kyso">
+            <field name="name">USB Token</field>
+            <field name="code">token</field>
+            <field name="stt">10</field>
+        </record>
+
+        <record id="hinhthuc_kyso_smart_mobile_pki" model="hinhthuc_kyso">
+            <field name="name">Ký số Mobile PKI</field>
+            <field name="code">mobile_pki</field>
+            <field name="is_active">False</field>
+            <field name="stt">20</field>
+        </record>
+
+        <record id="hinhthuc_kyso_smart_ca" model="hinhthuc_kyso">
+            <field name="name">VNPT SmartCA</field>
+            <field name="code">smart_ca</field>
+            <field name="stt">30</field>
+        </record>
+
+        <record id="hinhthuc_kyso_server" model="hinhthuc_kyso">
+            <field name="name">Ký số Server</field>
+            <field name="code">server</field>
+            <field name="is_active">False</field>
+            <field name="stt">40</field>
+        </record>
+
+        <record model="ir.config_parameter" id="key_kyso_token">
+            <field name="key">key_kyso_token</field>
+            <field name="value">PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PExpY2Vuc2U+PFBoYW5NZW0+Vk5QVC1DQSBQbHVnaW48L1BoYW5NZW0+PE5ndW9pQ2FwPlZOUFQgSVQ8L05ndW9pQ2FwPjxEb25WaUR1b2NDYXA+dm5lcnAudm4sY2JjY3ZjLnhheWR1bmcuZ292LnZuLGNiY2N2Yy5idmh0dGRsLmdvdi52bixjY3ZjLnZvdi5nb3Yudm4sY2JjY3ZjLm5naGVhbi5nb3Yudm4scWxjYmNjdmMudGF5bmluaC5nb3Yudm4scWxjYmNjdmMuYmFja2FuLmdvdi52bixxbGNiY2N2Yy50aGFpYmluaC5nb3Yudm48L0RvblZpRHVvY0NhcD48TmdheUJhdERhdT4wNy8wNy8yMDIzIDAwOjAwOjAwPC9OZ2F5QmF0RGF1PjxOZ2F5S2V0VGh1Yz4xMi8zMS8yMDIzIDAwOjAwOjAwPC9OZ2F5S2V0VGh1Yz48TWFjT1M+MTwvTWFjT1M+PFNpZ25hdHVyZSB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyI+PFNpZ25lZEluZm8+PENhbm9uaWNhbGl6YXRpb25NZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy14bWwtYzE0bi0yMDAxMDMxNSIgLz48U2lnbmF0dXJlTWV0aG9kIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnI3JzYS1zaGExIiAvPjxSZWZlcmVuY2UgVVJJPSIiPjxUcmFuc2Zvcm1zPjxUcmFuc2Zvcm0gQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwLzA5L3htbGRzaWcjZW52ZWxvcGVkLXNpZ25hdHVyZSIgLz48L1RyYW5zZm9ybXM+PERpZ2VzdE1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNzaGExIiAvPjxEaWdlc3RWYWx1ZT4rV2hvSml5NFRzQWhYM0dWaTNJb0p1UXQvVVU9PC9EaWdlc3RWYWx1ZT48L1JlZmVyZW5jZT48L1NpZ25lZEluZm8+PFNpZ25hdHVyZVZhbHVlPmxCSDlkQWo0SGd6TnJrNnhTZzUyT09DVXNnTjYyY3UvSitVNW1ZMHZaNncxU2dMTHNYUmlLU2c4ZSs0UmpGU1VTQlJPZkdWTG9zMEhBdk5mdFFFbDFSQ2RlZ1Naa2VQajZtdHpSRnlVUWZqUEk5VDRkYjdGcjJQQk5CUTZkOHVHbWphNGhGeVF6bTc3cWdaZnRVeGpzOERmbERGZ3FKWkI3QUNHM2dEY2RQRTZVc0ZTaFZWdlNuQWw2RTlsV1BOb0tDSlhKNVowdCtZVHV5K0xnY3N3YXQ3T1BZQVJnZ0Qyem9SZG9QWkdxaHRuWWY5bXBoT3JaZmFJRnk0eW1TT3NPVGxMMHRWRUFCWno3TDJYT2ZMOVMxcUlJVU5BSDNyNjE3R29qVHNwc1pGQXFOMWE3TWtWdXNmU2NzUHhWczlHbGYxU0UwOXkzWGpEc1gzYVcrOEtZQT09PC9TaWduYXR1cmVWYWx1ZT48S2V5SW5mbz48S2V5VmFsdWU+PFJTQUtleVZhbHVlPjxNb2R1bHVzPnAyOGNVVG5vWEc5VW83NTRwandkWkdIOG1YNFZaUWtBeWtvcWhzQXB2Z1lQeVVRRWtCRTZkOXFzWkwzNkd2MWpGWjF2S2hvbkk2ZkxFeFZyYkhEbTkrRGVLZXpWSVpxUXZMaXM2M2czaHJtelJ0K2Mvb0F6YTZPUnFlQlZWbVBoQ1hPdy9KRHJ3eEgzQ0xacmxSMVhHeG1zcWxqaTcrVk0wcEMvQ0lraWcvNXRGdS9QQ3VUY1RZL05mL3lmbU1UOTdOaXk5Tm5GTlg1Y1FxREVZNWxTQ0Rvb3kwaHBTQ25jWVFzdUxjUUpBZll6dnp3OW9vT2pGallPVXZtY2VtREMxLzBFRTlkYldsV2V0Zm5WTmI4c3pvcXNMQnJMQURCMUNoU2ZubDlvUUZ6R1FWYTBSaUo5eE93UG9KMjVqUWRWaW1FMTh2VE1aV1p0bUdOUzJyKytPUT09PC9Nb2R1bHVzPjxFeHBvbmVudD5BUUFCPC9FeHBvbmVudD48L1JTQUtleVZhbHVlPjwvS2V5VmFsdWU+PFg1MDlEYXRhPjxYNTA5Q2VydGlmaWNhdGU+TUlJR1JUQ0NCQzJnQXdJQkFnSVFWQUVrajN5WFJFSTd3SzdLUi9jSHNqQU5CZ2txaGtpRzl3MEJBUVVGQURCcE1Rc3dDUVlEVlFRR0V3SldUakVUTUJFR0ExVUVDaE1LVms1UVZDQkhjbTkxY0RFZU1Cd0dBMVVFQ3hNVlZrNVFWQzFEUVNCVWNuVnpkQ0JPWlhSM2IzSnJNU1V3SXdZRFZRUURFeHhXVGxCVUlFTmxjblJwWm1sallYUnBiMjRnUVhWMGFHOXlhWFI1TUI0WERURTNNREl5TnpBNU16SXdNRm9YRFRFNU1ESXlOekl4TXpJd01Gb3dnWW94Q3pBSkJnTlZCQVlUQWxaT01SSXdFQVlEVlFRSURBbEl3NEFnVHVHN21Fa3hGVEFUQmdOVkJBY01ERVBodXFkMUlFZHA0YnFsZVRFc01Db0dBMVVFQXd3alZrNVFWQ0JUVDBaVVYwRlNSU0F0SUZaT1VGUWdRMEVnTFNCVVJWTlVJRk5KUjA0eElqQWdCZ29Ka2lhSmsvSXNaQUVCREJKTlUxUTZNVEF4TmpnMk9UY3pPQzB3TVRJd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUUNuYnh4Uk9laGNiMVNqdm5pbVBCMWtZZnlaZmhWbENRREtTaXFHd0NtK0JnL0pSQVNRRVRwMzJxeGt2Zm9hL1dNVm5XOHFHaWNqcDhzVEZXdHNjT2IzNE40cDdOVWhtcEM4dUt6cmVEZUd1Yk5HMzV6K2dETnJvNUdwNEZWV1krRUpjN0Q4a092REVmY0l0bXVWSFZjYkdheXFXT0x2NVV6U2tMOElpU0tEL20wVzc4OEs1TnhOajgxLy9KK1l4UDNzMkxMMDJjVTFmbHhDb01Sam1WSUlPaWpMU0dsSUtkeGhDeTR0eEFrQjlqTy9QRDJpZzZNV05nNVMrWng2WU1MWC9RUVQxMXRhVlo2MStkVTF2eXpPaXF3c0dzc0FNSFVLRkorZVgyaEFYTVpCVnJSR0luM0U3QStnbmJtTkIxV0tZVFh5OU14bFptMllZMUxhdjc0NUFnTUJBQUdqZ2dIRk1JSUJ3VEJ3QmdnckJnRUZCUWNCQVFSa01HSXdNZ1lJS3dZQkJRVUhNQUtHSm1oMGRIQTZMeTl3ZFdJdWRtNXdkQzFqWVM1MmJpOWpaWEowY3k5MmJuQjBZMkV1WTJWeU1Dd0dDQ3NHQVFVRkJ6QUJoaUJvZEhSd09pOHZiMk56Y0M1MmJuQjBMV05oTG5adUwzSmxjM0J2Ym1SbGNqQWRCZ05WSFE0RUZnUVViSDRodEZzT2JMRDFrME5vQ1hqeUZUdlpDUXN3REFZRFZSMFRBUUgvQkFJd0FEQWZCZ05WSFNNRUdEQVdnQlFHYWNEVjFRS0tGWTFHZmVsODRtZ0tWYXhxcnpCb0JnTlZIU0FFWVRCZk1GMEdEaXNHQVFRQmdlMERBUUVEQVFFQ01Fc3dJZ1lJS3dZQkJRVUhBZ0l3Rmg0VUFFOEFTUUJFQUMwQVVBQnlBQzBBTWdBdUFEQXdKUVlJS3dZQkJRVUhBZ0VXR1doMGRIQTZMeTl3ZFdJdWRtNXdkQzFqWVM1MmJpOXljR0V3TVFZRFZSMGZCQ293S0RBbW9DU2dJb1lnYUhSMGNEb3ZMMk55YkM1MmJuQjBMV05oTG5adUwzWnVjSFJqWVM1amNtd3dEZ1lEVlIwUEFRSC9CQVFEQWdUd01EUUdBMVVkSlFRdE1Dc0dDQ3NHQVFVRkJ3TUNCZ2dyQmdFRkJRY0RCQVlLS3dZQkJBR0NOd29EREFZSktvWklodmN2QVFFRk1Cd0dBMVVkRVFRVk1CT0JFVEZqYUhWamRYVkFaMjFoYVd3dVkyOXRNQTBHQ1NxR1NJYjNEUUVCQlFVQUE0SUNBUUF5cWlKUHZ2a0NNTUYzQkJpUFozR25laG53dmh0bURSSmpaUlJObWI1MjJMdzh5U3FJcG81N2dYSVNuTGUzcVd5QzBHQ1dhVnMvV0o2VEpnM2ZCMUdhSHAydUpHOGhHVjBnNU1KbmdnQWtXSUhIYmtoa3lYbEtkL3h4dkY3bENXc2xoN09Mby9Ed0p6UGNBUUtkRG1vc0RMa0x1dGxqaXJLZ1AxMThYbVRwSmU5Y25oVEdXeG1SNDNSWG8xcEs2TVpKUy8zNUEwYUVjVUZ3bGt5T0pwRnV6K0dyanEycUsyWXNUcHZOSW53M0xaRHdSa2tZamhtSk9FK2Z1a3FmcDhXRmNCdEVHcVdEYUJibXFnWnZjaXQ5cytSb2kzV2VPTXhVS3JpMGZTQUtEY3V4bmY0cnhpZlEwQmJhczlIVW1ObTY1VkVzbStmNUIwdmRTbTZTN1g4Wm81NHVRdFJnL0hkMWFDUHkwQUZkZmFIaSs2YWRxcjJacTNwdE1JUzEwN2xDZHEyNkt5TjNSTXhZdmg1TlpzZzg4SmM5SU5sR3hMNThXRDlFQjdNekZrV21uR2I5SmMxdWtBRWFQWkE5dndaV1pVQXRwV09JZFR4Tm1VdnNaZGxWQTl2RGMvVG5KUmJVazBhQ3d2cVZXTWFqUFBvenQ4L0N2ekhxd2NPdWdrRnVjNys4TTlSRmkrUnRaWEEra3JUTmduVEtKUkhkMTYzZFdzeTNmcHlGVTlQQWN5a3lUS3FGZmlsRmpOaUc4N1gwTVpycDRsTFJjU3VGa2dIWTZyL2lJa0x2Rk02RElyVEpTeERQM2JYbzlqRmw5UU9hYlNOZm9QeEttNDF1NUdxcGVKWGpsTk5BREkrR050V1E2ZzNaMm11WVdwUzU0TlVkSk5yeUdQeUx4QT09PC9YNTA5Q2VydGlmaWNhdGU+PC9YNTA5RGF0YT48L0tleUluZm8+PE9iamVjdD48U2lnbmF0dXJlUHJvcGVydGllcyB4bWxucz0iIj48U2lnbmF0dXJlUHJvcGVydHkgSWQ9IlNpZ25pbmdUaW1lIiBUYXJnZXQ9InNpZ25hdHVyZVByb3BlcnRpZXMiPjxTaWduaW5nVGltZT4yMDIzLTA3LTE4VDAyOjU3OjIyWjwvU2lnbmluZ1RpbWU+PC9TaWduYXR1cmVQcm9wZXJ0eT48L1NpZ25hdHVyZVByb3BlcnRpZXM+PC9PYmplY3Q+PC9TaWduYXR1cmU+PC9MaWNlbnNlPg==</field>
+        </record>
+
+        <record model="ir.config_parameter" id="url_smart_ca">
+            <field name="key">url_smart_ca</field>
+            <field name="value">https://gwsca.vnpt.vn</field>
+        </record>
+
+        <record model="ir.config_parameter" id="sp_id_smart_ca">
+            <field name="key">sp_id_smart_ca</field>
+            <field name="value">4bf2-638252107144833891.apps.smartcaapi.com</field>
+        </record>
+
+        <record model="ir.config_parameter" id="sp_password_smart_ca">
+            <field name="key">sp_password_smart_ca</field>
+            <field name="value">ODQyMDcxZWM-N2NiYS00YmYy</field>
+        </record>
+
+        <record model="ir.config_parameter" id="kyso_dongbo">
+            <field name="key">kyso_dongbo</field>
+            <field name="value">False</field>
+        </record>
+    </data>
+</odoo>

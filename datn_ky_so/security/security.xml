@@ -1,0 +1,30 @@
+<odoo>
+    <record id="module_hrm_kyso" model="ir.module.category">
+        <field name="name">HRM KY SO</field>
+        <field name="sequence">-110</field>
+    </record>
+
+    <record id="hrm_quyen_kyso_canhan" model="res.groups">
+        <field name="name">Ký tên cá nhân</field>
+        <field name="category_id" ref="module_hrm_kyso"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="hrm_quyen_kyso_coquan" model="res.groups">
+        <field name="name">Ký tên cơ quan</field>
+        <field name="category_id" ref="module_hrm_kyso"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="hrm_quyen_dongdau_coquan" model="res.groups">
+        <field name="name">Đóng dấu cơ quan</field>
+        <field name="category_id" ref="module_hrm_kyso"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="hrm_quyen_kyso_kynhay" model="res.groups">
+        <field name="name">Ký nháy</field>
+        <field name="category_id" ref="module_hrm_kyso"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+</odoo>

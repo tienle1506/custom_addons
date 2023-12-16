@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hinhthuc_kyso,access_hinhthuc_kyso,model_hinhthuc_kyso,base.group_user,1,1,1,1,1
+access_temp_model_kyso_all,temp_model_kyso_all,model_temp_model_kyso,base.group_user,1,1,1,1
+
+access_datn_kyso_file_canhan,datn_kyso_file_canhan,model_datn_kyso_file,hrm_quyen_kyso_canhan,1,1,1,1
+access_datn_kyso_file_coquan,datn_kyso_file_coquan,model_datn_kyso_file,hrm_quyen_kyso_coquan,1,1,1,1
+access_datn_kyso_file_daucoquan,datn_kyso_file_daucoquan,model_datn_kyso_file,hrm_quyen_kyso_canhan,1,1,1,1

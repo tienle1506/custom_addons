@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="assets_backend" name="kyso_template" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <!--     js       -->
+            <script type="text/javascript" src="/datn_ky_so/static/src/js/custom_base.js"/>
+            <script type="text/javascript" src="/datn_ky_so/static/src/js/libs/html2pdf.bundle.min.js"/>
+            <link rel="stylesheet" type="text/css" href="/datn_ky_so/static/src/css/style.css"/>
+
+            <link type="text/css" href="/datn_ky_so/static/src/advance/css/vnptpdf-1.0.3.css" rel="stylesheet" />
+            <link type="text/css" href="/datn_ky_so/static/src/advance/css/asRange.min.css" rel="stylesheet" />
+
+            <script type="text/javascript" src="/datn_ky_so/static/src/js/libs/vnpt-plugin.js"></script>
+            <script type="text/javascript" src="/datn_ky_so/static/src/js/libs/base64.js"></script>
+            <script type="text/javascript" src="/datn_ky_so/static/src/advance/js/vnptpdf-1.0.3.js"></script>
+            <script type="text/javascript" src="/datn_ky_so/static/src/advance/js/jquery-asRange.min.js"></script>
+            <script type="text/javascript" src="/datn_ky_so/static/src/advance/js/jscolor.js"></script>
+            <script type="text/javascript" src="/datn_ky_so/static/src/advance/js/pdf.js"></script>
+            <script type="text/javascript" src="/datn_ky_so/static/src/advance/js/pdf.worker.js"></script>
+
+        </xpath>
+    </template>
+</odoo>

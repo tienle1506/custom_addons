@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+     <record id="hrm_view_departments_form_inherit" model="ir.ui.view">
+            <field name="name">hrm_view_departments_form_inherit</field>
+            <field name="model">hr.department</field>
+            <field name="inherit_id" ref="hrm.view_departments_form"/>
+            <field name="arch" type="xml">
+               <xpath expr="//field[@name='vice_president']" position="after">
+                   <group>
+                    <group>
+                        <field name="chu_ky" filename="file_name" attrs="{'required': [('hinhthuc_kyso_ids', '!=', [])]}" widget="image" class="chu_ky_user"/>
+                        <field name="file_name" readonly="1" force_save="1" string="" class="ten_chu_ky_user"/>
+                    </group>
+                    <group>
+                        <p>
+                            <i>* Yêu cầu:</i>
+                            <br/>
+                            <i>- Hình ảnh chữ ký: Chữ ký trên văn bản giấy, màu xanh, định dạng .png, nền chữ ký phải
+                                được làm trong suốt.
+                            </i>
+                            <br/>
+                            <i>- Hình ảnh con dấu của đơn vị: màu đỏ, kích thước bằng kích thước thực tế, định dạng
+                                .png, nền con dấu phải được làm trong suốt.
+                            </i>
+                        </p>
+                    </group>
+                </group>
+               </xpath>
+            </field>
+     </record>
+    <!-- Inherit Form View to Modify it -->
+
+    <record id="res_users_preferences_kyso_inherit" model="ir.ui.view">
+        <field name="name">res_users_preferences_kyso_inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//group[@name='active_group']" position="after">
+                <group string="Cấu hình chữ ký số" name="preference_theme">
+                    <field name="hinhthuc_kyso_ids" widget="many2many_tags" domain="[('is_active', '=', True)]"
+                           options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
+
+                    <field name="is_kyso_mobile" invisible="1"/>
+                    <field name="is_kyso_smartca" invisible="1"/>
+                </group>
+                <group attrs="{'invisible': [('is_kyso_mobile', '!=', True)]}">
+                    <group>
+                        <field name="mang_sim_ky_so"
+                               attrs="{'invisible': [('is_kyso_mobile', '!=', True)], 'required': [('is_kyso_mobile', '=', True)]}"/>
+                    </group>
+                    <group>
+                        <field name="sdt_pki"
+                               attrs="{'invisible': [('is_kyso_mobile', '!=', True)], 'required': [('is_kyso_mobile', '=', True)]}"/>
+                    </group>
+                </group>
+                <group attrs="{'invisible': [('is_kyso_smartca', '!=', True)]}">
+                    <group>
+                        <field name="taikhoan_smartca"
+                               attrs="{'invisible': [('is_kyso_smartca', '!=', True)], 'required': [('is_kyso_smartca', '=', True)]}"/>
+                    </group>
+                </group>
+                <group>
+                    <group>
+                        <field name="chu_ky" filename="file_name" attrs="{'required': [('hinhthuc_kyso_ids', '!=', [])]}" widget="image" class="chu_ky_user"/>
+                        <field name="file_name" readonly="1" force_save="1" string="" class="ten_chu_ky_user"/>
+                    </group>
+                    <group>
+                        <p>
+                            <i>* Yêu cầu:</i>
+                            <br/>
+                            <i>- Hình ảnh chữ ký: Chữ ký trên văn bản giấy, màu xanh, định dạng .png, nền chữ ký phải
+                                được làm trong suốt.
+                            </i>
+                            <br/>
+                            <i>- Hình ảnh con dấu của đơn vị: màu đỏ, kích thước bằng kích thước thực tế, định dạng
+                                .png, nền con dấu phải được làm trong suốt.
+                            </i>
+                        </p>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="select_hinhthuc_kyso_view_form" model="ir.ui.view">
+        <field name="name">select_hinhthuc_kyso_view_form</field>
+        <field name="model">temp_model_kyso</field>
+        <field name="arch" type="xml">
+            <form class="form_select_kyso">
+                <separator string="Vui lòng chọn hình thức ký số:"/>
+                <div>
+                    <field name="hinhthuc_kyso" widget="radio" options="{'horizontal': true}"/>
+                </div>
+                <div>
+                    <field name="is_next_default"/>
+                    <label for="is_next_default" string="Đặt làm mặc định cho lần tiếp theo"/>
+                </div>
+                <footer class="footer_select_kyso">
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                    <button name="action_continue" string="Tiếp tục >" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

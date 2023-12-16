@@ -1,0 +1,145 @@
+.form_select_kyso .o_field_radio {
+    width: 100%;
+}
+
+.form_select_kyso .o_radio_item {
+    width: 40%;
+    margin-bottom: 20px;
+}
+
+.form_select_kyso label {
+    font-size: 17px !important;
+}
+
+.form_select_kyso .o_horizontal_separator {
+    font-size: 18px !important;
+}
+
+.form_select_kyso .o_field_boolean {
+    line-height: 19px;
+}
+.form_select_kyso .o_horizontal_separator {
+    margin-bottom: 20px;
+}
+
+.form_select_kyso {
+    padding: 10px 0px 10px 40px !important;
+}
+
+.footer_select_kyso {
+    text-align: center;
+}
+
+.canhbao_cauhinh_kyso {
+    border-top: none;
+    border-bottom: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content:has(.canhbao_cauhinh_kyso) {
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal-dialog:has(.canhbao_cauhinh_kyso) {
+    max-width: 400px;
+    padding: 10% 0;
+    height: unset;
+}
+div[name="kyso_thoigianky"]{
+    width: 100% !important;
+}
+
+#pdf-advanced svg[aria-hidden="true"]{
+    display: block !important;
+}
+
+/*.modal-dialog:has(#preview_kyso){*/
+/*    max-width: 90% !important;*/
+/*    padding-top: 0px;*/
+/*    padding-bottom: 0px;*/
+/*}*/
+.modal-dialog-preview_kyso{
+    max-width: 90% !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+.modal-header-preview_kyso{
+    padding: 5px !important;
+}
+.modal-footer-preview_kyso{
+    padding: 2px;
+}
+.modal-footer-preview_kyso button{
+    margin-bottom: 0px;
+}
+/*.modal-content:has(#preview_kyso){*/
+/*    max-width: 100% !important;*/
+/*    height: 100% !important;*/
+/*}*/
+.modal-content-preview_kyso{
+    max-width: 100% !important;
+    height: 100% !important;
+}
+/*.modal-body:has(#preview_kyso){*/
+/*    max-height: 100% !important;*/
+/*}*/
+#preview_kyso .o_image_caption{
+    position: static !important;
+}
+.chu_ky_user img{
+    width: 40% !important;
+}
+.chu_ky_user{
+    text-align: center;
+    width: 80% !important;
+}
+.ten_chu_ky_user{
+    width: 80% !important;
+}
+.kyso_error{
+    border: none !important;
+    background-color: white;
+    font-size: 15px;
+    text-align: center;
+    overflow: scroll !important;
+}
+.tai_plugin_kyso_view{
+    text-align: left !important;
+}
+.kyso_hople_btn{
+    margin: 0px 0px 5px 20px;
+    color: #3dac74;
+    border: 2px solid;
+}
+div[name='kyso_ngayhieuluc'],
+div[name='kyso_ngayhethan']{
+    width: 100%;
+}
+.check_signed,
+.check_signed_form1
+{
+    transform: rotate(315deg);
+    position: absolute;
+    color: white;
+    overflow: hidden;
+    text-align: center;
+    width: 130px;
+    font-style: italic;
+}
+.check_signed
+{
+    margin: 18px 0 0 -37px;
+}
+.check_signed_form1
+{
+    margin: 9px 0 0 -52px;
+}
+.not_signed{
+    background: #C76932;
+}
+.signed{
+    background: #266d3f;
+}
