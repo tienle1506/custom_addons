@@ -263,7 +263,7 @@ odoo.define('datn_ky_so.kyso', function (require) {
         init: function (parent, name, record) {
             this._super.apply(this, arguments);
             if (this.model === 'res.users' && this.name === 'chu_ky') {
-                this.placeholder = '/vnpt_ky_so/static/src/img/upload_icon.png'
+                this.placeholder = '/datn_ky_so/static/src/img/upload_icon.png'
             }
         }
     });
@@ -643,42 +643,6 @@ odoo.define('datn_ky_so.kyso', function (require) {
                     console.log(hinhthuc_kyso);
             }
         },
-        check_kyso_duyet: function () {
-            var self = this;
-            var edition_id = self.state.data.id;
-            if (!edition_id) {
-                return
-            }
-            add_mask_thongbao('Đang kiểm tra thông tin cấu hình ký số');
-            self._rpc({
-                model: 'vnpt.hr.employee.edition',
-                method: 'action_kyso_duyet',
-                args: [],
-            }).then(function (data) {
-                remove_mask_thongbao();
-                if (data.render === 'fail') {
-                    console.log(data.message);
-                } else if (data.is_config) {
-                    self.action_kyso_duyet([edition_id], data.hinhthuc_kyso, data.key, false, 'duyet_1_hoso');
-                } else {
-                    self.do_action({
-                        name: 'Chọn hình thức ký số',
-                        type: 'ir.actions.act_window',
-                        view_type: 'form',
-                        view_mode: 'form',
-                        res_model: 'temp_model_kyso',
-                        context: {
-                            'edition_id': [edition_id],
-                            'loai_ky': 'duyet_1_hoso',
-                            'key': data.key
-                        },
-                        views: [[data.view_id, 'form']],
-                        target: 'new'
-                    });
-                }
-            });
-            $('button[disabled="disabled"]').removeAttr("disabled");
-        },
         check_kyso_gui_xn: function (type) {
             var self = this;
             var edition_id = self.state.data.id;
@@ -724,61 +688,5 @@ odoo.define('datn_ky_so.kyso', function (require) {
             $('button[disabled="disabled"]').removeAttr("disabled");
         },
     });
-
-
-    ListRenderer.include({
-        // Thêm action cho button xem
-        _renderButton: function(record, node) {
-            if (record.model === 'vnpt.hr.employee.edition.history' && node.attrs.name === 'view_kyso_info'){
-                var self = this;
-                var $button = this._renderButtonFromNode(node, {
-                    extraClass: node.attrs.icon ? 'o_icon_button' : undefined,
-                    textAsTitle: !!node.attrs.icon,
-                });
-                this._handleAttributes($button, node);
-                this._registerModifiers(node, record, $button);
-                var record_data = record;
-                $button.on("click", function (e) {
-                    self._show_thongtin_kyso(record_data.data);
-                });
-                return $button;
-            }else{
-                return this._super.apply(this, arguments);
-            }
-        },
-        _show_thongtin_kyso: function(data) {
-            $('#thongtin_kyso_dialog').remove();
-            this.$form_data_kyso = $(qweb.render('vnpt_ky_so.form_thongtin_kyso', {
-                    widget: this,
-                }));
-            this.$form_data_kyso.appendTo($('body'));
-            $('#form_thongtin_kyso input').each(function(i, obj) {
-                let field_data = data[$(obj).attr("name")];
-                if (!field_data){
-                    field_data = '';
-                } else if (field_data._f){
-                    if (field_data._f === 'YYYY-MM-DD'){
-                        field_data = field_data.format('DD/MM/YYYY');
-                    } else{
-                        field_data = field_data.format('DD/MM/YYYY hh:mm:ss');
-                    }
-                }
-                $(obj).val(field_data);
-            });
-
-            $('#thongtin_kyso_dialog .btn_close_kyso').on('click', function (e) {
-                hide_popup_kyso();
-            });
-            $('#thongtin_kyso_dialog .close').on('click', function (e) {
-                hide_popup_kyso();
-            });
-            $(document).keyup(function(e) {
-                if (e.key === "Escape") {
-                     hide_popup_kyso();
-                }
-            });
-            $('button[disabled="disabled"]').removeAttr("disabled");
-        }
-    })
 
 });

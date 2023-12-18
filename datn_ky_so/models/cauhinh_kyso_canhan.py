@@ -79,7 +79,7 @@ def _get_file_name(name):
 
 
 def get_view_error(self, message, success=False):
-    view = self.env.ref('vnpt_ky_so.message_thongbao_error_kyso')
+    view = self.env.ref('datn_ky_so.message_thongbao_error_kyso')
     view_id = view and view.id or False
     return {
         'success': success,
@@ -228,7 +228,7 @@ class SelectHinhThucKySo(models.TransientModel):
 
     @api.model
     def get_view_tai_plugin(self):
-        view = self.env.ref('vnpt_ky_so.tai_plugin_kyso_view')
+        view = self.env.ref('datn_ky_so.tai_plugin_kyso_view')
         view_id = view and view.id or False
         return {
             'name': 'Thông báo',

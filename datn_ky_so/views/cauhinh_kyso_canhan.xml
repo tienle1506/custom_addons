@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
+     <record id="tai_plugin_kyso_view" model="ir.ui.view">
+        <field name="name">tai_plugin_kyso_view</field>
+        <field name="model">temp_model_kyso</field>
+        <field name="arch" type="xml">
+            <form class="tai_plugin_kyso_view">
+                <div>
+                    <p>VNPT-CA Plugin chưa được cài đặt hoặc chưa được bật</p>
+                    <p>Bạn có thể tải bản cài đặt theo các link dưới đây</p>
+                    <p>
+                        <b>1. Plugin ký số cho Windows</b>
+                    </p>
+                    <a href="https://www.dropbox.com/s/dzahky5n2ouc0hi/VNPT-CA%20Plugin_Office_Setup_1.0.4.3.exe?dl=1">
+                        VNPT CA Plugin.exe
+                    </a>
+                    <p>
+                        <b>2. Plugin ký số cho MAC</b>
+                    </p>
+                    <a href="https://www.dropbox.com/s/1ybbmit5dcwl7gw/VNPTCA-Plugin_ky_so.zip?dl=1">VNPT CA
+                        Plugin.pkg
+                    </a>
+                </div>
+                <footer class="canhbao_cauhinh_kyso">
+                    <button string="Đóng" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 
      <record id="hrm_view_departments_form_inherit" model="ir.ui.view">
             <field name="name">hrm_view_departments_form_inherit</field>
@@ -9,7 +36,7 @@
                <xpath expr="//field[@name='vice_president']" position="after">
                    <group>
                     <group>
-                        <field name="chu_ky" filename="file_name" attrs="{'required': [('hinhthuc_kyso_ids', '!=', [])]}" widget="image" class="chu_ky_user"/>
+                        <field name="chu_ky" filename="file_name" widget="image" class="chu_ky_user"/>
                         <field name="file_name" readonly="1" force_save="1" string="" class="ten_chu_ky_user"/>
                     </group>
                     <group>

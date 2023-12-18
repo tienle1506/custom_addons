@@ -22,16 +22,16 @@
                 <form>
                     <header>
                         <button string="Ký số cá nhân" name="action_kyso_canhan"
-                                groups="hrm_quyen_kyso_canhan"
+                                groups="datn_ky_so.hrm_quyen_kyso_canhan"
                                 class="oe_stat_button oe_highlight" attrs="{'readonly': [('is_ky_ca_nhan','==',True)]}"/>
                         <button string="Ký số cơ quan" name="action_kyso_coquan"
-                                groups="hrm_quyen_kyso_coquan"
+                                groups="datn_ky_so.hrm_quyen_kyso_coquan"
                                 class="oe_stat_button oe_highlight" attrs="{'readonly': [('is_ky_co_quan','==',True)]}"/>
                         <button string="Ký số dấu cơ quan" name="action_kyso_dau_coquan"
-                                groups="hrm_quyen_dongdau_coquan"
+                                groups="datn_ky_so.hrm_quyen_dongdau_coquan"
                                 class="oe_stat_button oe_highlight" attrs="{'readonly': [('is_ky_dau_co_quan','==',True)]}"/>
                         <button string="Ký số nháy" name="action_kyso_kynhay" class="oe_stat_button oe_highlight"
-                                groups="hrm_quyen_kyso_kynhay"/>
+                                groups="datn_ky_so.hrm_quyen_kyso_kynhay"/>
                     </header>
                     <group>
                         <field name="name"/>

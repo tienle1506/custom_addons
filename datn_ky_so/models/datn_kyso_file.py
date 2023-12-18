@@ -84,7 +84,7 @@ def _get_file_name(name):
 
 
 def get_view_error(self, message, success=False):
-    view = self.env.ref('vnpt_ky_so.message_thongbao_error_kyso')
+    view = self.env.ref('datn_ky_so.message_thongbao_error_kyso')
     view_id = view and view.id or False
     return {
         'success': success,
@@ -191,7 +191,9 @@ class DATNHrKySoFile(models.Model):
                     key = get_key_token(self)
                     chu_ky = user.chu_ky
                     if loai_ky == 'action_kyso_dau_coquan':
-                        dau_co_quan = self.env['hr.department'].search([('id', 'parent_of', user.department_id.id)], order='department_level desc', limit='1')
+                        dau_co_quan = self.env['hr.department'].search([('id', 'parent_of', user.department_id.id),('chu_ky', '!=', False)], order='department_level desc', limit=1)
+                        if not dau_co_quan:
+                            raise ValidationError('Chưa có cấu hình dấu cơ quan của nhân sự này')
                         chu_ky = dau_co_quan.chu_ky
                     return {
                         'is_config': True,
@@ -216,9 +218,30 @@ class DATNHrKySoFile(models.Model):
     @api.model
     def complete_kyso(self, edition_id, _base64_daky):
         record = self.browse(edition_id)
+        loai_ky = request.session.get('loai_ky')
+        is_ky_ca_nhan = record.is_ky_ca_nhan
+        is_ky_co_quan = record.is_ky_co_quan
+        is_ky_dau_co_quan = record.is_ky_dau_co_quan
+        so_lan_ky_nhay = record.so_lan_ky_nhay
+        if loai_ky == 'action_kyso_dau_coquan':
+            record.is_ky_dau_co_quan = True
+        elif loai_ky == 'action_kyso_canhan':
+            record.is_ky_ca_nhan = True
+        elif loai_ky == 'action_kyso_coquan':
+            record.is_ky_co_quan = True
+        elif loai_ky == 'action_kyso_kynhay':
+            record.so_lan_ky_nhay = record.so_lan_ky_nhay + 1
+            x = 80
+            y = 80 - 80 * int(record.so_lan_ky_nhay) if record.so_lan_ky_nhay else 0
         if record:
             filename = _get_file_name(record.name)
-            record.sudo().write({'file_kyso': _base64_daky, 'file_name': filename})
+            record.sudo().write({'file_kyso': _base64_daky, 'file_name': filename,
+                                    'is_ky_ca_nhan': is_ky_ca_nhan,
+                                    'is_ky_co_quan': is_ky_co_quan,
+                                    'is_ky_dau_co_quan': is_ky_dau_co_quan,
+                                    'is_ky_dau_co_quan': is_ky_dau_co_quan,
+                                    'so_lan_ky_nhay': so_lan_ky_nhay
+                                 })
             self.env.cr.execute('''update ir_attachment set name = %s, store_fname = %s where res_id = %s
                                         and res_field = 'file_kyso' and res_model = 'datn.kyso.file'
                                   returning id;''', (filename, filename, edition_id, ))

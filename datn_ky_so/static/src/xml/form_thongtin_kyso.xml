@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <template id="add_warning_buttons" xml:space="preserve">
 
-    <t t-name="vnpt_ky_so.form_thongtin_kyso">
+    <t t-name="datn_ky_so.form_thongtin_kyso">
         <div class="modal show" id="thongtin_kyso_dialog" tabindex="-1" role="dialog"
              aria-labelledby="exampleModalLabel" aria-hidden="false" style="display:block">
             <div class="modal-dialog" role="document">
