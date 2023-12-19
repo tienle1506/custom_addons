@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="datn_config_trocap_phucap_tree" model="ir.ui.view">
+            <field name="name">Cấu hình loại trợ cấp, phụ cấp</field>
+            <field name="model">datn.config.trocap.phucap</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" create="true">
+                    <field name="name"/>
+                    <field name="code" required="1"/>
+                    <field name="trang_thai_ap_dung"/>
+                    <field name="note"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="datn_config_trocap_phucap_action" model="ir.actions.act_window">
+            <field name="name">Cấu hình loại trợ cấp, phụ cấp</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">datn.config.trocap.phucap</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'view_from_action': 'datn_config_trocap_phucap'}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Chưa có cấu hình loại nghỉ nào, Hãy tạo một cấu hình loại trợ cấp, phụ cấp.
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="datn_config_trocap_phucap_tree_action">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="datn_config_trocap_phucap_tree"/>
+            <field name="act_window_id" ref="datn_config_trocap_phucap_action"/>
+        </record>
+    </data>
+</odoo>

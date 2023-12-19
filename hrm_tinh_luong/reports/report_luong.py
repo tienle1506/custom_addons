@@ -33,6 +33,7 @@ class DATNBaseReport(models.TransientModel):
     state = fields.Selection((('choose', 'choose'),  # choose date
                               ('get', 'get'),  # get the file
                               ), default='choose')
+    type_ids = fields.Many2many('datn.config.trocap.phucap', 'report_trocap_phucap_rel', 'report_id','trocap_phucap_id', string="Loại")
 
     @api.onchange('date_from')
     def _onchange_date_from(self):
@@ -193,3 +194,130 @@ class DATNBaseReport(models.TransientModel):
             'views': [(view_id, 'form')],
             'target': 'new',
         }
+
+    def export_excel_report_trocap_phucap(self):
+        dada = self.get_trocap_phucap()
+        donvi_name = self.department_id.name
+
+        file_name = u'Báo cáo phụ cấp, trợ cấp từ ngày %s đến ngày %s' % (self.date_from, self.date_to)
+        title = u'BÁO CÁO PHỤ CẤP, TRỢ CẤP THƯỜNG KỲ CÔNG TY TNHH HUCE VIỆT NAM'
+        # TODO: Init báo cáo
+        buf = BytesIO()
+        wb = xlsxwriter.Workbook(buf, {'in_memory': True})
+        wssheet = wb.add_worksheet('Biểu phụ cấp trợ cấp thường kỳ')
+
+        # TODO: Set độ rộng cột báo cáo
+        # STT
+        wssheet.set_column(0, 0, 5)
+        for i in range(1, 10):
+            if i == 2 or i == 3:
+                wssheet.set_column(i, i, 24)
+            else:
+                wssheet.set_column(i, i, 12)
+        wssheet.set_row(3, 40)
+        # wssheet.set_row(5, 50)
+        # Set print fit to pages
+        wssheet.fit_to_pages(1, 0)
+        # Set print lan
+        # wssheet.set_landscape()
+        wssheet.set_portrait()
+        # TODO: Tiêu đề báo cáo
+        style_excel = style_excel_wb.get_style(wb)
+        wssheet.merge_range(0, 0, 0, 2, u'Tổng công ty THHH HUCE Việt Nam', style_excel['style_12_left'])
+        wssheet.merge_range(1, 0, 1, 2, u'Đơn vị báo cáo: %s' % (donvi_name), style_excel['style_12_left'])
+
+        wssheet.merge_range(0, 3, 0, 9, title, style_excel['style_14_bold_center'])
+        wssheet.merge_range(1, 3, 1, 9, u'Tính từ ngày %s đến ngày %s' % (self.date_from, self.date_to),
+                            style_excel['style_12_center_italic'])
+
+        _row = 3
+        wssheet.write(_row, 0, u"STT", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 1, u"Mã nhân viên", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 2, u"Họ và tên", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 3, u"Đơn vị phòng ban", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 4, u"Trợ cấp", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 5, u"Phụ cấp", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 6, u"Thưởng", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 7, u"Phúc lợi", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 8, u"Tổng cộng", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, 9, u"Chú thích", style_excel['style_11_bold_center_border'])
+
+        _row += 1
+        for j in range(0, 10):
+            wssheet.write(_row, j, '(%s)' % (j + 1), style_excel['style_11_center_border'])
+        _row += 1
+        current_row = _row
+
+        # Todo Số lượng CBCCVC thuộc Ủy ban Nhân dân
+        current_row = current_row + 2
+        # TODO: Xuất footer báo cáo
+        wssheet.merge_range(current_row + 5, 1, current_row + 5, 2, u'Người lập biểu', style_excel['style_12_bold_center'])
+        wssheet.merge_range(current_row + 6, 1, current_row + 6, 2, u'(Ký tên, ghi rõ họ tên)', style_excel['style_12_center_italic'])
+
+        wssheet.merge_range(current_row + 6, 6, current_row + 6, 8, u'Thủ trưởng đơn vị', style_excel['style_12_bold_center'])
+        wssheet.merge_range(current_row + 7, 6, current_row + 7, 8, u'(Ký tên, đóng dấu)', style_excel['style_12_center_italic'])
+
+        # TODO: Xuất ra File báo cáo
+        wb.close()
+        buf.seek(0)
+        out = base64.encodestring(buf.getvalue())
+        buf.close()
+        self.write({'state': 'get', 'data': out, 'name': file_name + '.xlsx'})
+        view = self.env.ref('hrm_tinh_luong.report_trocap_phucap_view')
+        view_id = view and view.id or False
+        return {
+            'name': _('Danh sách lương'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'report.luong',
+            'view_mode': 'form',
+            'view_type': 'form',
+            'res_id': self.id,
+            'views': [(view_id, 'form')],
+            'target': 'new',
+        }
+
+    def get_trocap_phucap(self):
+        string_type = 'WHERE'
+        if not self.type_ids:
+            lists = self.env['datn.config.trocap.phucap'].search([('trang_thai_ap_dung', '=', True)])
+            if lists:
+                for i in range(0, len(lists)):
+                    if i == 0:
+                        string_type += ' ctt.id = %s'%(lists[i].id)
+                    else:
+                        string_type += ' OR ctt.id = %s' % (lists[i].id)
+            else:
+                string_type += ' id = 0'
+
+        else:
+            i = 0
+            for ls in self.type_ids:
+                if i == 0:
+                    string_type += ' ctt.id = %s' % (ls.id)
+                else:
+                    string_type += ' OR ctt.id = %s' % (ls.id)
+
+                i = i+1
+        SQL = ''
+        SQL += '''WITH s AS (SELECT emp.id as employee_id, emp.name AS hoten, dp.name AS department_name, SUM(muc_huong) AS tongtien, ctt.name AS type
+                from datn_trocap_phucap_line ttl INNER JOIN datn_trocap_phucap tt ON ttl.trocap_phucap_id = tt.id
+                INNER JOIN hr_employee emp ON ttl.employee_id = emp.id
+                INNER JOIN hr_department dp ON dp.id = emp.department_id
+                INNER JOIN datn_config_trocap_phucap ctt ON ctt.id = tt.type_id
+                %s AND ngay_chi_tra <= '%s' AND ngay_chi_tra >= '%s' AND emp.department_id = ANY
+                      (ARRAY(SELECT child_ids FROM child_department WHERE parent_id = %s)) AND tt.state='confirmed'
+                GROUP BY emp.id, dp.id, ctt.id)
+
+                select JSON_AGG(
+                json_build_object(
+                'tongtien', s.tongtien,
+                'type', s.type
+                )), hoten, department_name from s
+                GROUP BY s.employee_id, s.hoten, s.department_name
+                '''%(string_type, self.date_to, self.date_from, self.department_id.id)
+        self.env.cr.execute(SQL)
+        datas = self.env.cr.dictfetchall()
+        if not datas:
+            datas = []
+
+        return  datas

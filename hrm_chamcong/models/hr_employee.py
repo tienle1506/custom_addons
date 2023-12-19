@@ -34,7 +34,7 @@ class EmployeeProfile(models.Model):
         if context.get('parent_department_id', False):
             emp_domain = [('department_id', 'child_of', context.get('parent_department_id'))]
         if context.get('parent_department_id_le', False):
-            emp_domain = [('department_id', 'in', [context.get('parent_department_id_le')])]
+            emp_domain = [('department_id', 'child_of', context.get('parent_department_id_le')[0][2])]
         if context.get('list_employee_phe_duyet', False):
             if context.get('department_phe_duyet', False):
                 SQL = '''

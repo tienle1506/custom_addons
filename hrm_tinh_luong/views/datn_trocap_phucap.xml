@@ -10,7 +10,7 @@
                       default_order="ngay_chi_tra desc">
                     <field name="name"/>
                     <field name="department_id" widget="many2many_tags"/>
-                    <field name="type"/>
+                    <field name="type_id"/>
                     <field name="muc_huong_chung"/>
                     <field name="ngay_chi_tra"/>
                     <field name="ngay_tao"/>
@@ -42,7 +42,7 @@
                         </group>
                         <group class="date_letet">
                                 <field name="ngay_chi_tra" class="date1 oe_inline" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="type" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="type_id"  domain="[('trang_thai_ap_dung', '=', 'True')]" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                     <group>
@@ -84,7 +84,7 @@
                                     <field name="employee_id" required="1" widget="many2one" context="{'parent_department_id_le': parent.department_id}"
                                            options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
                                     <field name="department_id" readonly="1" force_save="1"/>
-                                    <field name="muc_huong" readonly="1" force_save="1"/>
+                                    <field name="muc_huong"/>
                                     <field name="note"/>
                                 </tree>
                             </field>
@@ -114,7 +114,7 @@
         </record>
 
         <record id="datn_trocap_phucap_action" model="ir.actions.act_window">
-            <field name="name">Quản lý lễ tết</field>
+            <field name="name">Quản lý trợ cấp, phụ cấp</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">datn.trocap.phucap</field>
             <field name="view_mode">tree,form</field>

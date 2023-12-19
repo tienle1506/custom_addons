@@ -64,4 +64,20 @@
               groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
     </menuitem>
 
+    <menuitem id="menu_item_report_trocap_phucap"
+              name='Báo cáo phụ cấp trợ câ'
+              parent="menu_report"
+              sequence="1"
+              action="action_report_trocap_phucap"
+              groups="hrm.hrm_group_config_access,hrm_chamcong.hrm_quyen_hr" >
+    </menuitem>
+
+
+    <menuitem id="menu_datn_config_trocap_phucap_action" name="Cấu hình loại trợ cấp, phụ cấp"
+              parent="hrm.config_office"
+              sequence="13"
+              action='datn_config_trocap_phucap_action'
+              groups="hrm.hrm_group_config_access,hrm.hrm_group_own_edit">
+    </menuitem>
+
 </odoo>

@@ -10,7 +10,7 @@ import xlsxwriter
 from io import BytesIO
 from ...hrm_chamcong.models import style_excel_wb
 from dateutil.relativedelta import relativedelta
-from ...hrm.models import constraint
+
 
 class DATNDieuChinh(models.Model):
     _name = 'datn.dieuchinh'

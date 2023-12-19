@@ -18,7 +18,7 @@ class DATNHrmLeTet(models.Model):
     _order = "ngay_chi_tra desc"
 
     name = fields.Char(string=u'Tên trợ cấp, phụ cấp', size=128, track_visibility='always', )
-    department_id = fields.Many2many('hr.department', 'department_trocap_phucap_rel', 'department_id', 'trocap_phucap_id', string="Đơn vị/ phòng ban")
+    department_id = fields.Many2many('hr.department', 'department_trocap_phucap_rel', 'trocap_phucap_id','department_id', string="Đơn vị/ phòng ban")
     data = fields.Binary('File', readonly=True)
     muc_huong_chung = fields.Integer('Mức hưởng chung')
     item_ids = fields.One2many('datn.trocap.phucap.line', string='Items', inverse_name='trocap_phucap_id',
@@ -27,8 +27,7 @@ class DATNHrmLeTet(models.Model):
     ngay_tao = fields.Date(u'Ngày tạo', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
-    type = fields.Selection([('phucloi', u'Phúc lợi'), ('thuong', u'Thưởng'),('trocap', u'Trợ cấp'),('phucap', u'Phụ cấp')],
-                             string=u'Loại trợ cấp, phụ cấp', default='phucloi', track_visibility='always')
+    type_id = fields.Many2one('datn.config.trocap.phucap', string="Loại")
 
     # Import
     datn_file = fields.Binary(u'Đường dẫn tập tin', filters="*.xls,*.xlsx")
