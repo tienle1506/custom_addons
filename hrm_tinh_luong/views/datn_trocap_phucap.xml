@@ -10,6 +10,7 @@
                       default_order="ngay_chi_tra desc">
                     <field name="name"/>
                     <field name="department_id" widget="many2many_tags"/>
+                    <field name="type"/>
                     <field name="muc_huong_chung"/>
                     <field name="ngay_chi_tra"/>
                     <field name="ngay_tao"/>
@@ -41,6 +42,7 @@
                         </group>
                         <group class="date_letet">
                                 <field name="ngay_chi_tra" class="date1 oe_inline" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="type" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                     <group>

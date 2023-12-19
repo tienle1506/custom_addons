@@ -27,6 +27,8 @@ class DATNHrmLeTet(models.Model):
     ngay_tao = fields.Date(u'Ngày tạo', widget='date', format='%Y-%m-%d', default=fields.Date.today)
     state = fields.Selection([('draft', u'Soạn thảo'), ('confirmed', u'Xác nhận')],
                              string=u'Trạng thái', default='draft', track_visibility='always')
+    type = fields.Selection([('phucloi', u'Phúc lợi'), ('thuong', u'Thưởng'),('trocap', u'Trợ cấp'),('phucap', u'Phụ cấp')],
+                             string=u'Loại trợ cấp, phụ cấp', default='phucloi', track_visibility='always')
 
     # Import
     datn_file = fields.Binary(u'Đường dẫn tập tin', filters="*.xls,*.xlsx")

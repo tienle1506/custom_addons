@@ -88,7 +88,7 @@
               parent="menu_quanly_letet_thuong"
               sequence="13"
               action='hr_request_type_action'
-              groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi">
+              groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi,hrm_chamcong.hrm_phe_duyet_checkin_checkout,hrm_chamcong.hrm_phe_duyet_tang_ca">
     </menuitem>
 
 

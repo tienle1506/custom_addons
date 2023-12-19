@@ -440,7 +440,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
         nguoi_duyet = []
         for emp in self.nguoi_duyet:
             if emp.personal_email:
-                nguoi_duyet.append(emp.personal_mail.strip())
+                nguoi_duyet.append(emp.personal_email.strip())
         header = '''Thông báo phê duyệt chấm công %s''' % (self.employee_id.name)
         ly_do_value = self.ly_do
         ly_do_label = dict(self._fields['ly_do'].selection).get(ly_do_value)

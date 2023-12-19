@@ -135,6 +135,16 @@ class DATNHrKySoFile(models.Model):
     is_ky_co_quan = fields.Boolean(string="Đã ký cơ quan", default=False)
     is_ky_dau_co_quan = fields.Boolean(string="Đã ký dấu cơ quan", default=False)
     so_lan_ky_nhay = fields.Integer(string="Số lần ký nháy", default=0)
+    nguoi_duyet = fields.Many2many('hr.employee', 'employee_duyet_kyso_rel', 'kyso_id', 'employee_id',
+                                   string="Người duyệt")
+    employee_id = fields.Many2one('hr.employee', string="Nhân viên", ondelete='cascade',
+                                  default=lambda self: self._default_employee())
+
+    @api.model
+    def _default_employee(self):
+        user = self.env.user
+        employee = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
+        return employee
 
     @api.constrains('file_kyso')
     def check_chu_ky(self):

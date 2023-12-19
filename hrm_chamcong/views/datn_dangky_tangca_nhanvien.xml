@@ -45,7 +45,7 @@
                             <field name="date_to" class="date1 oe_inline" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
                         </group>
                         <group>
-                            <field string="Người duyệt" name="nguoi_duyet" required="1" widget="many2many_tags" attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field string="Người duyệt" name="nguoi_duyet" required="1" widget="many2many_tags" attrs="{'readonly': [('state','!=','draft')]}" context="{'list_employee_phe_duyet': 'Phê duyệt đăng ký nghỉ', 'department_phe_duyet': employee_id}"/>
                             <field string="Số giờ tăng ca" name="so_gio_tang_ca" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
                             <field name="ly_do" style="max-width: 200px;" attrs="{'readonly': [('state','!=','draft')]}"/>
                             <field name="create_date" widget="date" string="Ngày tạo"

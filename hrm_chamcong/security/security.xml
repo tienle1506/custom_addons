@@ -21,4 +21,10 @@
         <field name="category_id" ref="module_hrm_chamcong"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
+
+    <record id="hrm_phe_duyet_checkin_checkout" model="res.groups">
+        <field name="name">Phê duyệt checkin checkout</field>
+        <field name="category_id" ref="module_hrm_chamcong"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 </odoo>

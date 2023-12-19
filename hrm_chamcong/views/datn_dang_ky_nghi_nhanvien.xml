@@ -47,7 +47,7 @@
                             <field name="so_ngay_nghi" required="1"/>
                         </group>
                         <group>
-                            <field string="Người duyệt" name="nguoi_duyet" required="1" widget="many2many_tags" attrs="{'readonly': [('state','!=','draft')]}"/>
+                            <field string="Người duyệt" name="nguoi_duyet" required="1" widget="many2many_tags" attrs="{'readonly': [('state','!=','draft')]}" context="{'list_employee_phe_duyet': 'Phê duyệt đăng ký nghỉ', 'department_phe_duyet': employee_id}"/>
                             <field string="Loại nghỉ" name="loai_nghi" required="1"
                                    attrs="{'readonly': [('state','!=','draft')]}"
                                    domain="[('trang_thai_ap_dung', '=', 'True')]"

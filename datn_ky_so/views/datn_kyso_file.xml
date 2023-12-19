@@ -38,6 +38,10 @@
                         <field name="file_kyso" filename="file_name" widget="binary"/>
                         <field name="file_name" invisible="1"/>
                         <field name="ngay_ky"/>
+                        <field name="ngay_ky"/>
+                        <field name="ngay_ky"/>
+                        <field options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" name="employee_id" required="1" readonly="1" force_save="1"/>
+                        <field name="nguoi_duyet" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" widget="many2many_tags" context="{'list_employee_phe_duyet': 'Ký số', 'department_phe_duyet': employee_id}"/>
                         <field name="is_ky_dau_co_quan" invisible="1"/>
                         <field name="is_ky_co_quan" invisible="1"/>
                         <field name="is_ky_ca_nhan" invisible="1"/>

@@ -27,11 +27,11 @@
                         <button string="Gửi phê duyệt" name="action_send_approve" type="object" attrs="{'invisible': [('state','!=','draft')]}"
                                 class="oe_highlight"/>
                         <button string="Phê duyệt" name="action_approve" type="object" attrs="{'invisible': ['|', ('state','=','draft'), ('state','=','approved')]}"
-                                groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"
+                                groups="hrm_chamcong.hrm_phe_duyet_checkin_checkout"
                                 class="oe_highlight"/>
                         <button string="Từ chối" name="action_refuse" type="object" attrs="{'invisible': [('state','!=','approved')]}"
                                 class="oe_highlight"
-                                groups="hrm_chamcong.hrm_phe_duyet_dang_ky_nghi"/>
+                                groups="hrm_chamcong.hrm_phe_duyet_checkin_checkout"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
                                 attrs="{'invisible': [('state', 'in', ['draft','confirmed', 'approved'])]}"/>
                         <field name="state" widget="statusbar"/>
@@ -47,7 +47,7 @@
                             </group>
                             <group>
                                 <field name="nguoi_duyet" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
-                                       widget="many2many_tags"  attrs="{'readonly': [('state','!=','draft')]}"/>
+                                       widget="many2many_tags"  attrs="{'readonly': [('state','!=','draft')]}" context="{'list_employee_phe_duyet': 'Phê duyệt đăng ký nghỉ', 'department_phe_duyet': employee_id}"/>
                                 <field name="checkin_checkout_id" options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"
                                        attrs="{'readonly': [('state','!=','draft')]}"/>
                                 <field name="timeofday" readonly="1"/>
