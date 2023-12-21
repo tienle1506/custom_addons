@@ -10,7 +10,7 @@
                    <group string="Attendance" name="identification_group">
                        <button name="loaf_face_ai_user_new" string="Tạo dữ liệu FaceAi" type="object" class="oe_highlight" groups="hrm_chamcong.hrm_quyen_hr"/>
                        <button name="accept_face_ai" string="Xác nhận FaceAi" type="object" class="oe_highlight" groups="hrm_chamcong.hrm_quyen_hr"/>
-                       <button name="chamcong_face_ai" string="Chấm công FaceAi" type="object" class="oe_highlight" groups="hrm_chamcong.hrm_group_own_edit"/>
+                       <button name="chamcong_face_ai" string="Chấm công FaceAi" type="object" class="oe_highlight" groups="hrm.hrm_group_own_edit"/>
                    </group>
                </xpath>
             </field>

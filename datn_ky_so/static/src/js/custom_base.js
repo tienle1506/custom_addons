@@ -522,6 +522,7 @@ odoo.define('datn_ky_so.kyso', function (require) {
             })
                 .then(function (result) {
                     alert('Ký số thành công')
+                    location.reload();
                     framework.unblockUI();
                 });
         },

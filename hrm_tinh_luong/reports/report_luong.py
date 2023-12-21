@@ -20,6 +20,15 @@ def _default_date_from(self):
 def _default_date_to(self):
     return (datetime.today() + relativedelta(months=+1, day=1, days=-1)).strftime('%Y-%m-%d')
 
+
+def _col_to_string(n):
+    string = ""
+    n += 1
+    while n > 0:
+        n, remainder = divmod(n - 1, 26)
+        string = chr(65 + remainder) + string
+    return string
+
 class DATNBaseReport(models.TransientModel):
     _name = 'report.luong'
     _inherit = ['mail.thread']
@@ -215,47 +224,85 @@ class DATNBaseReport(models.TransientModel):
             else:
                 wssheet.set_column(i, i, 12)
         wssheet.set_row(3, 40)
+        wssheet.set_row(0, 60)
         # wssheet.set_row(5, 50)
         # Set print fit to pages
         wssheet.fit_to_pages(1, 0)
         # Set print lan
         # wssheet.set_landscape()
         wssheet.set_portrait()
+
+        if self.type_ids:
+            len_type = len(self.type_ids)
+            type_ids_list = self.type_ids.mapped('name')
+        else:
+            list_all = self.env['datn.config.trocap.phucap'].search([('trang_thai_ap_dung', '=', True)])
+            if list_all:
+                len_type = len(list_all)
+                type_ids_list = list_all.mapped('name')
+            else:
+                len_type = 0
+                type_ids_list = []
+
+        row_tt = 4
+        strlb = 'Tổng công ty THHH HUCE Việt Nam \nĐơn vị báo cáo: {}'.format(donvi_name)
         # TODO: Tiêu đề báo cáo
         style_excel = style_excel_wb.get_style(wb)
-        wssheet.merge_range(0, 0, 0, 2, u'Tổng công ty THHH HUCE Việt Nam', style_excel['style_12_left'])
-        wssheet.merge_range(1, 0, 1, 2, u'Đơn vị báo cáo: %s' % (donvi_name), style_excel['style_12_left'])
-
-        wssheet.merge_range(0, 3, 0, 9, title, style_excel['style_14_bold_center'])
-        wssheet.merge_range(1, 3, 1, 9, u'Tính từ ngày %s đến ngày %s' % (self.date_from, self.date_to),
+        wssheet.merge_range(0, 0, 0, 2, strlb, style_excel['style_12_left'])
+        wssheet.merge_range(0, 3, 0, row_tt + len_type + 1, title, style_excel['style_14_bold_center'])
+        wssheet.merge_range(1, 3, 1, row_tt + len_type + 1, u'Tính từ ngày %s đến ngày %s' % (self.date_from, self.date_to),
                             style_excel['style_12_center_italic'])
 
         _row = 3
+
         wssheet.write(_row, 0, u"STT", style_excel['style_11_bold_center_border'])
         wssheet.write(_row, 1, u"Mã nhân viên", style_excel['style_11_bold_center_border'])
         wssheet.write(_row, 2, u"Họ và tên", style_excel['style_11_bold_center_border'])
         wssheet.write(_row, 3, u"Đơn vị phòng ban", style_excel['style_11_bold_center_border'])
-        wssheet.write(_row, 4, u"Trợ cấp", style_excel['style_11_bold_center_border'])
-        wssheet.write(_row, 5, u"Phụ cấp", style_excel['style_11_bold_center_border'])
-        wssheet.write(_row, 6, u"Thưởng", style_excel['style_11_bold_center_border'])
-        wssheet.write(_row, 7, u"Phúc lợi", style_excel['style_11_bold_center_border'])
-        wssheet.write(_row, 8, u"Tổng cộng", style_excel['style_11_bold_center_border'])
-        wssheet.write(_row, 9, u"Chú thích", style_excel['style_11_bold_center_border'])
+        if len_type > 0:
+            for i in range(0, len_type):
+                wssheet.write(_row, row_tt + i, str(type_ids_list[i]), style_excel['style_11_bold_center_border'])
+
+        wssheet.write(_row, row_tt + len_type, u"Tổng cộng", style_excel['style_11_bold_center_border'])
+        wssheet.write(_row, row_tt + len_type + 1, u"Chú thích", style_excel['style_11_bold_center_border'])
 
         _row += 1
-        for j in range(0, 10):
+        for j in range(0, row_tt + len_type + 2):
             wssheet.write(_row, j, '(%s)' % (j + 1), style_excel['style_11_center_border'])
         _row += 1
         current_row = _row
+        employees = self.get_trocap_phucap()
+        if employees:
+            for i in range(0, len(employees)):
+                wssheet.write(current_row, 0, '%s' % (j + 1), style_excel['style_11_center_border'])
+                wssheet.write(current_row, 1, str(employees[i].get('code')), style_excel['style_11_center_border'])
+                wssheet.write(current_row, 2, str(employees[i].get('hoten')), style_excel['style_11_left_border'])
+                wssheet.write(current_row, 3, str(employees[i].get('department_name')), style_excel['style_11_left_border'])
+                if len_type > 0:
+                    for j in range(0, len_type):
+                        valttpc = 0
+                        listttpc = employees[i].get('list_ttpc') if employees[i].get('list_ttpc') else {}
+                        for ttpc in listttpc:
+                            if ttpc['type'] == str(type_ids_list[j]):
+                                valttpc = ttpc['tongtien']
+                        wssheet.write(current_row, row_tt + j, valttpc, style_excel['style_10_right_border_money'])
+
+                if not len_type or len_type == 0:
+                    str_sum = ''
+                else:
+                    str_sum = '=SUM(%s%s:%s%s)'%(_col_to_string(row_tt), current_row + 1, _col_to_string(row_tt + len_type - 1), current_row + 1)
+                wssheet.write(current_row, row_tt + len_type, str_sum, style_excel['style_10_right_border_money'])
+                wssheet.write(current_row, row_tt + len_type + 1, '', style_excel['style_11_bold_center_border'])
+                current_row += 1
 
         # Todo Số lượng CBCCVC thuộc Ủy ban Nhân dân
         current_row = current_row + 2
         # TODO: Xuất footer báo cáo
-        wssheet.merge_range(current_row + 5, 1, current_row + 5, 2, u'Người lập biểu', style_excel['style_12_bold_center'])
-        wssheet.merge_range(current_row + 6, 1, current_row + 6, 2, u'(Ký tên, ghi rõ họ tên)', style_excel['style_12_center_italic'])
+        wssheet.merge_range(current_row , 1, current_row, 2, u'Người lập biểu', style_excel['style_12_bold_center'])
+        wssheet.merge_range(current_row + 1, 1, current_row + 1, 2, u'(Ký tên, ghi rõ họ tên)', style_excel['style_12_center_italic'])
 
-        wssheet.merge_range(current_row + 6, 6, current_row + 6, 8, u'Thủ trưởng đơn vị', style_excel['style_12_bold_center'])
-        wssheet.merge_range(current_row + 7, 6, current_row + 7, 8, u'(Ký tên, đóng dấu)', style_excel['style_12_center_italic'])
+        wssheet.merge_range(current_row + 1, row_tt + len_type - 1, current_row + 1, row_tt + len_type + 1, u'Thủ trưởng đơn vị', style_excel['style_12_bold_center'])
+        wssheet.merge_range(current_row + 2, row_tt + len_type - 1, current_row + 2, row_tt + len_type + 1, u'(Ký tên, đóng dấu)', style_excel['style_12_center_italic'])
 
         # TODO: Xuất ra File báo cáo
         wb.close()
@@ -299,7 +346,7 @@ class DATNBaseReport(models.TransientModel):
 
                 i = i+1
         SQL = ''
-        SQL += '''WITH s AS (SELECT emp.id as employee_id, emp.name AS hoten, dp.name AS department_name, SUM(muc_huong) AS tongtien, ctt.name AS type
+        SQL += '''WITH s AS (SELECT emp.employee_code AS code, emp.id as employee_id, emp.name AS hoten, dp.name AS department_name, SUM(muc_huong) AS tongtien, ctt.name AS type
                 from datn_trocap_phucap_line ttl INNER JOIN datn_trocap_phucap tt ON ttl.trocap_phucap_id = tt.id
                 INNER JOIN hr_employee emp ON ttl.employee_id = emp.id
                 INNER JOIN hr_department dp ON dp.id = emp.department_id
@@ -312,8 +359,8 @@ class DATNBaseReport(models.TransientModel):
                 json_build_object(
                 'tongtien', s.tongtien,
                 'type', s.type
-                )), hoten, department_name from s
-                GROUP BY s.employee_id, s.hoten, s.department_name
+                )) as list_ttpc, hoten, department_name, code from s
+                GROUP BY s.code, s.employee_id, s.hoten, s.department_name
                 '''%(string_type, self.date_to, self.date_from, self.department_id.id)
         self.env.cr.execute(SQL)
         datas = self.env.cr.dictfetchall()
