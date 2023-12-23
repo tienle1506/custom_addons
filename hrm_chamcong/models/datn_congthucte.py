@@ -2,6 +2,7 @@ import calendar
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
+from odoo.exceptions import Warning, ValidationError
 
 
 
@@ -41,6 +42,11 @@ class DATNCongThucTe(models.Model):
             self.date_to = date_to
             self.date_from = date_from
 
+    def unlink(self):
+        raise ValidationError("Không thể xoá bản ghi do bản ghi đã được tạo từ bảng công than, Nếu muốn xoá, bạn thực hiê xoá bảng chấm công tháng.")
+
+
+
 
 class DATNCongThucTeLine(models.Model):
     _name = 'datn.congthucte.line'
@@ -60,4 +66,6 @@ class DATNCongThucTeLine(models.Model):
     cong_co_luong = fields.Float(u'Công có lương')
     cong_tang_ca = fields.Float(u'Công tăng ca')
     cong_nghi_khong_ly_do = fields.Float(u'Công nghỉ không lý do')
+    def unlink(self):
+        raise ValidationError("Không thể xoá bản ghi do bản ghi đã được tạo từ bảng công than, Nếu muốn xoá, bạn thực hiê xoá bảng chấm công tháng.")
 

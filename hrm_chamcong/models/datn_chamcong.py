@@ -60,9 +60,10 @@ class DATNHrChamCong(models.Model):
 
     @api.onchange('date_from', 'department_id')
     def onchange_name(self):
-        name = 'Bảng chấm công tháng %s năm %s Đơn vị/ phòng ban %s'%(str(self.date_from.month), str(self.date_from.year), self.department_id.name)
+        name = 'Bảng chấm công tháng %s năm %s Đơn vị/ phòng ban %s' % (
+            str(self.date_from.month), str(self.date_from.year), self.department_id.name)
         self.name = name
-
+        self.item_ids.unlink()
     @api.onchange('date_from')
     def onchange_date_from(self):
         if self.date_from:
@@ -272,9 +273,6 @@ class DATNHrChamCong(models.Model):
                             'department_id': employees[i].get('department_id')
                         }
                     )
-
-
-
 
     def action_draft(self):
         self.state = 'draft'

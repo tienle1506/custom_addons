@@ -31,6 +31,10 @@ class DATNCongTangCuong(models.Model):
     datn_file = fields.Binary(u'Đường dẫn tập tin', filters="*.xls,*.xlsx")
     file_name = fields.Char(u'Tên tệp tin')
     is_import = fields.Boolean(u'Import dữ liệu')
+
+    @api.onchange('department_id')
+    def onchange_item_ids(self):
+        self.item_ids.unlink()
     def check_format_file_excel(self, file_name):
         if file_name.endswith('.xls') is False and file_name.endswith('.xlsx') is False and file_name.endswith(
                 '.xlsb') is False:

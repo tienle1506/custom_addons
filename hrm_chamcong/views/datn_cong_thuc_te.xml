@@ -6,6 +6,7 @@
             <field name="model">datn.congthucte</field>
             <field name="arch" type="xml">
                 <tree class="widget-department-tree"
+                      create="0" edit="0" delete="0"
                       decoration-info="state=='draft'"
                       default_order="department_id">
                     <field name="department_id"/>
@@ -51,10 +52,10 @@
                     </group>
 
                     <notebook>
-                        <page string="Bảng chi tiết oông thưc tết" name="data_timesheet">
+                        <page string="Bảng chi tiết công thưc tết" name="data_timesheet">
                             <field name="item_ids"
                                    widget="one2many_list">
-                                <tree create="0" open="0" edit="0"
+                                <tree create="0" open="0" edit="0" delete="0"
                                       class="color_tree_row"
                                       tableFixer="left" fixColumn="2"
                                       default_order="employee_id ASC" limit="100">

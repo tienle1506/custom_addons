@@ -66,6 +66,10 @@ class DATNHrmLeTet(models.Model):
                     lines.append((0, 0, {'employee_id': employee.id}))
         self.item_ids = lines
 
+    @api.onchange('department_id')
+    def onchange_item_ids(self):
+        self.item_ids.unlink()
+
     def import_data(self):
         if not self.is_import:
             return
