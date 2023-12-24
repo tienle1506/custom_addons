@@ -140,6 +140,46 @@ class DATNHrKySoFile(models.Model):
     employee_id = fields.Many2one('hr.employee', string="Nhân viên", ondelete='cascade',
                                   default=lambda self: self._default_employee())
 
+
+    def read(self, fields=None, load='_classic_read'):
+        self.check_access_rule('read')
+        return super(DATNHrKySoFile, self).read(fields, load=load)
+
+    def search(self, args, offset=0, limit=None, order=None, count=False):
+        domain = []
+        return super(DATNHrKySoFile, self).search(domain + args, offset, limit, order, count=count)
+
+    @api.model
+    def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrKySoFile, self)._name_search(name, args=args + emp_domain, operator=operator,
+                                                                  limit=limit)
+
+
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrKySoFile, self).search_read(domain=domain + emp_domain, fields=fields,
+                                                                  offset=offset, limit=limit, order=order)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        emp_domain = self.check_employee_view()
+        return super(DATNHrKySoFile, self).read_group(domain + emp_domain, fields, groupby, offset=offset,
+                                                                 limit=limit, orderby=orderby, lazy=lazy)
+    def check_employee_view(self):
+        context = self.env.context or {}
+        emp_domain = []
+        user = self.env.user
+        employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
+        if context.get('view_from_action', False):
+            emp_domain = [('employee_id', '=', employee_id.id)]
+        if context.get('view_from_action_phe_duyet', False):
+            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('is_ky_so_ca_nhan', '=', True), '|', ('so_lan_ky_nhay', '!=', 0),'|', ('is_ky_dau_co_quan', '!=', True), ('is_ky_co_quan', '!=', True)]
+        return emp_domain
+
+
+
     @api.model
     def _default_employee(self):
         user = self.env.user
@@ -234,13 +274,21 @@ class DATNHrKySoFile(models.Model):
         is_ky_dau_co_quan = record.is_ky_dau_co_quan
         so_lan_ky_nhay = record.so_lan_ky_nhay
         if loai_ky == 'action_kyso_dau_coquan':
-            record.is_ky_dau_co_quan = True
+            is_ky_dau_co_quan = True
         elif loai_ky == 'action_kyso_canhan':
-            record.is_ky_ca_nhan = True
+            is_ky_ca_nhan = True
+            nguoi_duyet = []
+            for emp in record.nguoi_duyet:
+                if emp.personal_email:
+                    nguoi_duyet.append(emp.personal_email.strip())
+            header = '''Thông báo ký số file của %s''' % (record.employee_id.name)
+            content = u'Nhân viên %s yêu cầu ký số \nTên file: %s \nTrang web: http://localhost:8088/web' % (str(record.employee_id.name), record.name)
+            if nguoi_duyet and len(nguoi_duyet) > 0:
+                self.env['my.mail.sender'].send_mail_to_customer(nguoi_duyet, header, content)
         elif loai_ky == 'action_kyso_coquan':
-            record.is_ky_co_quan = True
+            is_ky_co_quan = True
         elif loai_ky == 'action_kyso_kynhay':
-            record.so_lan_ky_nhay = record.so_lan_ky_nhay + 1
+            so_lan_ky_nhay = record.so_lan_ky_nhay + 1
             x = 80
             y = 80 - 80 * int(record.so_lan_ky_nhay) if record.so_lan_ky_nhay else 0
         if record:
@@ -248,7 +296,6 @@ class DATNHrKySoFile(models.Model):
             record.sudo().write({'file_kyso': _base64_daky, 'file_name': filename,
                                     'is_ky_ca_nhan': is_ky_ca_nhan,
                                     'is_ky_co_quan': is_ky_co_quan,
-                                    'is_ky_dau_co_quan': is_ky_dau_co_quan,
                                     'is_ky_dau_co_quan': is_ky_dau_co_quan,
                                     'so_lan_ky_nhay': so_lan_ky_nhay
                                  })

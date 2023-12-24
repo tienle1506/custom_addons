@@ -91,6 +91,25 @@ class HrRequestType(models.Model):
                 data = self.env.cr.dictfetchone()
                 if data:
                     my_request = data['count']
+        elif request.code == 'KS':
+            if emp:
+                self.env.cr.execute("""
+                    SELECT count(*) FROM datn_kyso_file dkn
+                    LEFT JOIN employee_duyet_kyso_rel dnr ON dnr.kyso_id = dkn.id
+                    WHERE dnr.employee_id = %s AND dkn.is_ky_so_ca_nhan = True AND (dkn.so_lan_ky_nhay != 0 OR dkn.is_ky_dau_co_quan != True OR dkn.is_ky_co_quan != True)
+                """, (emp.id,))
+                data = self.env.cr.dictfetchone()
+                if data:
+                    need_approve = data['count']
+                # ----- lấy số lượng yêu cầu của tôi
+                self.env.cr.execute("""
+                    SELECT count(*) FROM datn_kyso_file
+                    WHERE employee_id = %s AND dkn.is_ky_so_ca_nhan = True AND (so_lan_ky_nhay != 0 OR is_ky_dau_co_quan != True OR is_ky_co_quan != True)
+                """, (emp.id,))
+                data = self.env.cr.dictfetchone()
+                if data:
+                    my_request = data['count']
+
         return need_approve, my_request
 
     def open_approve_request(self):
@@ -108,7 +127,7 @@ class HrRequestType(models.Model):
     def _get_action(self, is_form=False, my_request=False):
         if my_request:
             context = {
-                'view_from_action': 'datn_loai_phe_duyet'
+                'view_from_action': 'datn_ky_so'
             }
         else:
             context = {
@@ -122,5 +141,8 @@ class HrRequestType(models.Model):
             action['context'] = context
         elif self.code == 'PDCC':
             action = self.env.ref('hrm_chamcong.datn_hrm_checkin_checkout_calendar_cnf1').sudo().read()[0]
+            action['context'] = context
+        elif self.code == 'KS':
+            action = self.env.ref('datn_ky_so.datn_kyso_file_action').sudo().read()[0]
             action['context'] = context
         return action
