@@ -24,12 +24,18 @@
 
     # always loaded
     'data': [
+        'wizard/approval_reason_refusal.xml',
+        'wizard/lock_account.xml',
+        'wizard/reason_reopening_account.xml',
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/data_department.xml',
         'views/hr_department_view.xml',
+        'views/images_view.xml',
         'views/hr_position_view.xml',
         'views/hr_employee_inherit.xml',
+        'views/approval_view.xml',
+        'views/documents_view.xml',
         'views/hr_approval_flow_config_view.xml',
         'views/sequence_employee_code.xml',
         'views/hr_users_view.xml',
@@ -42,4 +48,3 @@
     ],
 }
 # -*- coding: utf-8 -*-
-

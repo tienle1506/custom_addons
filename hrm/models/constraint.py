@@ -28,5 +28,18 @@ APPROVE_STATUS = [
 STATE = [
     ('draft', 'Nháp'),
     ('pending', 'Chờ duyệt'),
-    ('approved', 'Đã duyệt')
+    ('approved', 'Đã duyệt'),
+    ('close', 'Đã đóng'),
+    ('wait_reopen', 'Chờ mở lại')
+]
+SELECT_TYPE_TEAM = [
+    ('marketing', 'Marketing'),
+    ('sale', 'Sale'),
+    ('resale', 'Resale')
+]
+STATE_REOPEN = [
+    ('wait_reopen', 'Chờ mở lại'),
+    ('active_reopen', 'Đang hoạt động'),
+    ('close', 'Đã đóng'),
+    ('cancel', 'Hủy')
 ]

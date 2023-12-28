@@ -22,6 +22,11 @@
                 parent="config_office"
                 action="job_action"
                 sequence="20"/>
+        <menuitem id="document"
+                  name="Tài liệu"
+                  parent="config_office"
+                  sequence="110"
+                  action="document_action"/>
         <menuitem
                 id="employee"
                 name="Nhân sự"
@@ -33,6 +38,12 @@
                 parent="employee"
                 action="employees_action"
                 sequence="10"/>
+        <menuitem
+                id="approval"
+                name="Phê duyệt hồ sơ"
+                parent="employee"
+                sequence="11"
+                action="approval_action"/>
         <menuitem
                 id="flow_config"
                 name="Cấu hình luồng phê duyệt"
