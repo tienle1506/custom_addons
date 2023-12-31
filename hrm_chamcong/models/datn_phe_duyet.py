@@ -96,15 +96,15 @@ class HrRequestType(models.Model):
                 self.env.cr.execute("""
                     SELECT count(*) FROM datn_kyso_file dkn
                     LEFT JOIN employee_duyet_kyso_rel dnr ON dnr.kyso_id = dkn.id
-                    WHERE dnr.employee_id = %s AND dkn.is_ky_so_ca_nhan = True AND (dkn.so_lan_ky_nhay != 0 OR dkn.is_ky_dau_co_quan != True OR dkn.is_ky_co_quan != True)
+                    WHERE dnr.employee_id = %s AND dkn.is_ky_ca_nhan = True AND (dkn.so_lan_ky_nhay != 0 OR dkn.is_ky_dau_co_quan != True OR dkn.is_ky_co_quan != True)
                 """, (emp.id,))
                 data = self.env.cr.dictfetchone()
                 if data:
                     need_approve = data['count']
                 # ----- lấy số lượng yêu cầu của tôi
                 self.env.cr.execute("""
-                    SELECT count(*) FROM datn_kyso_file
-                    WHERE employee_id = %s AND dkn.is_ky_so_ca_nhan = True AND (so_lan_ky_nhay != 0 OR is_ky_dau_co_quan != True OR is_ky_co_quan != True)
+                    SELECT count(*) FROM datn_kyso_file dkn
+                    WHERE employee_id = %s AND dkn.is_ky_ca_nhan = True AND (so_lan_ky_nhay != 0 OR is_ky_dau_co_quan != True OR is_ky_co_quan != True)
                 """, (emp.id,))
                 data = self.env.cr.dictfetchone()
                 if data:

@@ -175,7 +175,7 @@ class DATNHrKySoFile(models.Model):
         if context.get('view_from_action', False):
             emp_domain = [('employee_id', '=', employee_id.id)]
         if context.get('view_from_action_phe_duyet', False):
-            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('is_ky_so_ca_nhan', '=', True), '|', ('so_lan_ky_nhay', '!=', 0),'|', ('is_ky_dau_co_quan', '!=', True), ('is_ky_co_quan', '!=', True)]
+            emp_domain = [('nguoi_duyet', '=', employee_id.id), ('is_ky_ca_nhan', '=', True), '|', ('so_lan_ky_nhay', '!=', 0),'|', ('is_ky_dau_co_quan', '!=', True), ('is_ky_co_quan', '!=', True)]
         return emp_domain
 
 
@@ -219,7 +219,7 @@ class DATNHrKySoFile(models.Model):
                 'height': 80,
                 'page': vitris.get('Page'),
             }]
-            return  signature
+            return signature
 
     @api.model
     def send_to_approve_kyso(self, edition_id, loai_ky):

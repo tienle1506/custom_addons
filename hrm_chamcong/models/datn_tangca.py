@@ -111,10 +111,14 @@ class DATNTangCa(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'draft':
+        can_unlink = True
+        for record in self:
+            if record.state != 'draft':
+                can_unlink = False
+                # Xử lý khi điều kiện không đúng
+                # ví dụ:
+                raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
+
+        if can_unlink:
             # Thực hiện unlink chỉ khi điều kiện đúng
-            super().unlink()  # Gọi phương thức unlink gốc
-        else:
-            # Xử lý khi điều kiện không đúng
-            # ví dụ:
-            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
+            return super(DATNTangCa, self).unlink()

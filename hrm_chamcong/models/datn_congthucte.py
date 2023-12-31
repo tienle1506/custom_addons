@@ -43,7 +43,9 @@ class DATNCongThucTe(models.Model):
             self.date_from = date_from
 
     def unlink(self):
-        raise ValidationError("Không thể xoá bản ghi do bản ghi đã được tạo từ bảng công than, Nếu muốn xoá, bạn thực hiê xoá bảng chấm công tháng.")
+        if self._context['view_from_action'] == 'datn_congthucte':
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được tạo từ bảng công tháng, Nếu muốn xoá, bạn thực hiên xoá bảng chấm công tháng.")
+        return super(DATNCongThucTe, self).unlink()
 
 
 
@@ -67,5 +69,6 @@ class DATNCongThucTeLine(models.Model):
     cong_tang_ca = fields.Float(u'Công tăng ca')
     cong_nghi_khong_ly_do = fields.Float(u'Công nghỉ không lý do')
     def unlink(self):
-        raise ValidationError("Không thể xoá bản ghi do bản ghi đã được tạo từ bảng công than, Nếu muốn xoá, bạn thực hiê xoá bảng chấm công tháng.")
-
+        if self._context['view_from_action'] == 'datn_congthucte_line':
+            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được tạo từ bảng công tháng, Nếu muốn xoá, bạn thực hiện xoá bảng chấm công tháng.")
+        return super(DATNCongThucTeLine, self).unlink()

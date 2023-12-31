@@ -101,7 +101,7 @@
                         body.o_web_client {
                             overflow-y: hidden;
                         }
-                    </style>    width: 100%;
+                    </style>
 
                     <group>
                         <field name="name" string="Tên bảng chấm công" readonly="1" force_save="1"/>

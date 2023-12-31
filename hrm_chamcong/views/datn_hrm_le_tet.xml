@@ -27,20 +27,20 @@
                                 class="oe_highlight"/>
                         <button string="Soạn thảo" name="action_draft" type="object"
                                 states="confirmed"/>
-                        <button string="Tải dữ liệu" name="action_loaddata" type="object" class="oe_highlight oe_edit_only"/>
+                        <button string="Tải dữ liệu" name="action_loaddata" type="object" class="oe_highlight oe_edit_only" attrs="{'invisible': [('state','!=','draft')]}"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <group>
-                        <field name="name" required="1"/>
+                        <field name="name" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
                     </group>
                     <group>
                         <group>
                             <field string="Đơn vị/ phòng ban" name="department_id" widget="many2many_tags" required="1"
-                               options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}"/>
+                               options="{'no_quick_create': 1, 'no_create_edit': 1, 'no_open': 1, 'no_create': 1}" attrs="{'readonly': [('state','!=','draft')]}"/>
                         </group>
                         <group class="date_letet">
-                                <field name="date_from" class="date1 oe_inline" required="1"/>
-                                <field name="date_to" class="date2 oe_inline" required="1"/>
+                                <field name="date_from" class="date1 oe_inline" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
+                                <field name="date_to" class="date2 oe_inline" required="1" attrs="{'readonly': [('state','!=','draft')]}"/>
                         </group>
                     </group>
                     <group>

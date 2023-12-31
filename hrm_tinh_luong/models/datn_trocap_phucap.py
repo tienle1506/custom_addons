@@ -11,7 +11,7 @@ from io import BytesIO
 from ...hrm_chamcong.models import style_excel_wb
 from dateutil.relativedelta import relativedelta
 
-class DATNHrmLeTet(models.Model):
+class DATNHrmTroCapPhuCap(models.Model):
     _name = "datn.trocap.phucap"
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']
     _description = u'Quản lý trợ cấp phụ cấp'
@@ -249,14 +249,17 @@ class DATNHrmLeTet(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'draft':
-            # Thực hiện unlink chỉ khi điều kiện đúng
-            super().unlink()  # Gọi phương thức unlink gốc
-        else:
-            # Xử lý khi điều kiện không đúng
-            # ví dụ:
-            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
+        can_unlink = True
+        for record in self:
+            if record.state != 'draft':
+                can_unlink = False
+                # Xử lý khi điều kiện không đúng
+                # ví dụ:
+                raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
+        if can_unlink:
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            return super(DATNHrmTroCapPhuCap, self).unlink()
 class DATNHrmLeTetLine(models.Model):
     _name = 'datn.trocap.phucap.line'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']

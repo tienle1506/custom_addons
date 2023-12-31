@@ -6,11 +6,15 @@
             <field name="model">datn.kyso.file</field>
             <field name="arch" type="xml">
                 <tree class="widget-department-tree"
+                      decoration-success="is_ky_dau_co_quan==True"
                       default_order="ngay_ky">
                     <field name="name"/>
                     <field name="file_kyso" filename="file_name" widget="binary"/>
                     <field name="file_name" invisible="1"/>
                     <field name="ngay_ky"/>
+                    <field name="is_ky_co_quan" invisible="1"/>
+                    <field name="is_ky_dau_co_quan" invisible="1"/>
+                    <field name="so_lan_ky_nhay" invisible="1"/>
                 </tree>
             </field>
         </record>

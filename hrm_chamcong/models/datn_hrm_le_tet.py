@@ -43,6 +43,8 @@ class DATNHrmLeTet(models.Model):
     file_name = fields.Char(u'Tên tệp tin')
     is_import = fields.Boolean(u'Import dữ liệu')
 
+
+
     def check_format_file_excel(self, file_name):
         if file_name.endswith('.xls') is False and file_name.endswith('.xlsx') is False and file_name.endswith(
                 '.xlsb') is False:
@@ -58,15 +60,21 @@ class DATNHrmLeTet(models.Model):
 
     def action_loaddata(self):
         self.item_ids.unlink()
-        lines = []
         if self.department_id:
             for department_id in self.department_id:
-                employees = self.env['hr.employee'].search([('department_id', 'child_of', department_id.id), ('work_start_date', '<=', date.today())])
+                employees = self.env['hr.employee'].search([('department_id', 'child_of', department_id.id), ('work_start_date', '<=', self.date_to)])
                 for employee in employees:
-                    lines.append((0, 0, {'employee_id': employee.id}))
-        self.item_ids = lines
+                    lines = []
+                    vals = {
+                        'employee_id': employee.id,
+                        'department_id': employee.department_id.id,
+                        'date_from': self.date_from,
+                        'date_to': self.date_to
+                    }
+                    lines.append((0, 0, vals))
+                    self.item_ids = lines
 
-    @api.onchange('department_id')
+    @api.onchange('department_id','date_from', 'date_to')
     def onchange_item_ids(self):
         self.item_ids.unlink()
 
@@ -332,7 +340,7 @@ class DATNHrmLeTet(models.Model):
                 name = 'Bảng thanh check-in check-out từ ngày %s đến ngày %s'%(first_day,last_day)
                 SQL4 = ''
                 SQL4 += '''INSERT INTO datn_hr_checkin_checkout (department_id, date_from, date_to, name, state)
-                                                   VALUES(%s,'%s','%s', '%s', 'draft')''' % (first_result,first_day,last_day,name )
+                                                   VALUES(%s,'%s','%s', '%s', 'draft')''' % (first_result, first_day, last_day,name )
                 self.env.cr.execute(SQL4)
 
                 SQL5 = ''
@@ -357,14 +365,17 @@ class DATNHrmLeTet(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'draft':
-            # Thực hiện unlink chỉ khi điều kiện đúng
-            super().unlink()  # Gọi phương thức unlink gốc
-        else:
-            # Xử lý khi điều kiện không đúng
-            # ví dụ:
-            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
+        can_unlink = True
+        for record in self:
+            if record.state != 'draft':
+                can_unlink = False
+                # Xử lý khi điều kiện không đúng
+                # ví dụ:
+                raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
 
+        if can_unlink:
+            # Thực hiện unlink chỉ khi điều kiện đúng
+            return super(DATNHrmLeTet, self).unlink()
 class DATNHrmLeTetLine(models.Model):
     _name = 'datn.hrm.le.tet.line'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'utm.mixin']

@@ -110,6 +110,7 @@ class DATNHrChamCong(models.Model):
 
     def action_loaddata(self):
         self.item_ids.unlink()
+
         if self.department_id:
             cr = self.env.cr
             SQL = ''
@@ -192,7 +193,6 @@ class DATNHrChamCong(models.Model):
                                                         where date_from >= '%s' and date_to <= '%s' and cc.id != %s) '''%(self.department_id.id,self.date_to, self.date_from, self.date_to, cc_id)
             cr.execute(SQL)
             employees = cr.dictfetchall()
-
             self.env['datn.congthucte'].sudo().search([('chamcong_id', '=', self.id)]).unlink()
             new_record = self.env['datn.congthucte'].sudo().create({
                 'department_id': self.department_id.id,
@@ -282,13 +282,19 @@ class DATNHrChamCong(models.Model):
 
     def unlink(self):
         # Kiểm tra điều kiện trước khi thực hiện unlink
-        if self.state == 'draft':
+        can_unlink = True
+        for record in self:
+            if record.state != 'draft':
+                can_unlink = False
+                # Xử lý khi điều kiện không đúng
+                # ví dụ:
+                raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
+
+        if can_unlink:
+            for record in self:
+                self.env['datn.congthucte'].search([('chamcong_id', '=', record.id)]).unlink()
             # Thực hiện unlink chỉ khi điều kiện đúng
-            super().unlink()  # Gọi phương thức unlink gốc
-        else:
-            # Xử lý khi điều kiện không đúng
-            # ví dụ:
-            raise ValidationError("Không thể xoá bản ghi do bản ghi đã được ghi nhận.")
+            return super(DATNHrChamCong, self).unlink()
 class DATNHrChamCongLine(models.Model):
     _name = 'datn.hr.chamcong.line'
     _description = u'Chấm công nhân sự'
