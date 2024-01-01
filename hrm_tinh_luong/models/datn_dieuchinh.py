@@ -243,12 +243,13 @@ class DATNHrDieuChinhLine(models.Model):
     @api.constrains('ngay_huong')
     def check_ngay_huong(self):
         for record in self:
-            check = self.env['datn.dieuchinh.line'].search([('employee_id', '=' , record.employee_id.id), ('ngay_huong', '>=', record.ngay_huong)])
-            if check:
-                if len(check) > 1:
-                    raise ValidationError('Bạn không thể điều chỉnh trong khoảng thời gian này vì đã có điều chỉnh khác')
-                else:
-                    employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)],order="ngay_huong DESC")
+            check = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '>=', record.ngay_huong)], order="ngay_huong DESC", limit=1)
+            if len(check) == 1:
+                last_day_of_previous_month = check.ngay_hieu_luc - relativedelta(days=1)
+                record.ngay_ket_thuc = last_day_of_previous_month
+            else:
+                employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)],order="ngay_huong DESC")
+                if employees:
                     current_month = self.ngay_hieu_luc.month
                     current_year = self.ngay_hieu_luc.year
 
