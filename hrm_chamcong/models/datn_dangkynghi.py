@@ -148,26 +148,27 @@ class DATNDangKyNghi(models.Model):
         self.state = 'confirmed'
 
     def action_refuse(self):
-        delta = self.date_to - self.date_from
-        num_days = delta.days
-        for i in range(0, num_days + 1):
-            day = self.date_from + timedelta(days=i)
-            mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
-            if day not in mang_cuoi_tuan:
-                employee_checkin = self.env['datn.hr.checkin.checkout.line'].search(
-                    [('employee_id', '=', self.employee_id.id), ('day', '=', day)]).id
-                if employee_checkin:
-                    SQL = ''
-                    SQL += '''DELETE FROM datn_hr_checkin_checkout_line WHERE id = %s''' % (employee_checkin)
-                    self.env.cr.execute(SQL)
-        if self.loai_nghi.loai_nghi == 'nghiphep':
-            nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
-            self.so_ngay_da_nghi = nghi.so_ngay_da_nghi - self.so_ngay_nghi
-            nghi.write(
-                {
-                    'so_ngay_da_nghi': nghi.so_ngay_da_nghi - self.so_ngay_nghi
-                }
-            )
+        if self.state == 'confirmed':
+            delta = self.date_to - self.date_from
+            num_days = delta.days
+            for i in range(0, num_days + 1):
+                day = self.date_from + timedelta(days=i)
+                mang_cuoi_tuan = get_weekend_days(self.date_from, self.date_to)
+                if day not in mang_cuoi_tuan:
+                    employee_checkin = self.env['datn.hr.checkin.checkout.line'].search(
+                        [('employee_id', '=', self.employee_id.id), ('day', '=', day)]).id
+                    if employee_checkin:
+                        SQL = ''
+                        SQL += '''DELETE FROM datn_hr_checkin_checkout_line WHERE id = %s''' % (employee_checkin)
+                        self.env.cr.execute(SQL)
+            if self.loai_nghi.loai_nghi == 'nghiphep':
+                nghi = self.env['hr.employee'].search([('id', '=', self.employee_id.id)])
+                self.so_ngay_da_nghi = nghi.so_ngay_da_nghi - self.so_ngay_nghi
+                nghi.write(
+                    {
+                        'so_ngay_da_nghi': nghi.so_ngay_da_nghi - self.so_ngay_nghi
+                    }
+                )
         self.state = 'refused'
 
     def action_approve(self):
