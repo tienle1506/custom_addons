@@ -242,26 +242,28 @@ class DATNCongTangCuong(models.Model):
 
     def action_draft(self):
         self.state = 'draft'
+        self.env.cr.after('commit', self.after_commit)
     def action_confirmed(self):
         self.state = 'confirmed'
+        self.env.cr.after('commit', self.after_commit)
 
     @api.model_create_single
     def create(self, vals):
         record = super().create(vals)
-        self.env.cr.after('commit', self._after_commit)
+        self.env.cr.after('commit', self.after_commit)
         return record
 
     def write(self, vals):
         result = super().write(vals)
-        self.env.cr.after('commit', self._after_commit)
+        self.env.cr.after('commit', self.after_commit)
         return result
 
     def unlink(self):
         result = super().unlink()
-        self.env.cr.after('commit', self._after_commit)
+        self.env.cr.after('commit', self.after_commit)
         return result
 
-    def _after_commit(self):
+    def after_commit(self):
         self.env['cron.job.cong.phep'].run()
 
     def unlink(self):
