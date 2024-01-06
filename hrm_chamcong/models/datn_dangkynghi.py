@@ -148,7 +148,7 @@ class DATNDangKyNghi(models.Model):
         self.state = 'confirmed'
 
     def action_refuse(self):
-        if self.state == 'confirmed':
+        if self.state == 'approved':
             delta = self.date_to - self.date_from
             num_days = delta.days
             for i in range(0, num_days + 1):

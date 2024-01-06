@@ -29,7 +29,7 @@
                         <button string="Phê duyệt" name="action_approve" type="object" attrs="{'invisible': ['|', ('state','=','draft'), ('state','=','approved')]}"
                                 groups="hrm_chamcong.hrm_phe_duyet_checkin_checkout"
                                 class="oe_highlight"/>
-                        <button string="Từ chối" name="action_refuse" type="object" attrs="{'invisible': ['|', ('state','=','draft'),('state','!=','approved')]}"
+                        <button string="Từ chối" name="action_refuse" type="object" attrs="{'invisible': ['|', ('state','=','draft'),('state','=','refused')]}"
                                 class="oe_highlight"
                                 groups="hrm_chamcong.hrm_phe_duyet_checkin_checkout"/>
                         <button string="Soạn thảo" name="action_draft" type="object"

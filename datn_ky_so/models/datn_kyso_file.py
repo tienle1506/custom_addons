@@ -202,15 +202,15 @@ class DATNHrKySoFile(models.Model):
             if loai_ky == 'action_kyso_dau_coquan':
                 vitris = _generate_sign_file(_2c_base_64, '(Ký tên, đóng dấu)')
                 x = 0
-                y = 24
+                y = -42
             elif loai_ky == 'action_kyso_canhan':
                 vitris = _generate_sign_file(_2c_base_64, '(Ký tên, ghi rõ họ tên)')
             elif loai_ky == 'action_kyso_coquan':
                 vitris = _generate_sign_file(_2c_base_64, '(Ký tên, đóng dấu)')
             elif loai_ky == 'action_kyso_kynhay':
                 vitris = _generate_sign_file(_2c_base_64, '(Ký tên, đóng dấu)')
-                x = 80
-                y = 80 - 80*int(record.so_lan_ky_nhay) if record.so_lan_ky_nhay else 0
+                x = 100
+                y = 100 - 80*int(record.so_lan_ky_nhay) if record.so_lan_ky_nhay else 0
             position = vitris.get('position')
             signature = [{
                 'x': position['x0'] + x,
