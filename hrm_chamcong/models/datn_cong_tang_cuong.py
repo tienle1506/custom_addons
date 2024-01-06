@@ -80,7 +80,7 @@ class DATNCongTangCuong(models.Model):
             for row in range(6, sheet.nrows):
                 lines = []
                 code_employee = sheet.cell_value(row, 1).strip()
-                employee = self.env['hr.employee'].sudo(2).search([('employee_code_new', '=', code_employee)])
+                employee = self.env['hr.employee'].sudo(2).search([('employee_code', '=', code_employee)])
 
                 if not employee:
                     raise ValidationError(f'Không tồn tại nhân viên có mã {code_employee}')
@@ -192,7 +192,7 @@ class DATNCongTangCuong(models.Model):
             SQL = ''
 
             # Lấy chức vụ của người tạo đơn đăng ký nghỉ
-            SQL += '''SELECT id, employee_code_new, name  FROM hr_employee where work_start_date <= '%s'::date and department_id = ANY (ARRAY %s)''' % (datetime.now(), list_department)
+            SQL += '''SELECT id, employee_code, name  FROM hr_employee where work_start_date <= '%s'::date and department_id in (SELECT UNNEST(child_ids) FROM child_department WHERE parent_id = ANY (ARRAY %s)) ''' % (datetime.now(), list_department)
 
             self.env.cr.execute(SQL)
             employees = self.env.cr.dictfetchall()
@@ -208,9 +208,9 @@ class DATNCongTangCuong(models.Model):
             worksheet_object.write(0, 1, 'Mã nhân viên', style_1)
             worksheet_object.write(0, 2, 'Tên nhân viên', style_1)
             for item in employees:
-                lst_employees.append(item['employee_code_new'])
+                lst_employees.append(item['employee_code'])
                 worksheet_object.write(i, 0, i, style_1)
-                worksheet_object.write(i, 1, item['employee_code_new'], style_1_left)
+                worksheet_object.write(i, 1, item['employee_code'], style_1_left)
                 worksheet_object.write(i, 2, item['name'], style_1_left)
                 i = i + 1
 
@@ -219,7 +219,7 @@ class DATNCongTangCuong(models.Model):
             for item in employees:
                 stt += 1
                 worksheet.write(5 + stt, 0, stt, style_1_left)
-                worksheet.write(5 + stt, 1, item['employee_code_new'], style_1_left)
+                worksheet.write(5 + stt, 1, item['employee_code'], style_1_left)
                 worksheet.write(5 + stt, 2, item['name'], style_1_left)
                 worksheet.write(5 + stt, 3, 0, style_1_left)
                 worksheet.write(5 + stt, 4, '', style_1_left)

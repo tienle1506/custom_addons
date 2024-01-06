@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <tree class="widget-department-tree"
                       decoration-info="state=='draft'"
-                      default_order="department_id">
+                      default_order="department_id, date_from DESC">
                     <field name="department_id"/>
                     <field name="name"/>
                     <field name="date_from"/>

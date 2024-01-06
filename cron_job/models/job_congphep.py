@@ -45,12 +45,16 @@ class TestCronJob(models.Model):
             if data_cong_them:
                 cong_phep += data_cong_them[0].get('cong_them') if data_cong_them[0].get('cong_them') else 0
 
+
             if cong_phep == 1:
-                A = '''UPDATE hr_employee
+                SQLA = ''
+                SQLA + '''UPDATE hr_employee
                                SET so_ngay_duoc_phan_bo = %s, so_ngay_da_nghi = 0
                                WHERE id = %s;''' % (cong_phep, datas[i].get('id'))
+                self.env.cr.execute(SQLA)
             else:
-                A = '''UPDATE hr_employee
+                SQLB = ''
+                SQLB += '''UPDATE hr_employee
                                 SET so_ngay_duoc_phan_bo = %s
                                 WHERE id = %s;''' % (cong_phep, datas[i].get('id'))
-            self.env.cr.execute(A)
+                self.env.cr.execute(SQLB)

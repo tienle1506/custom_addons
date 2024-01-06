@@ -243,10 +243,22 @@ class DATNHrDieuChinhLine(models.Model):
     @api.constrains('ngay_huong')
     def check_ngay_huong(self):
         for record in self:
-            check = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '>=', record.ngay_huong)], order="ngay_huong DESC", limit=1)
-            if len(check) == 1:
+            check = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '>=', record.ngay_huong), ('id', '!=', record.id)], order="ngay_huong DESC", limit=1)
+            if check and len(check) == 1:
                 last_day_of_previous_month = check.ngay_hieu_luc - relativedelta(days=1)
                 record.ngay_ket_thuc = last_day_of_previous_month
+                employees = self.env['datn.dieuchinh.line'].search(
+                    [('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)],
+                    order="ngay_huong DESC")
+                if employees:
+                    current_month = self.ngay_hieu_luc.month
+                    current_year = self.ngay_hieu_luc.year
+
+                    previous_month = current_month - 1 if current_month > 1 else 12
+                    previous_year = current_year if current_month > 1 else current_year - 1
+
+                    last_day_of_previous_month = datetime(previous_year, previous_month, 1) + relativedelta(day=31)
+                    employees.write({'ngay_ket_thuc': last_day_of_previous_month})
             else:
                 employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)],order="ngay_huong DESC")
                 if employees:
@@ -300,7 +312,7 @@ class DATNHrDieuChinhLine(models.Model):
     def _compute_dieuchinh_ngayhieuluc(self):
         for record in self:
             if record.ngay_huong:
-                employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('ngay_huong', '<', record.ngay_huong)], order="ngay_huong DESC")
+                employees = self.env['datn.dieuchinh.line'].search([('employee_id', '=', record.employee_id.id), ('id', '!=', record.id), ('ngay_huong', '<', record.ngay_huong)], order="ngay_huong DESC")
                 if employees and len(employees) > 1:
                     if record.ngay_huong > datetime.now().date():
                         record.ngay_hieu_luc = record.ngay_huong.replace(day=1)

@@ -275,6 +275,7 @@ class DATNHrChamCong(models.Model):
                     )
 
     def action_draft(self):
+        self.env['datn.congthucte'].search([('chamcong_id', '=', self.id)]).write({'state': 'draft'})
         self.state = 'draft'
     def action_confirmed(self):
         self.env['datn.congthucte'].search([('chamcong_id', '=', self.id)]).write({'state': 'confirmed'})
