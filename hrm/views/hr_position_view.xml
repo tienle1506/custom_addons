@@ -7,10 +7,14 @@
                 <form>
                     <sheet style="max-width: 440px;">
                         <group>
+                            <field name="company_id" invisible="1"/>
+                            <field name="readonly_type_block" invisible="1"/>
 <!--                            <field name="related" invisible="1"/>-->
 <!--                            <field name="check_blocks" invisible="1"/>-->
                             <field name="name"/>
-                            <field name="type_block"/>
+
+                            <field name="type_block" attrs="{'readonly': [('readonly_type_block', '=', True)]}" force_save="1"/>
+                            <field name="department_id" attrs="{'invisible': [('type_block', '==', 'BLOCK_COMMERCE_NAME')]}"/>
                         </group>
                         <group>
                             <label for="description"/>

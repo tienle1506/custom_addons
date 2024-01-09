@@ -1,5 +1,24 @@
 <odoo>
     <data>
+        <record id="view_employee_filter_inherit" model="ir.ui.view">
+            <field name="name">view.employee.filter.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//search" position="inside">
+                    <group expand="0" string="Group By">
+                        <filter name="group_profile_status" string="Trạng thái tài liệu hồ sơ" domain="[]"
+                                context="{'group_by': 'profile_status'}"/>
+                        <filter name="group_profile_state" string="Trạng thái hồ sơ" domain="[]"
+                                context="{'group_by': 'state'}"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
         <record id="hr_kanban_view_employees_inherit" model="ir.ui.view">
             <field name="name">hr.employee.kanban.inherit</field>
             <field name="model">hr.employee</field>
@@ -18,6 +37,8 @@
 
             </field>
         </record>
+
+
         <record id="view_hr_employee_form_inherit" model="ir.ui.view">
             <field name="name">view.hr.employee.form.inherit</field>
             <field name="model">hr.employee</field>
@@ -28,63 +49,63 @@
                         <button name="action_send" string="Gửi duyệt" type="object" class="btn-primary"/>
                         <button name="action_cancel" string="Hủy" type="object"/>
                         <button name="%(action_lock_personnel_account_popup)d" type="action" string="Khóa TK nhân sự"
-                                class="btn-red"
-                                attrs="{'invisible': ['|', ('account_link', '=', False), ('status_account', '=', False)]}">
-                        </button>
+                                class="btn-red"/>
+                        <!--                        <button name="reset_password" string="Đặt lại mật khẩu" type="object" class="btn-info"/>-->
                         <button name="%(reason_reopening_account_action)d" type="action"
                                 string="Mở lại tài khoản nhân sự"
-                                class="btn-red">
-                        </button>
-<!--                        <button name="action_cancel_reopen_account" string="Hủy" type="object"-->
-<!--                                class="btn-secondary"-->
-<!--                                attrs="{'invisible': [('cancelled_reopen_account', '=', True)]}"/>-->
-                        <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,close,wait_reopen"/>
+                                class="btn-red"/>
+                        <button name="action_cancel_reopen_account" string="Hủy mở lại tài khoản" type="object"
+                                class="btn-secondary"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,pending,approved,close,wait_reopen"/>
                     </header>
                 </xpath>
                 <xpath expr="//div[@id='o_work_employee_main']" position="replace">
                     <div id="o_work_employee_main">
                         <group string="Phòng ban làm việc">
-                            <field name="company_id" required="0" invisible="1"/>
-                            <field name="department_id" string="Hệ thống / Công ty" required="1"
-                                   attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
-                            <field name="department_id" string="Phòng ban" required="1"
-                                   attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
-                            <field name="job_id" string="Vị trí công việc"/>
-                            <field name="parent_id" string="Quản lý trực tiếp"/>
-                            <field name="team_marketing"
-                                   attrs="{'invisible': [('type_in_block_ecom', '!=', 'company')]}"/>
-                            <field name="team_sales"
-                                   attrs="{'invisible': [('type_in_block_ecom', '!=', 'company')]}"/>
+                            <group id="block">
+                                <field name="type_block" string="Khối"
+                                       attrs="{'readonly': [('readonly_type_block', '=', True)]}"/>
+                                <field name="readonly_type_block" invisible="1"/>
+                                <field name="type_in_block_ecom" string="Kiểu trong khối thương mại"
+                                       attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')], 'required': [('type_block', '=', 'BLOCK_COMMERCE_NAME')]}"/>
+                            </group>
+                            <group>
+                                <field name="company_id" required="0" invisible="1"/>
+                                <field name="department_id" string="Hệ thống / Công ty" required="1"
+                                       attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                                <field name="department_id" string="Phòng ban" required="1"
+                                       attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
+                                <field name="job_id" string="Vị trí công việc"/>
+                                <field name="parent_id" string="Quản lý trực tiếp"/>
+                                <field name="team_marketing"
+                                       attrs="{'invisible': [('type_in_block_ecom', '!=', 'company')]}"/>
+                                <field name="team_sales"
+                                       attrs="{'invisible': [('type_in_block_ecom', '!=', 'company')]}"/>
+                            </group>
                         </group>
                         <group>
                             <field name="work_start_date"/>
                             <field name="date_receipt"/>
-                            <field name="profile_status"/>
-                            <field name="id"/>
                             <field name="create_uid"/>
                         </group>
                     </div>
                 </xpath>
                 <xpath expr="//div[@class='oe_title']/h1" position="after">
                     <h2>
-                        <field name="employee_code" string="Mã nhân viên" readonly="1" force_save="1"/>
+                        <field name="employee_code" string="Mã nhân viên" placeholder="Mã nhân viên" readonly="1"
+                               force_save="1"/>
                     </h2>
                 </xpath>
                 <xpath expr="//field[@name='category_ids']" position="replace">
-                    <group id="block" string="Khối">
-                        <field name="type_block" string="Khối"
-                               attrs="{'readonly': [('readonly_type_block', '=', True)]}"/>
-                        <field name="readonly_type_block" invisible="1"/>
-                        <field name="type_in_block_ecom"
-                               attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')], 'required': [('type_block', '=', 'BLOCK_COMMERCE_NAME')]}"/>
-                    </group>
                 </xpath>
                 <xpath expr="//div[@class='oe_title']" position="after">
                     <!-- Thêm group vào sau div có class="oe_title" -->
                     <sheet>
                         <group col="2">
                             <group string="Liên hệ">
-                                <field name="personal_email" string="Email cá nhân"/>
+                                <field name="personal_email" string="Email cá nhân"
+                                       attrs="{'required': [('auto_create_acc','!=', False)]}"/>
                                 <field name="email_work" readonly="1" string="Email công việc"/>
                                 <field name="mobile_phone" string="Số điện thoại cá nhân"/>
 
@@ -96,8 +117,42 @@
 
                     </sheet>
                 </xpath>
+
                 <xpath expr="//page[@name='personal_information']" position="replace">
-                    <!-- Bạn có thể để trống nếu muốn xóa toàn bộ page này -->
+                    <page name="personal_information" string="Thông tin cá nhân" groups="hr.group_hr_user">
+                        <group col="2">
+                            <group string="Citizenship">
+                                <field name="country_id" options='{"no_open": True, "no_create": True}'/>
+                                <field name="identification_id" groups="hr.group_hr_user"/>
+                                <field name="passport_id" groups="hr.group_hr_user"/>
+                                <field name="gender"/>
+                                <field name="birthday"/>
+                                <field name="place_of_birth" groups="hr.group_hr_user"/>
+                                <field name="country_of_birth" groups="hr.group_hr_user"/>
+                            </group>
+                            <group>
+                                <sheet>
+                                    <group string="Tình trạng hôn nhân">
+                                        <field name="marital"/>
+                                        <field name="spouse_complete_name"
+                                               attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"
+                                               groups="hr.group_hr_user"/>
+                                        <field name="spouse_birthdate"
+                                               attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"
+                                               groups="hr.group_hr_user"/>
+                                        <field name="children"/>
+                                    </group>
+                                    <group string="Khẩn cấp">
+                                        <field name="emergency_contact"/>
+                                        <field name="emergency_phone" class="o_force_ltr"/>
+                                    </group>
+                                </sheet>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//page[@name='hr_settings']" position="attributes">
+                    <attribute name="attrs">{'invisible': True}</attribute>
                 </xpath>
                 <xpath expr="//div[@class='o_row']" position="attributes">
                     <attribute name="position">remove</attribute>
@@ -124,6 +179,27 @@
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//page[@name='hr_settings']" position="after">
+                    <page string="Danh sách tài liệu">
+                        <group>
+                            <field name="profile_status" readonly="1" string="Tình trạng hồ sơ" force_save="1"/>
+                        </group>
+                        <field name="document_config" readonly="1" force_save="1"/>
+                        <field name="document_list" readonly="1" oder="sequence" force_save="1">
+                            <tree class="hrm_custom_tree_notebook">
+                                <field name="sequence"/>
+                                <field name="name"/>
+                                <field name="obligatory"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Khai báo tài liệu">
+                        <field name="document_declaration">
+                            <tree class="hrm_custom_tree_notebook">
+                                <field name="name"/>
+                                <field name="complete"/>
+                            </tree>
+                        </field>
+                    </page>
                     <page name="approval_status" string="Trạng thái phê duyệt"
                           attrs="{'invisible': [('approved_name', '=', False)]}">
                         <field name="approved_name" readonly="1"/>
@@ -138,14 +214,15 @@
                             </tree>
                         </field>
                     </page>
+
                     <page string="Thiết lập nhân sự" attrs="{'invisible': [('id', '=', False)]}">
                         <group>
                             <group>
                                 <field name="account_link"/>
                                 <field name="status_account" widget="boolean_toggle"
                                        attrs="{'invisible': [('account_link', '=', False)]}"/>
-<!--                                <field name="status_account" widget="boolean_toggle"-->
-<!--                                       attrs="{'invisible': [('account_link', '=', False)]}"/>-->
+                                <!--                                <field name="status_account" widget="boolean_toggle"-->
+                                <!--                                       attrs="{'invisible': [('account_link', '=', False)]}"/>-->
                             </group>
                             <group>
                                 <!--                                <field name="date_close"/>-->
@@ -173,88 +250,6 @@
             </field>
         </record>
 
-        <!--        <record id="hr_kanban_view_employees" model="ir.ui.view">-->
-        <!--           <field name="name">hr.employee.kanban</field>-->
-        <!--           <field name="model">hr.employee</field>-->
-        <!--           <field name="priority">10</field>-->
-        <!--           <field name="arch" type="xml">-->
-        <!--               <kanban class="o_hr_employee_kanban" js_class="hr_employee_kanban" sample="1">-->
-        <!--                   <field name="id"/>-->
-        <!--                   <field name="hr_presence_state"/>-->
-        <!--                   <field name="user_id"/>-->
-        <!--                   <field name="user_partner_id"/>-->
-        <!--                   <field name="hr_icon_display"/>-->
-        <!--                   <templates>-->
-        <!--                       <t t-name="kanban-box">-->
-        <!--                       <div class="oe_kanban_global_click o_kanban_record_has_image_fill o_hr_kanban_record">-->
-        <!--                           <field name="image_128" widget="image" class="o_kanban_image_fill_left" options="{'zoom': true, 'zoom_delay': 1000, 'background': true, 'preventClicks': false}"/>-->
-
-        <!--                            <div class="oe_kanban_details">-->
-        <!--                               <div class="o_kanban_record_top">-->
-        <!--                                   <div class="o_kanban_record_headings">-->
-        <!--                                       <strong class="o_kanban_record_title">-->
-        <!--                                            <div class="float-right"-->
-        <!--                                                 t-if="record.hr_icon_display.raw_value == 'presence_present'"-->
-        <!--                                                 name="presence_present">-->
-        <!--                                                &lt;!&ndash; Employee is present/connected and it is normal according to his work schedule  &ndash;&gt;-->
-        <!--                                                <span class="fa fa-circle text-success" role="img" aria-label="Present"-->
-        <!--                                                      title="Present" name="presence_present">-->
-        <!--                                                </span>-->
-        <!--                                            </div>-->
-        <!--                                            <div class="float-right"-->
-        <!--                                                 t-if="record.hr_icon_display.raw_value == 'presence_absent'"-->
-        <!--                                                 name="presence_absent">-->
-        <!--                                                &lt;!&ndash; Employee is not present and it is normal according to his work schedule &ndash;&gt;-->
-        <!--                                                <span class="fa fa-circle-o text-muted" role="img" aria-label="Absent"-->
-        <!--                                                      title="Absent" name="presence_absent">-->
-        <!--                                                </span>-->
-        <!--                                            </div>-->
-        <!--                                            <div class="float-right"-->
-        <!--                                                 t-if="record.hr_icon_display.raw_value == 'presence_absent_active'"-->
-        <!--                                                    name="presence_absent_active">-->
-        <!--                                                &lt;!&ndash; Employee is connected but according to his work schedule,-->
-        <!--                                                     he should not work for now  &ndash;&gt;-->
-        <!--                                                <span class="fa fa-circle-o text-success" role="img"-->
-        <!--                                                      aria-label="Present but not active"-->
-        <!--                                                      title="Present but not active"-->
-        <!--                                                      name="presence_absent_active">-->
-        <!--                                                </span>-->
-        <!--                                            </div>-->
-        <!--                                            <div class="float-right"-->
-        <!--                                                 t-if="record.hr_icon_display.raw_value == 'presence_to_define'"-->
-        <!--                                                    name="presence_to_define">-->
-        <!--                                                &lt;!&ndash; Employee is not here but according to his work schedule, he should be connected &ndash;&gt;-->
-        <!--                                                <span class="fa fa-circle text-warning" role="img"-->
-        <!--                                                      aria-label="To define" title="To define"-->
-        <!--                                                      name="presence_to_define">-->
-        <!--                                                </span>-->
-        <!--                                            </div>-->
-        <!--                                            <field name="name" placeholder="Employee's Name"/>-->
-        <!--                                       </strong>-->
-        <!--                                       <span t-if="record.job_title.raw_value" class="o_kanban_record_subtitle"><field name="job_title"/></span>-->
-        <!--                                   </div>-->
-        <!--                               </div>-->
-        <!--                               <field name="category_ids" widget="many2many_tags" options="{'color_field': 'color'}" groups="hr.group_hr_manager"/>-->
-        <!--                               <ul>-->
-        <!--                                   <li id="last_login"/>-->
-        <!--                                   <li t-if="record.work_email.raw_value" class="o_text_overflow"><field name="work_email" /></li>-->
-        <!--                                   <li t-if="record.work_phone.raw_value" class="o_force_ltr"><field name="work_phone" /></li>-->
-        <!--                               </ul>-->
-        <!--                                <div class="oe_kanban_content">-->
-        <!--                                    <div class="o_kanban_record_bottom">-->
-        <!--                                        <div class="oe_kanban_bottom_left"/>-->
-        <!--                                        <div class="oe_kanban_bottom_right">-->
-        <!--                                            <a title="Chat" icon="fa-comments" href="#" class="ml8 o_employee_chat_btn" attrs="{'invisible': [('user_id','=', False)]}" role="button"><i class="fa fa-comments"/></a>-->
-        <!--                                        </div>-->
-        <!--                                    </div>-->
-        <!--                                </div>-->
-        <!--                           </div>-->
-        <!--                       </div>-->
-        <!--                       </t>-->
-        <!--                   </templates>-->
-        <!--               </kanban>-->
-        <!--            </field>-->
-        <!--        </record>-->
 
     </data>
 </odoo>

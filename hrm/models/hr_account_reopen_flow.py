@@ -10,7 +10,6 @@ class ApprovalAccountFlow(models.Model):
 
     def default_type_block(self):
         return 'BLOCK_OFFICE_NAME' if self.env.user.block_id == 'BLOCK_OFFICE_NAME' else 'BLOCK_COMMERCE_NAME'
-
     type_block = fields.Selection([('BLOCK_COMMERCE_NAME', 'Thương mại'),
                                    ('BLOCK_OFFICE_NAME', 'Văn phòng')], string='Loại khối',
                                   default=default_type_block)

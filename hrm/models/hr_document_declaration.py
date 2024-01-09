@@ -10,11 +10,11 @@ class DocumentDeclaration(models.Model):
     name = fields.Char(string='Tên hiển thị', compute='_compute_name_team', store=True)
     profile_id = fields.Many2one('hr.employee')
     type_documents = fields.Many2one('hr.documents', string='Loại tài liệu', required=True)
-    block_id = fields.Many2one('hrm.blocks', string='Khối', required=True, related='employee_id.block_id')
+    type_block = fields.Selection(constraint.TYPE_BLOCK, string='Khối', required=True, related='employee_id.type_block')
+    type_in_block_ecom = fields.Selection([('system', 'Hệ thống'), ('company', 'Công ty')],
+                                          string='Hệ thống / Công ty', default='system')
     related = fields.Boolean(compute='_compute_related_')
     employee_id = fields.Many2one('hr.employee', string='Nhân viên', required=True)
-    system_id = fields.Many2one('hr.systems', string='Hệ thống', related='employee_id.system_id')
-    company = fields.Many2one('hrm.companies', string='Công ty', related='employee_id.company')
     department_id = fields.Many2one('hr.department', string='Phòng ban', related='employee_id.department_id')
     give_back = fields.Boolean(string='Trả lại khi chấm dứt')
     manager_document = fields.Many2one('res.users', string='Quản lý tài liệu')
@@ -30,7 +30,7 @@ class DocumentDeclaration(models.Model):
     max_files = fields.Char(related='type_documents.numbers_of_documents')
 
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        self.env['hrm.utils']._see_record_with_config('hr.document_declaration')
+        # self.env['hrm.utils']._see_record_with_config('hr.document_declaration')
         return super(DocumentDeclaration, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
                                                                 submenu=submenu)
 
@@ -60,7 +60,7 @@ class DocumentDeclaration(models.Model):
         if len(self.picture_ids) > int(self.max_photos):
             raise ValidationError(_(f"Số lượng ảnh tải lên giới hạn là {self.max_photos}"))
 
-    @api.depends('block_id')
+    @api.depends('type_block')
     def _compute_related_(self):
         # Lấy giá trị của trường related để check điều kiện hiển thị
         for record in self:

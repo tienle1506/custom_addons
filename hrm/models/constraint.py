@@ -43,3 +43,8 @@ STATE_REOPEN = [
     ('close', 'Đã đóng'),
     ('cancel', 'Hủy')
 ]
+UPDATE_CONFIRM_DOCUMENT = [
+    ('all', 'Áp dụng tất cả hồ sơ.'),
+    ('not_approved_and_new', 'Áp dụng cho hồ sơ chưa được phê duyệt và hồ sơ mới.'),
+    ('new', 'Áp dụng cho hồ sơ mới.')
+]

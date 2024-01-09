@@ -55,6 +55,7 @@ class HrDepartment(models.Model):
         if res:
             self.department_level = res.department_level + 1
         print(self.parent_id.get_all_parents())
+
     def get_all_parents(self):
         all_parents_ids = set()
 
@@ -120,9 +121,10 @@ class HrDepartment(models.Model):
 
     def unlink(self, context=None):
         """ Chặn không cho xoá khối 'Văn phòng' và 'Thương mại' """
-        for line in self:
-            if line.has_change:
+        for department in self:
+            if department.has_change:
                 raise ValidationError(constraint.DO_NOT_DELETE)
+
         return super(HrDepartment, self).unlink()
 
     @api.onchange('type_block', 'type_in_block_ecom')

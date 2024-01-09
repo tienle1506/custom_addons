@@ -6,6 +6,7 @@ from lxml import etree
 import json
 from odoo.exceptions import UserError
 from odoo.addons.auth_signup.models.res_users import SignupError
+from odoo import api, SUPERUSER_ID
 
 
 class HrEmployee(models.Model):
@@ -26,7 +27,7 @@ class HrEmployee(models.Model):
     identifier = fields.Char('Số căn cước công dân', tracking=True)
     work_start_date = fields.Date(string='Ngày vào làm', tracking=True)
     date_receipt = fields.Date(string='Ngày được nhận chính thức', required=True)
-    profile_status = fields.Selection(constraint.PROFILE_STATUS, string='Trạng thái hồ sơ')
+    profile_status = fields.Selection(constraint.PROFILE_STATUS, string='Trạng thái hồ sơ', tracking=True, compute='compute_profile_status', store=True, default='incomplete')
     auto_create_acc = fields.Boolean(string='Tự động tạo tài khoản', default=True)
     readonly_type_block = fields.Boolean(compute='_compute_readonly_type_block')
     state = fields.Selection(constraint.STATE, default='draft', string="Trạng thái phê duyệt")
@@ -56,14 +57,24 @@ class HrEmployee(models.Model):
     approved_name = fields.Many2one('hr.approval.flow.object')
     # Mở lại tài khoản
     date_close = fields.Datetime(string='Ngày đóng tài khoản', readonly=True)
+    date_close = fields.Datetime(string='Ngày đóng tài khoản', readonly=True)
     date_open = fields.Datetime(string='Ngày mở lại tài khoản', readonly=True)
     state_reopen = fields.Selection(constraint.STATE_REOPEN, default='close',
                                     string="Trạng thái mở lại tài khoản")
+
+    document_declaration = fields.One2many('hr.document_declaration', 'profile_id', tracking=True)
+    document_config = fields.Many2one('hrm.document.list.config', compute='compute_documents_list')
+    type_update_document = fields.Selection(constraint.UPDATE_CONFIRM_DOCUMENT, string="Đối tượng áp dụng tài liệu",
+                                            default='new')
+    document_list = fields.Many2many('hrm.document.list')
+    is_compute_documents_list = fields.Boolean(default=True)
 
     can_see_approved_record = fields.Boolean()
     can_see_button_approval = fields.Boolean()
     can_see_opening_record = fields.Boolean()
     can_see_button_opening = fields.Boolean()
+    see_record_with_config = fields.Boolean()
+    can_see_button_reset_lock = fields.Boolean()
     cancelled_reopen_account = fields.Boolean(string='Huỷ', default=False)
 
     @api.model
@@ -87,33 +98,59 @@ class HrEmployee(models.Model):
 
     @api.onchange('type_block', 'type_in_block_ecom')
     def _onchange_type_block(self):
+        self.department_id = False
         self.parent_id = False
         for rec in self:
-            if rec.type_block == 'BLOCK_COMMERCE_NAME' and rec.type_in_block_ecom == 'system':
+            final_domain = {}
+            if rec.type_block == 'BLOCK_COMMERCE_NAME':
+                if rec.type_in_block_ecom == 'system':
+                    if self.env.user.department_id:
+                        list_sys_com = self.env['hr.department'].search(
+                            [('id', 'child_of', self.env.user.department_id.ids),
+                             ('type_in_block_ecom', '=', 'system')])
+                    else:
+                        list_sys_com = self.env['hr.department'].search(
+                            [('type_block', '=', 'BLOCK_COMMERCE_NAME'), ('type_in_block_ecom', '=', 'system')])
+                    final_domain.update({'department_id': [('id', 'in', list_sys_com.ids)]})
+                elif rec.type_in_block_ecom == 'company':
+                    if self.env.user.department_id:
+                        list_sys_com = self.env['hr.department'].search(
+                            [('id', 'child_of', self.env.user.department_id.ids),
+                             ('type_in_block_ecom', '=', 'company')])
+                    else:
+                        list_sys_com = self.env['hr.department'].search(
+                            [('type_block', '=', 'BLOCK_COMMERCE_NAME'), ('type_in_block_ecom', '=', 'company')])
+                    final_domain.update({'department_id': [('id', 'in', list_sys_com.ids)]})
 
-                if self.env.user.department_id:
-                    list_sys_com = self.env['hr.department'].search(
-                        [('id', 'child_of', self.env.user.department_id.ids), ('type_in_block_ecom', '=', 'system')])
-                else:
-                    list_sys_com = self.env['hr.department'].search(
-                        [('type_block', '=', 'BLOCK_COMMERCE_NAME'), ('type_in_block_ecom', '=', 'system')])
-                return {'domain': {'department_id': [('id', 'in', list_sys_com.ids)]}}
-            elif rec.type_block == 'BLOCK_COMMERCE_NAME' and rec.type_in_block_ecom == 'company':
-
-                if self.env.user.department_id:
-                    list_sys_com = self.env['hr.department'].search(
-                        [('id', 'child_of', self.env.user.department_id.ids), ('type_in_block_ecom', '=', 'company')])
-                else:
-                    list_sys_com = self.env['hr.department'].search(
-                        [('type_block', '=', 'BLOCK_COMMERCE_NAME'), ('type_in_block_ecom', '=', 'company')])
-                return {'domain': {'department_id': [('id', 'in', list_sys_com.ids)]}}
+                list_job = self.env['hr.job'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
+                final_domain.update({'job_id': [('id', 'in', list_job.ids)]})
+                return {'domain': final_domain}
             if rec.type_block == 'BLOCK_OFFICE_NAME':
+                self.type_in_block_ecom = 'system'
                 if self.env.user.department_id:
                     list_sys_com = self.env['hr.department'].search(
                         [('id', 'child_of', self.env.user.department_id.ids)])
                 else:
                     list_sys_com = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
                 return {'domain': {'department_id': [('id', 'in', list_sys_com.ids)]}}
+
+    @api.onchange('department_id')
+    def _onchange_department(self):
+        self.team_marketing = self.team_sales = False
+        if self.type_block == 'BLOCK_COMMERCE_NAME' and self.type_in_block_ecom == 'company':
+            if self.department_id:
+                list_team_marketing = self.env['hr.teams'].search(
+                    [('department_id', '=', self.department_id.id), ('type_team', '=', 'marketing')])
+                list_team_sale = self.env['hr.teams'].search(
+                    [('department_id', '=', self.department_id.id), ('type_team', 'in', ('sale', 'resale'))])
+            else:
+                return {}
+            return {
+                'domain': {'team_marketing': [('id', 'in', list_team_marketing.ids)],
+                           'team_sales': [('id', 'in', list_team_sale.ids)]}}
+        elif self.type_block == 'BLOCK_OFFICE_NAME':
+            list_job = self.env['hr.job'].search([('department_id', '=', self.department_id.id)])
+            return {'domain': {'job_id': [('id', 'in', list_job.ids)]}}
 
     def auto_create_account_employee(self):
         # hàm tự tạo tài khoản và gán id tài khoản cho acc_id
@@ -166,7 +203,6 @@ class HrEmployee(models.Model):
         self._cr.execute(query)
         max_step = self._cr.fetchone()
         if self.state == 'pending' and max_step[0] <= step or max_step[0] <= step_excess_level:
-            print(self.state)
             state = 'approved'
             # create new account when approved
             if self.auto_create_acc:
@@ -372,6 +408,7 @@ class HrEmployee(models.Model):
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         res = super(HrEmployee, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
                                                       submenu=submenu)
+        current_user_id = self.env.user.id
         # self.env['hrm.utils']._see_record_with_config('hrm.employee.profile')
         self.see_own_approved_record()
         self.logic_button()
@@ -394,27 +431,64 @@ class HrEmployee(models.Model):
                         '<form string="Tạo mới hồ sơ" create="false" edit="true" modifiers="{}">',
                         '<form string="Tạo mới hồ sơ" create="false" edit="false" modifiers="{}">')
 
+            modifiers_lock_acc = {
+                "invisible": [
+                    "|",
+                    ["status_account", "=", False],
+                    ["create_uid", "!=", user_id]
+                ]
+            }
+
+            modifiers_str1 = json.dumps(modifiers_lock_acc)
+
+            modifiers_open_acc = {
+                "invisible": [
+                    "|",
+                    ["state", "!=", 'close'],
+                    ["create_uid", "!=", user_id]
+                ]
+            }
+
+            modifiers_str2 = json.dumps(modifiers_open_acc)
+
+
+
             # Tạo một biểu thức domain mới để xác định xem nút có nên hiển thị hay không
             # Thuộc tính của trường phụ thuộc vào modifiers
             res['arch'] = res['arch'].replace(
                 '<button name="action_send" string="Gửi duyệt" type="object" class="btn-primary"/>',
-                f'<button name="action_send" string="Gửi duyệt" type="object" class="btn-primary" modifiers=\'{{"invisible":["|",["state","in",["pending","approved"]],["create_uid", "!=", {user_id}]]}}\'/>'
+                f'<button name="action_send" string="Gửi duyệt" type="object" class="btn-primary" modifiers=\'{{"invisible":["|",["state","!=","draft"],["create_uid", "!=", {user_id}]]}}\'/>'
             )
             res['arch'] = res['arch'].replace(
                 '<button name="action_cancel" string="Hủy" type="object"/>',
                 f'<button name="action_cancel" string="Hủy" type="object" style="background-color: #FD5050; border-radius: 5px;color:#fff;" modifiers=\'{{"invisible":["|",["state","!=","pending"],["create_uid", "!=", {user_id}]]}}\'/>'
             )
+            res['arch'] = res['arch'].replace(
+                '<button name="action_cancel_reopen_account" string="Hủy mở lại tài khoản" type="object" class="btn-secondary"/>',
+                f'<button name="action_cancel_reopen_account" string="Hủy mở lại tài khoản" type="object" class="btn-secondary" modifiers=\'{{"invisible":["|",["state","!=","wait_reopen"],["create_uid", "!=", {user_id}]]}}\'/>'
+            )
 
             res['arch'] = res['arch'].replace(
                 '<button name="reset_password" string="Đặt lại mật khẩu" type="object" class="btn-info"/>',
-                f'<button name="reset_password" string="Đặt lại mật khẩu" type="object" class="btn-info" modifiers=\'{{"invisible":[["can_see_button_reset_lock", "=", false]]}}\'/>'
+                f'<button name="reset_password" string="Đặt lại mật khẩu" type="object" class="btn-info"  modifiers=\'{{"invisible":[["can_see_button_reset_lock", "=", false]]}}\'/>'
             )
-            id_action = self.env['ir.actions.act_window'].sudo().search(
-                [('name', '=', 'Xác nhận khóa tài khoản nhân sự')], limit=1)
             res['arch'] = res['arch'].replace(
-                f'<button name="{id_action.id}" type="action" string="Khóa TK nhân sự" class="btn-red"/>',
-                f'<button name="{id_action.id}" type="action" string="Khóa TK nhân sự" class="btn-red" modifiers=\'{{"invisible":[["can_see_button_reset_lock", "=", false]]}}\'/>'
+                '<button name="372" type="action" string="Khóa TK nhân sự" class="btn-red"/>',
+            f'<button name="372" type="action" string="Khóa TK nhân sự" class="btn-red" style="background-color: #FD5050; border-radius: 5px;color:#fff;" modifiers=\'{modifiers_str1}\'/>'
             )
+            res['arch'] = res['arch'].replace(
+                '<button name="389" type="action" string="Mở lại tài khoản nhân sự" class="btn-red"/>',
+                f'<button name="389" type="action" string="Mở lại tài khoản nhân sự" class="btn-red" modifiers=\'{modifiers_str2}\'/>'
+            )
+
+
+
+            # id_action_lock_acc = self.env['ir.actions.act_window'].sudo().search(
+            #     [('name', '=', 'Xác nhận khóa tài khoản nhân sự')], limit=1)
+            # res['arch'] = res['arch'].replace(
+            #     f'<button name="{id_action_lock_acc.id}" type="action" string="Khóa TK nhân sự" class="btn-red"/>',
+            #     f'<button name="{id_action_lock_acc.id}" type="action" string="Khóa TK nhân sự" class="btn-red" modifiers=\'{{"invisible":[["can_see_button_reset_lock", "=", false]]}}\'/>'
+            # )
 
             doc = etree.XML(res['arch'])
 
@@ -432,16 +506,17 @@ class HrEmployee(models.Model):
                     for field in cf.xpath("//field[@name]"):
                         modifiers = field.attrib.get('modifiers', '')
                         modifiers = json.loads(modifiers) if modifiers else {}
-                        if field.get("name") not in ['employee_code_new', 'document_config', 'document_list',
-                                                     'manager_id', 'profile_status', 'account_link_secondary']:
+                        if field.get("name") not in ['email_work', 'job_title', 'profile_status', 'employee_code',
+                                                     'document_config', 'document_list',
+                                                     'manager_id', 'account_link_secondary']:
                             modifiers.update({'readonly': ["|", ['id', '!=', False], ['create_uid', '!=', user_id],
                                                            ['state', '!=', 'draft']]})
-                        if field.get("name") in ['phone_num', 'email', 'identifier']:
+                        if field.get("name") in ['mobile_phone', 'personal_email', ]:
                             modifiers.update({'readonly': ["|", ["id", "!=", False],
                                                            ["create_uid", "!=", user_id], ['state', '=', 'pending']]})
                         if field.get("name") == 'block_id':
                             modifiers.update(
-                                {'readonly': ["|", ["check_blocks", "!=", 'full'], ['state', '!=', 'draft']]})
+                                {'readonly': ["|", [self.env.user.block_id, "!=", 'full'], ['state', '!=', 'draft']]})
 
                         field.attrib['modifiers'] = json.dumps(modifiers)
                 elif has_group_own_edit:
@@ -449,10 +524,10 @@ class HrEmployee(models.Model):
                     for field in cf.xpath("//field[@name]"):
                         modifiers = field.attrib.get('modifiers', '')
                         modifiers = json.loads(modifiers) if modifiers else {}
-                        if field.get("name") not in ['phone_num', 'email', 'identifier']:
+                        if field.get("name") not in ['mobile_phone', 'personal_email']:
                             modifiers.update({'readonly': True})
                         else:
-                            modifiers.update({'readonly': ["|", ['state', '!=', 'draft'], ['acc_id', '!=', user_id]]})
+                            modifiers.update({'readonly': ["|", ['state', '!=', 'draft'], ['user_id', '!=', user_id]]})
                         field.attrib['modifiers'] = json.dumps(modifiers)
             #     elif has_group_readonly:
             #         # nếu user login có quyền chỉ đọc thì set các field readonly
@@ -465,7 +540,6 @@ class HrEmployee(models.Model):
             res['arch'] = etree.tostring(doc, encoding='unicode')
         return res
 
-
     def change_account_status(self):
         self.sudo().write({'state': 'close'})
         self.date_close = fields.Datetime.now()
@@ -475,9 +549,8 @@ class HrEmployee(models.Model):
         return self.account_link.sudo().action_reset_password()
 
     def action_cancel_reopen_account(self):
-        for profile in self:
-            if profile.active in ['active', 'False']:
-                profile.write({'state': 'cancelled_reopen_account', 'cancelled_reopen_account': True})
+        if self.state == 'wait_reopen':
+            self.sudo().write({'state': 'close'})
 
     def action_reopening(self, reason_reopening=None):
         # Khi ấn button Gửi duyệt sẽ chuyển từ draft sang pending
@@ -574,3 +647,81 @@ class HrEmployee(models.Model):
                 p.can_see_button_opening = True
             else:
                 p.can_see_button_opening = False
+
+    def compute_documents_list(self):
+        """Tìm cấu hình dựa trên block_id"""
+
+        def apply_config(document_id):
+            if self.type_update_document == 'new' and self.is_compute_documents_list:
+                self.sudo().write({"document_list": document_id.new_config.ids, "is_compute_documents_list": False})
+            elif self.type_update_document == 'all' and self.is_compute_documents_list:
+                self.sudo().write({"document_list": document_id.all.ids, "is_compute_documents_list": False})
+            elif self.type_update_document == 'not_approved_and_new' and self.is_compute_documents_list:
+                self.sudo().write(
+                    {"document_list": document_id.not_approved_and_new.ids, "is_compute_documents_list": False})
+            self.sudo().write({'document_config': document_id})
+            # giải pháp update giá trị cho document_config khi sử dụng store = True không được
+            if self.id:
+                self.sudo()._cr.execute(f"""
+                            update hr_employee
+                            set document_config = {document_id.id}
+                            where id = {self.id};""")
+
+        document_id = self.env['hrm.document.list.config'].sudo().search([('job_id', '=', self.job_id.id)])
+
+        if document_id:
+            # Tìm bản ghi dựa vào id tìm được
+            apply_config(document_id)
+        else:
+            self.document_config = False
+
+    @api.onchange("document_declaration")
+    def check_duplicate_document_declaration(self):
+        if self.document_declaration:
+            for doc1 in self.document_declaration:
+                for doc2 in self.document_declaration:
+                    if doc1.name.lower() == doc2.name.lower() and doc1.employee_id.id == doc2.employee_id.id \
+                            and doc1.type_documents == doc2.type_documents and doc1.id != doc2.id:
+                        raise ValidationError("Không được chọn tài liệu khai báo trùng nhau")
+
+    @api.depends('document_list', 'document_declaration')
+    def compute_profile_status(self):
+        """Kiểm tra các hồ sơ đã khai báo với danh sách tài liệu để update trạng thái hồ sơ"""
+        if self.document_list:
+            incomplete = True
+            # Duyệt qua danh sách tài liệu để tìm tài liệu bắt buộc
+            for line in self.document_list:
+                if line.obligatory and line.doc.id in self.find_document_declaration_complete():
+                    incomplete = False
+            if incomplete:
+                self.profile_status = 'incomplete'
+            else:
+                self.profile_status = 'complete'
+
+    def find_document_declaration_complete(self):
+        """Tìm danh sách các tài liệu được khai báo và đã tích hoàn thành"""
+        list_complete = []
+        for line in self.document_declaration:
+            if line.complete:
+                list_complete.append(line.type_documents.id)
+        return list_complete
+
+    # def compute_see_button_reset_and_lock(self):
+    #     """Điều kiện để thấy button Đổi MK và Khoá TK"""
+    #     has_group_config = self.env.user.has_group("hrm.hrm_group_config_access")
+    #     records = self.env['hr.employee'].sudo().search([])
+    #     for line in records:
+    #         line.can_see_button_reset_lock = True
+    #         if not line.account_link or not line.status_account:
+    #             line.can_see_button_reset_lock = False
+    #             continue
+    #         if line.env.user.id != line.create_uid and not has_group_config:
+    #             line.can_see_button_reset_lock = False
+    def unlink(self):
+        # Xác định các bản ghi liên quan trong hr_document_declaration và xóa chúng trước
+        for employee in self:
+            declarations = self.env['hr.document_declaration'].search([('employee_id', '=', employee.id)])
+            declarations.unlink()  # Xóa các bản ghi tham chiếu trong hr_document_declaration
+
+        # Tiếp tục xóa bản ghi từ bảng hr_employee
+        return super(HrEmployee, self).unlink()

@@ -88,6 +88,7 @@
                 (0, 0, {'view_mode': 'kanban', 'view_id': ref('hr_kanban_view_employees_inherit')}),
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_employee_profile_tree')}),
                 (0, 0, {'view_mode': 'form', 'view_id': ref('view_hr_employee_form_inherit')})]"/>
+            <field name="search_view_id" ref="view_employee_filter_inherit"/>
         </record>
     </data>
 </odoo>

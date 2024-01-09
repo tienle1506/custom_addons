@@ -11,23 +11,23 @@ class Teams(models.Model):
     name_display = fields.Char(string='Tên hiển thị', compute='_compute_name_team', store=True)
     name = fields.Char(string='Tên team', required=True)
     type_team = fields.Selection(selection=constraint.SELECT_TYPE_TEAM, string='Loại hình đội ngũ', required=True)
-    department_id = fields.Many2one('hr.department', string='Hệ thống', required=True)
+
     active = fields.Boolean(string='Hoạt Động', default=True)
     see_record_with_config = fields.Boolean(default=True)
 
 
-    @api.constrains("team_name")
+    @api.constrains("name")
     def _check_valid_name(self):
         """
             kiểm tra trường name không có ký tự đặc biệt.
             \W là các ký tự ko phải là chữ, dấu cách _
         """
         for rec in self:
-            if rec.team_name:
-                if re.search(r"[\W]+", rec.team_name.replace(" ", "")) or "_" in rec.team_name:
+            if rec.name:
+                if re.search(r"[\W]+", rec.name.replace(" ", "")) or "_" in rec.name:
                     raise ValidationError(constraint.ERROR_NAME % 'Đội Ngũ')
 
-    @api.depends('team_name', 'department_id', 'type_team')
+    @api.depends('name', 'department_id', 'type_team')
     def _compute_name_team(self):
         # hiển thị theo tên tiền tố 'tiền tố._tênteam._tên công ty'
         for rec in self:
@@ -38,13 +38,13 @@ class Teams(models.Model):
             elif rec.type_team == 'sale':
                 name_prefix = 'TeamSale'
             elif rec.type_team == 'resale':
-                name_prefix = 'TeamUCA'
+                name_prefix = 'TeamResale'
 
-            team_name = rec.team_name and rec.team_name or ''
+            team_name = rec.name and rec.name or ''
             name_company = rec.department_id and rec.department_id.name or ''
 
             name_parts = [part for part in [name_prefix, team_name, name_company] if part]
-            rec.name = '_'.join(name_parts)
+            rec.name_display = '_'.join(name_parts)
 
     @api.constrains('name', 'type_company')
     def _check_name_combination(self):
@@ -66,23 +66,21 @@ class Teams(models.Model):
 
     def default_company(self):
         """Hàm này đặt domain cho trường comany dựa theo cấu hình quyền"""
-        if self.env.user.system_id:
-            func = self.env['hrm.utils']
-            list_child_company = []
-            if self.env.user.company:
-                list_child_company = func.get_child_id(self.env.user.company, 'hrm_companies', "parent_company")
+        if self.env.user.block_id == 'BLOCK_COMMERCE_NAME' or self.env.user.block_id == 'full':
+            if self.env.user.department_id:
+                list_child_company = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids), ('type_in_block_ecom', '=', 'company')])
+                return [('id', 'in', list_child_company.ids)]
             else:
-                for sys in self.env.user.system_id:
-                    list_child_company += func._system_have_child_company(sys.id)
-            return [('id', 'in', list_child_company)]
-        elif self.env.user.block_id == constraint.BLOCK_OFFICE_NAME:
+                list_child_company = self.env['hr.department'].search([('type_in_block_ecom', '=', 'company')])
+                return [('id', 'in', list_child_company.ids)]
+        else:
             return [('id', '=', 0)]
 
-    company = fields.Many2one('hrm.companies', string="Công ty", required=True, tracking=True, domain=default_company)
+    department_id = fields.Many2one('hr.department', string='Hệ thống', required=True, domain=default_company)
 
-    @api.constrains('name', 'type_team', 'team_name', 'active', ' change_system_id')
+    @api.constrains('name_display', 'type_team', 'name', 'active')
     def _check_department_access(self):
-        if self.env.user.block_id == constraint.BLOCK_OFFICE_NAME:
+        if self.env.user.block_id == 'BLOCK_OFFICE_NAME':
             raise AccessDenied("Bạn không có quyền thực hiện tác vụ này!")
 
     def _can_see_record_with_config(self):
@@ -91,22 +89,20 @@ class Teams(models.Model):
             {'see_record_with_config': False})
         user = self.env.user
         # Tìm tất cả các công ty, hệ thống, phòng ban con
-        company_config = self.env['hrm.utils'].get_child_id(user.company, 'hrm_companies', "parent_company")
-        system_config = self.env['hrm.utils'].get_child_id(user.system_id, 'hrm_systems', "parent_system")
+        company_config = self.env['hr.department'].search(
+                        [('id', 'child_of', self.env.user.department_id.ids), ('type_in_block_ecom', '=', 'company')])
         block_config = user.block_id
-        if block_config == constraint.BLOCK_OFFICE_NAME:
-            self.env['hrm.teams'].sudo().search([]).write({'see_record_with_config': False})
+        if block_config == 'BLOCK_OFFICE_NAME':
+            self.env['hr.teams'].sudo().search([]).write({'see_record_with_config': False})
             raise AccessDenied("Bạn không có quyền truy cập tính năng này!")
         else:
             domain = []
             # Lấy domain theo các trường
             if not user.has_group("hrm.hrm_group_create_edit"):
                 if company_config:
-                    domain.append(('company', 'in', company_config))
-                elif system_config:
-                    domain.append(('system_id', 'in', system_config))
+                    domain.append(('department_id', 'in', company_config.ids))
 
-            self.env['hrm.teams'].sudo().search(domain).write({'see_record_with_config': True})
+            self.env['hr.teams'].sudo().search(domain).write({'see_record_with_config': True})
 
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         self._can_see_record_with_config()

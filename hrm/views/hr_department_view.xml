@@ -10,6 +10,11 @@
                 <!-- Define search filters -->
                 <filter string="Unread Messages" name="message_needaction" domain="[('message_needaction','=',True)]"/>
                 <filter string="Archived" name="inactive" domain="[('active','=',False)]"/>
+                <group expand="0" string="Group By">
+                        <filter name="group_block" string="Khối" domain="[]" context="{'group_by': 'type_block'}"/>
+                        <filter name="group_in_block" string="Hệ thống/ Công ty" domain="[]" context="{'group_by': 'type_in_block_ecom'}"/>
+
+                    </group>
 
                 <!-- Define the search panel to group the tree view -->
                 <searchpanel>
@@ -46,7 +51,7 @@
                         <group>
                             <field name="phone_num"/>
                             <field name="manager_id" string="Quản lý" attrs="{'invisible': [('type_block', '!=', 'BLOCK_OFFICE_NAME')]}"/>
-                            <field name="chairperson" string="Chủ hộ" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
+                            <field name="manager_id" string="Chủ hộ" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
                             <field name="vice_president" string="Phó hộ" attrs="{'invisible': [('type_block', '!=', 'BLOCK_COMMERCE_NAME')]}"/>
                         </group>
                     </group>

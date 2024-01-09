@@ -10,14 +10,17 @@ class DocumentListConfig(models.Model):
     _description = 'Cấu hình danh sách tài liệu'
 
     name = fields.Char(string='Tên hiển thị', required=True)
-    block_id = fields.Many2one('hrm.blocks', string='Khối', required=True, default=lambda self: self._default_block(),
-                               tracking=True)
-    check_blocks = fields.Char(default=lambda self: self.env.user.block_id)
-    check_company = fields.Char(default=lambda self: self.env.user.company)
+
+    def default_type_block(self):
+        return 'BLOCK_OFFICE_NAME' if self.env.user.block_id == 'BLOCK_OFFICE_NAME' else 'BLOCK_COMMERCE_NAME'
+
+    type_block = fields.Selection(constraint.TYPE_BLOCK, string='Khối', required=True, default=default_type_block)
+    department_id = fields.Many2one('hr.department', string='Phòng ban', tracking=True)
+
     document_list = fields.One2many('hrm.document.list', 'document_id', string='Danh sách tài liệu')
     related = fields.Boolean(compute='_compute_related_')
-    see_record_with_config = fields.Boolean(default=True)
 
+    see_record_with_config = fields.Boolean(default=True)
     update_confirm_document = fields.Selection(selection=constraint.UPDATE_CONFIRM_DOCUMENT, string="Cập nhật tài liệu")
 
     # các field lưu id của tài liệu tương ứng với cấu hình áp dụng cho HSNS
@@ -25,99 +28,48 @@ class DocumentListConfig(models.Model):
     not_approved_and_new = fields.One2many('hrm.document.list', 'not_approved_and_new_id')
     all = fields.One2many('hrm.document.list', 'all_id')
 
-    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        self.env['hrm.utils']._see_record_with_config('hrm.document.list.config')
-        return super(DocumentListConfig, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
-                                                               submenu=submenu)
+    readonly_type_block = fields.Boolean(compute='_compute_readonly_type_block')
 
-    def get_child_company(self):
-        list_child_company = []
-        if self.env.user.company:
-            list_child_company = self.env['hrm.utils'].get_child_id(self.env.user.company, 'hrm_companies',
-                                                                    "parent_company")
-        elif not self.env.user.company and self.env.user.system_id:
-            func = self.env['hrm.utils']
-            for sys in self.env.user.system_id:
-                list_child_company += func._system_have_child_company(sys.id)
-        return [('id', 'in', list_child_company)]
-
-    company = fields.Many2one('hrm.companies', string="Công ty", tracking=True, domain=get_child_company)
-
-    def _default_system(self):
-        if not self.env.user.company.ids and self.env.user.system_id.ids:
-            list_systems = self.env['hrm.utils'].get_child_id(self.env.user.system_id, 'hrm_systems', 'parent_system')
-            return [('id', 'in', list_systems)]
-        if self.env.user.company.ids and self.env.user.block_id == constraint.BLOCK_COMMERCE_NAME:
-            return [('id', '=', 0)]
-        return []
-
-    system_id = fields.Many2one('hrm.systems', string="Hệ thống", tracking=True, domain=_default_system)
-
-    def _default_department(self):
-        if self.env.user.department_id:
-            list_department = self.env['hrm.utils'].get_child_id(self.env.user.department_id,
-                                                                 'hrm_departments', "superior_department")
-            return [('id', 'in', list_department)]
-
-    department_id = fields.Many2one('hrm.departments', string='Phòng ban', tracking=True, domain=_default_department)
-
-    def _default_position_block(self):
-        if self.env.user.block_id == constraint.BLOCK_COMMERCE_NAME and not self.department_id:
-            position = self.env['hrm.position'].search([('block', '=', self.env.user.block_id)])
-            return [('id', 'in', position.ids)]
-        elif self.env.user.block_id == constraint.BLOCK_OFFICE_NAME and self.department_id:
-            position = self.env['hrm.position'].search([('block', '=', self.env.user.block_id)])
-            return [('id', 'in', position.ids)]
-        else:
-            return []
-
-    position_id = fields.Many2one('hrm.position', string='Vị trí', domain=_default_position_block)
-
-    def _default_block(self):
-        if self.env.user.block_id == constraint.BLOCK_OFFICE_NAME:
-            return self.env['hrm.blocks'].search([('name', '=', constraint.BLOCK_OFFICE_NAME)])
-        else:
-            return self.env['hrm.blocks'].search([('name', '=', constraint.BLOCK_COMMERCE_NAME)])
-
-    @api.depends('block_id')
-    def _compute_related_(self):
-        # Lấy giá trị của trường related để check điều kiện hiển thị
+    @api.depends('type_block')
+    def _compute_readonly_type_block(self):
         for record in self:
-            record.related = record.block_id.name == constraint.BLOCK_OFFICE_NAME
+            if record.env.user.block_id == 'full':
+                record.readonly_type_block = False
+            elif record.env.user.block_id == 'BLOCK_COMMERCE_NAME':
+                record.type_block = 'BLOCK_COMMERCE_NAME'
+                record.readonly_type_block = True
+            elif record.env.user.block_id == 'BLOCK_OFFICE_NAME':
+                record.type_block = 'BLOCK_OFFICE_NAME'
+                record.readonly_type_block = True
+        print(self.readonly_type_block)
 
-    @api.onchange('block_id')
-    def _onchange_block(self):
-        self.company = self.department_id = self.system_id = self.position_id = False
-        if self.block_id:
-            position = self.env['hrm.position'].search([('block', '=', self.block_id.name)])
-            return {'domain': {'position_id': [('id', 'in', position.ids)]}}
-        else:
-            return {'domain': {'position_id': []}}
+    # def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+    #     self.env['hrm.utils']._see_record_with_config('hrm.document.list.config')
+    #     return super(DocumentListConfig, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
+    #                                        submenu=submenu)
 
-    @api.onchange('department_id')
-    def _default_position(self):
-        if self.department_id:
-            position = self.env['hrm.position'].search([('department', '=', self.department_id.id)])
-            return {'domain': {'position_id': [('id', 'in', position.ids)]}}
+    @api.onchange('type_block')
+    def onchange_type_block(self):
+        for rec in self:
+            if rec.type_block == 'BLOCK_OFFICE_NAME':
+                if self.env.user.department_id:
+                    list_sys_com = self.env['hr.department'].search([('id', 'child_of', self.env.user.department_id.ids)])
+                else:
+                    list_sys_com = self.env['hr.department'].search([('type_block', '=', 'BLOCK_OFFICE_NAME')])
+                return {'domain': {'department_id': [('id', 'in', list_sys_com.ids)]}}
+    @api.onchange('department_id', 'type_block')
+    def _default_job_department(self):
+        self.job_id = False
+        if self.type_block == 'BLOCK_COMMERCE_NAME':
+            self.department_id = False
+            position = self.env['hr.job'].search([('type_block', '=', 'BLOCK_COMMERCE_NAME')])
+            return {'domain': {'job_id': [('id', 'in', position.ids)]}}
+        elif self.type_block == 'BLOCK_OFFICE_NAME' and self.department_id:
+            position = self.env['hr.job'].search([('department_id', '=', self.department_id.id)])
+            return {'domain': {'job_id': [('id', 'in', position.ids)]}}
 
-    @api.onchange('company')
-    def _onchange_company(self):
-        if not self.company:
-            return
-        self.system_id = self.company.system_id
 
-    @api.onchange('system_id')
-    def _onchange_system(self):
-        if self.system_id != self.company.system_id:
-            self.position_id = self.company = False
-        if self.system_id:
-            if not self.env.user.company:
-                func = self.env['hrm.utils']
-                list_id = func._system_have_child_company(self.system_id.id)
-                return {'domain': {'company': [('id', 'in', list_id)]}}
-            else:
-                self.company = False
-                return {'domain': {'company': self.get_child_company()}}
+    job_id = fields.Many2one('hr.job', string='Vị trí công việc', domain=_default_job_department)
 
     @api.onchange('document_list')
     def set_sequence(self):
@@ -136,65 +88,44 @@ class DocumentListConfig(models.Model):
             else:
                 seen.add(item)
 
-    @api.constrains('name', 'block_id', 'department_id', 'position_id', 'system_id', 'company')
+    @api.constrains('name', 'job_id')
     def check_duplicate_document_config(self):
         """hàm này để kiểm tra trùng lặp cấu hình danh sách tài liệu cho các đối tượng được áp dụng"""
-        def check_exist_object(department_id=False, position_id=False, system_id=False, company=False):
-            check = self.search([('block_id', '=', self.block_id.id), ('id', 'not in', [self.id, False]),
-                                 ('department_id', '=', department_id), ('position_id', '=', position_id),
-                                 ('system_id', '=', system_id), ('company', '=', company)])
+        def check_exist_object(position_id=False):
+            check = self.search([('type_block', '=', self.type_block), ('id', 'not in', [self.id, False]),('job_id', '=', position_id)])
             return check.ids
 
-        if self.position_id and check_exist_object(position_id=self.position_id.id, department_id=self.department_id.id,
-                                                   system_id=self.system_id.id, company=self.company.id):
-            raise ValidationError(f"Đã có cấu hình danh sách tài liệu cho vị trí {self.position_id.work_position}")
-        elif not self.position_id and self.department_id and check_exist_object(department_id=self.department_id.id):
-            raise ValidationError(f"Đã có cấu hình danh sách tài liệu cho phòng ban {self.department_id.name}")
-        elif self.company and check_exist_object(company=self.company.id, system_id=self.system_id.id):
-            raise ValidationError(f"Đã có cấu hình danh sách tài liệu cho công ty {self.company.name}")
-        elif not self.company and self.system_id and check_exist_object(system_id=self.system_id.id):
-            raise ValidationError(f"Đã có cấu hình danh sách tài liệu cho hệ thống {self.system_id.name}")
-        elif not self.system_id and not self.department_id and check_exist_object():
-            raise ValidationError(f"Đã có cấu hình danh sách tài liệu cho khối {self.block_id.name}")
+        if self.job_id and check_exist_object(position_id=self.job_id.id):
+            raise ValidationError(f"Đã có cấu hình danh sách tài liệu cho vị trí {self.job_id.name}")
 
-    def unlink(self):
-        for record in self:
-            document = self.env['hrm.employee.profile'].sudo().search([('document_config', '=', record.id)])
-            if document:
-                raise AccessDenied("Không thể xoá " + record.name)
-        return super(DocumentListConfig, self).unlink()
+    # def unlink(self):
+    #     for record in self:
+    #         document = self.env['hr.employee'].sudo().search([('document_config', '=', record.id)])
+    #         if document:
+    #             raise AccessDenied("Không thể xoá " + record.name)
+    #     return super(DocumentListConfig, self).unlink()
 
-    @api.constrains('name', 'block_id', 'system_id', 'department_id', 'company', 'document_list')
-    def check_access_config_hrm(self):
-        """Kiểm tra lại quyền khi lưu"""
-        user = self.env.user
-        # Khối đang cấu hình khác full và khác với khối trên bản ghi
-        if user.block_id != 'full' and user.block_id != self.block_id.name:
-            raise AccessDenied("Bạn không có quyền thao tác trên khối đang chọn!")
-        else:
-            # func là gọi từ hrm.utils để sử dụng lại hàm
-            # Sử dụng get_child_id() là để lấy tất cả các phần tử là con của đối tượng được cấu hình
-            func = self.env['hrm.utils']
-            # Nếu người dùng được cấu hình công ty
-            if self.env.user.company:
-                list_child_company = func.get_child_id(self.env.user.company, 'hrm_companies', "parent_company")
-                if self.company.id not in list_child_company:
-                    raise AccessDenied("Bạn không có quyền thao tác hoặc công ty đang chọn chưa cấu hình quyền cho bạn!")
-            # Nếu người dùng được cấu hình hệ thống (không có cấu hình công ty)
-            if self.env.user.system_id and not self.env.user.company:
-                list_child_system = self.env['hrm.utils'].get_child_id(self.env.user.system_id, 'hrm_systems',
-                                                                       "parent_system")
-                if self.system_id.id not in list_child_system:
-                    raise AccessDenied(
-                        "Bạn không có quyền thao tác hoặc hệ thống đang chọn chưa cấu hình quyền cho bạn!")
-            # Nếu người dùng được cấu hình phòng ban
-            if self.env.user.department_id:
-                list_department = func.get_child_id(self.env.user.department_id, 'hrm_departments',
-                                                    'superior_department')
-                if self.department_id and self.department_id.id not in list_department:
-                    raise AccessDenied(
-                        "Bạn không có quyền thao tác hoặc phòng ban đang chọn chưa cấu hình quyền cho bạn!")
-
+    @api.constrains('name', 'type_block', 'department_id')
+    def check_permission(self):
+        if self.env.user.block_id == 'BLOCK_OFFICE_NAME':
+            if self.env.user.department_id.ids:
+                list_department_in_check = self.env['hr.department'].search(
+                    [('id', 'child_of', self.env.user.department_id.ids)])
+                for depart in self.department_id:
+                    if depart.id not in list_department_in_check.ids:
+                        raise AccessDenied(f"Bạn không có quyền cấu hình cho {depart.name}")
+        if self.env.user.block_id == 'BLOCK_COMMERCE_NAME':
+            if self.env.user.department_id.ids:
+                list_sys_company = self.env['hr.department'].search(
+                    [('id', 'child_of', self.env.user.department_id.ids)])
+                for depart in self.department_id:
+                    if depart.id not in list_sys_company.ids:
+                        raise AccessDenied(f"Bạn không có quyền cấu hình cho {depart.name}")
+        if self.type_block != self.env.user.block_id and self.env.user.block_id != 'full':
+            if self.type_block == 'BLOCK_COMMERCE_NAME':
+                raise AccessDenied(f'Bạn không có quyền cấu hình khối Thương mại!')
+            else:
+                raise AccessDenied(f'Bạn không có quyền cấu hình khối Văn Phòng!')
     @api.constrains('document_list')
     def check_approval_flow_link(self):
         """Kiểm tra xem danh sách tài liệu có phần tử nào chưa, và ít nhất phải có 1 tài liệu tích bắt buộc"""
@@ -236,6 +167,7 @@ class DocumentList(models.Model):
     _name = 'hrm.document.list'
     _description = 'Danh sách tài liệu'
 
+
     document_id = fields.Many2one('hrm.document.list.config')
     new_id = fields.Many2one('hrm.document.list.config')
     not_approved_and_new_id = fields.Many2one('hrm.document.list.config')
@@ -244,3 +176,6 @@ class DocumentList(models.Model):
     doc = fields.Many2one('hr.documents', string='Tên tài liệu')
     name = fields.Char(related='doc.name')
     obligatory = fields.Boolean(string='Bắt buộc')
+
+
+

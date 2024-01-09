@@ -12,10 +12,16 @@
                 sequence="1"/>
         <menuitem
                 id="create_department"
-                name="Cấu hình công ty"
+                name="Cấu hình doanh nghiệp"
                 parent="config_office"
                 action="departments_action"
                 sequence="10"/>
+        <menuitem
+                id="create_teams"
+                name="Cấu hình đội ngũ"
+                parent="config_office"
+                action="teams_action"
+                sequence="15"/>
         <menuitem
                 id="create_job"
                 name="Cấu hình vị trí công việc"
@@ -27,6 +33,11 @@
                   parent="config_office"
                   sequence="110"
                   action="document_action"/>
+        <menuitem id="document_list"
+                  name="Danh sách tài liệu"
+                  parent="config_office"
+                  sequence="120"
+                  action="document_list_action"/>
         <menuitem
                 id="employee"
                 name="Nhân sự"
@@ -44,6 +55,12 @@
                 parent="employee"
                 sequence="11"
                 action="approval_action"/>
+        <menuitem
+                id="document_declaration"
+                name="Khai báo tài liệu"
+                parent="employee"
+                sequence="12"
+                action="document_declaration_action"/>
         <menuitem
                 id="flow_config"
                 name="Cấu hình luồng phê duyệt"
