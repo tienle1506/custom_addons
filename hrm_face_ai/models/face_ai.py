@@ -230,7 +230,7 @@ class EmployeeProfile(models.Model):
                     profile = None
 
                     # Nếu độ sai khác < 25% thì lấy profile
-                    if dist <= 70:
+                    if dist <= 40:
                         profile = self.getProfile(id)
 
                     # Hiển thị thông tin tên người hoặc Unknown nếu không tìm thấy

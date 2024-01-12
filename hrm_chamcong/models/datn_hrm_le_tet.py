@@ -263,7 +263,7 @@ class DATNHrmLeTet(models.Model):
                 worksheet.write(5 + stt, 4, '', style_1_left)
                 worksheet.write(5 + stt, 5, '', style_1_left)
 
-            namefile = 'Mau_import_mon_hoc'
+            namefile = 'Mau_import_le_tet'
             # Encode to file
             workbook.close()
             buf.seek(0)

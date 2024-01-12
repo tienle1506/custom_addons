@@ -233,24 +233,36 @@ class DATNHrCheckInCheckOut(models.Model):
             worksheet_object.write(0, 0, 'STT', style_1)
             worksheet_object.write(0, 1, 'Mã nhân viên', style_1)
             worksheet_object.write(0, 2, 'Tên nhân viên', style_1)
-            for item in employees:
-                lst_employees.append(item['employee_code'])
-                worksheet_object.write(i, 0, i, style_1)
-                worksheet_object.write(i, 1, item['employee_code'], style_1_left)
-                worksheet_object.write(i, 2, item['name'], style_1_left)
-                i = i + 1
+            if employees:
+                for item in employees:
+                    lst_employees.append(item['employee_code'])
+                    worksheet_object.write(i, 0, i, style_1)
+                    worksheet_object.write(i, 1, item['employee_code'], style_1_left)
+                    worksheet_object.write(i, 2, item['name'], style_1_left)
+                    i = i + 1
 
             worksheet.data_validation('B6:B50', {'validate': 'list', 'source': lst_employees})
             stt = 0
-            for item in employees:
-                stt += 1
-                worksheet.write(5 + stt, 0, stt, style_1_left)
-                worksheet.write(5 + stt, 1, item['employee_code'], style_1_left)
-                worksheet.write(5 + stt, 2, item['name'], style_1_left)
-                worksheet.write(5 + stt, 3, '', style_1_left)
-                worksheet.write(5 + stt, 4, '', style_1_left)
-                worksheet.write(5 + stt, 5, '', style_1_left)
-            namefile = 'Mau_import_mon_hoc'
+            if self.item_ids:
+                for emp in self.item_ids:
+                    stt += 1
+                    worksheet.write(5 + stt, 0, stt, style_1_left)
+                    worksheet.write(5 + stt, 1, emp.employee_id.employee_code, style_1_left)
+                    worksheet.write(5 + stt, 2, emp.employee_id.name, style_1_left)
+                    worksheet.write(5 + stt, 3, str(emp.checkin.strftime("%d-%m-%Y %H:%M:%S")) if emp.checkin else '', style_1_left)
+                    worksheet.write(5 + stt, 4, str(emp.checkout.strftime("%d-%m-%Y %H:%M:%S")) if emp.checkout else '', style_1_left)
+                    worksheet.write(5 + stt, 5, emp.note, style_1_left)
+            else:
+                if employees:
+                    for item in employees:
+                        stt += 1
+                        worksheet.write(5 + stt, 0, stt, style_1_left)
+                        worksheet.write(5 + stt, 1, item['employee_code'], style_1_left)
+                        worksheet.write(5 + stt, 2, item['name'], style_1_left)
+                        worksheet.write(5 + stt, 3, '', style_1_left)
+                        worksheet.write(5 + stt, 4, '', style_1_left)
+                        worksheet.write(5 + stt, 5, '', style_1_left)
+            namefile = 'Mau_import_checkin_checkout'
             # Encode to file
             workbook.close()
             buf.seek(0)
@@ -315,7 +327,7 @@ class DATNHrCheckInCheckOutLine(models.Model):
     color = fields.Integer(string='Màu', compute='_compute_date', store=True, default=16711680)
 
     _sql_constraints = [
-        ('unique_employee_day', 'unique(employee_id, day)', u'Nhân viên ững với mõi ngày chỉ có 1 bản ghi chấm công')
+        ('unique_employee_day', 'unique(employee_id, day)', u'Nhân viên ứng với mỗi ngày chỉ có 1 bản ghi chấm công')
     ]
 
     @api.depends('checkin', 'checkout')

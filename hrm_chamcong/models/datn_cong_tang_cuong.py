@@ -223,7 +223,7 @@ class DATNCongTangCuong(models.Model):
                 worksheet.write(5 + stt, 2, item['name'], style_1_left)
                 worksheet.write(5 + stt, 3, 0, style_1_left)
                 worksheet.write(5 + stt, 4, '', style_1_left)
-            namefile = 'Mau_import_mon_hoc'
+            namefile = 'Mau_import_cong_tang_cuong'
             # Encode to file
             workbook.close()
             buf.seek(0)
